@@ -4,6 +4,14 @@
     "slug": "tourmate",
     "version": "1.0.0",
     "orientation": "portrait",
+<<<<<<< HEAD
+    "icon": "./assets/images/seoul_tower.png",
+    "scheme": "myapp",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.lehiewl.tourmate"
+=======
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
@@ -14,11 +22,31 @@
     },
     "ios": {
       "supportsTablet": true
+>>>>>>> main
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
+<<<<<<< HEAD
+      },
+      "web": {
+        "bundler": "metro",
+        "output": "static",
+        "favicon": "./assets/images/favicon.png"
+      },
+      "plugins": [
+        "expo-router"
+      ],
+      "experiments": {
+        "typedRoutes": true
+      }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "96d12d73-2170-4263-b8ff-e93b3257923c"
+      }
+=======
       }
     },
     "web": {
@@ -31,6 +59,7 @@
     ],
     "experiments": {
       "typedRoutes": true
+>>>>>>> main
     }
   }
 }
