@@ -86,7 +86,7 @@ const MyPageScreen = ({ route }: Props) => {
                 <View style={styles.circle} />
               </View>
               <View style={styles.menuContainer}>
-                <TouchableOpacity onPress={() => router.push('(tabs)/my-page/password-change')}>
+                <TouchableOpacity onPress={() => router.push('(tabs)/my-page/passwordChange')}>
                   <Text style={styles.menu}>{changePasswordText}</Text>
                 </TouchableOpacity>
                 <View style={styles.dottedLineContainer}>

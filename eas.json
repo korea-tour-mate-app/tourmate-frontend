@@ -12,16 +12,10 @@
     },
     "production": {
       "ios": {
-        "distribution": "store",
-        "env": {
-          "GOOGLE_MAPS_API_KEY": "AIzaSyAfHAHrNyJ-UNnEIVgefwcRqBaW79NVYcw"
-        }
+        "distribution": "store"
       },
       "android": {
-        "buildType": "apk",
-        "env": {
-          "GOOGLE_MAPS_API_KEY": "AIzaSyAfHAHrNyJ-UNnEIVgefwcRqBaW79NVYcw"
-        }
+        "buildType": "apk"
       }
     }
   },
