@@ -5,7 +5,6 @@ import * as Font from 'expo-font';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { HelloWave } from '@/components/HelloWave';
 import { LanguageProvider } from '@/components/LanguageProvider';
-import LoginScreen from './(tabs)/user/login';
 import SplashScreen from './(tabs)/splash';
 import { useFonts } from 'expo-font';
 
