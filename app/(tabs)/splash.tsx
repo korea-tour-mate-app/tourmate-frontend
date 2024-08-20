@@ -3,7 +3,7 @@ import { View, Image, StyleSheet, Text, TextInput, TouchableOpacity, Animated } 
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { Stack, useRouter } from 'expo-router';
-import { RootStackParamList } from '@/app/(tabs)/navigation/navigationTypes'; // 경로를 실제 파일 위치에 맞게 수정하세요
+import { RootStackParamList } from '@/app/(tabs)/navigation/navigationTypes';
 import { ImageSourcePropType } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
 
