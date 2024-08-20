@@ -74,6 +74,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: 'AggroL',
     marginTop: 50,
+    marginBottom: 20,
   },
   input: {
     height: 45,

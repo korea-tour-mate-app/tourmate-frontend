@@ -36,12 +36,14 @@ const MyPageScreen = ({ route }: Props) => {
         const changeHi = await translateText('안녕하세요,', globalLanguage);
         const changePassword = await translateText('비밀번호 변경', globalLanguage);
         const myReviews = await translateText('내 리뷰', globalLanguage);
+        const myPlaces = await translateText('내가 가본 장소', globalLanguage);
         const languageSettings = await translateText('언어 설정', globalLanguage);
         const logout = await translateText('로그아웃', globalLanguage);
         
         setChangeHi(changeHi);
         setChangePasswordText(changePassword);
         setMyReviewsText(myReviews);
+        setMyPlacesText(myPlaces);
         setLanguageSettingsText(languageSettings);
         setLogoutText(logout);
       } catch (error) {
@@ -55,6 +57,7 @@ const MyPageScreen = ({ route }: Props) => {
   const [changeHi,setChangeHi] = useState<string>('안녕하세요,');
   const [changePasswordText, setChangePasswordText] = useState<string>('비밀번호 변경');
   const [myReviewsText, setMyReviewsText] = useState<string>('내 리뷰');
+  const [myPlacesText, setMyPlacesText] = useState<string>('내가 가본 장소');
   const [languageSettingsText, setLanguageSettingsText] = useState<string>('언어 설정');
   const [logoutText, setLogoutText] = useState<string>('로그아웃');
 
@@ -86,6 +89,7 @@ const MyPageScreen = ({ route }: Props) => {
                 <View style={styles.circle} />
               </View>
               <View style={styles.menuContainer}>
+
                 <TouchableOpacity onPress={() => router.push('(tabs)/my-page/passwordChange')}>
                   <Text style={styles.menu}>{changePasswordText}</Text>
                 </TouchableOpacity>
@@ -102,6 +106,7 @@ const MyPageScreen = ({ route }: Props) => {
                     />
                   </Svg>
                 </View>
+
                 <TouchableOpacity>
                   <Text style={styles.menu}>{myReviewsText}</Text>
                 </TouchableOpacity>
@@ -118,6 +123,24 @@ const MyPageScreen = ({ route }: Props) => {
                     />
                   </Svg>
                 </View>
+
+                <TouchableOpacity>
+                  <Text style={styles.menu}>{myPlacesText}</Text>
+                </TouchableOpacity>
+                <View style={styles.dottedLineContainer}>
+                  <Svg height="2" width="75%">
+                    <Line
+                      x1="0"
+                      y1="1"
+                      x2="100%"
+                      y2="1"
+                      stroke="black"
+                      strokeWidth="2"
+                      strokeDasharray="5,2" // 점선 스타일
+                    />
+                  </Svg>
+                </View>
+
                 <TouchableOpacity onPress={() => router.push('(tabs)/my-page/language')}>
                   <Text style={styles.menu}>{languageSettingsText}</Text>
                 </TouchableOpacity>
@@ -218,7 +241,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: 'AggroL',
     marginLeft: 40,
-    marginTop: 50,
+    marginTop: 35,
   },
   dottedLineContainer: {
     width: '100%',
