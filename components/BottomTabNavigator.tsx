@@ -3,7 +3,7 @@ import { Image, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import FavoritesScreen from '@/app/(tabs)/favorites-page/favorites';
 import ThemeScreen from '@/app/(tabs)/theme-page/theme';
-import RecommendScreen from '@/app/recommend-page/recommend';
+import RecommendScreen from '@/app/(tabs)/recommend-page/recommend';
 import LuggageScreen from '@/app/(tabs)/luggage-page/luggage';
 import MyPageScreen from '@/app/(tabs)/my-page/mypage';
 import { LanguageProvider } from '@/components/LanguageProvider';
@@ -42,8 +42,8 @@ const BottomTabNavigator = () => {
               <Image
                 source={
                   focused
-                    ? require('@/assets/images/favorites-active.png')
-                    : require('@/assets/images/favorites.png')
+                    ? require('@/assets/images/bottomNavigationBar/favorites-active.png')
+                    : require('@/assets/images/bottomNavigationBar/favorites.png')
                 }
                 style={styles.icon1}
                 resizeMode='contain'
@@ -59,8 +59,8 @@ const BottomTabNavigator = () => {
               <Image
                 source={
                   focused
-                    ? require('@/assets/images/theme-active.png')
-                    : require('@/assets/images/theme.png')
+                    ? require('@/assets/images/bottomNavigationBar/theme-active.png')
+                    : require('@/assets/images/bottomNavigationBar/theme.png')
                 }
                 style={styles.icon2}
                 resizeMode='contain'
@@ -76,8 +76,8 @@ const BottomTabNavigator = () => {
               <Image
                 source={
                   focused
-                    ? require('@/assets/images/recommend-active.png')
-                    : require('@/assets/images/recommend.png')
+                    ? require('@/assets/images/bottomNavigationBar/recommend-active.png')
+                    : require('@/assets/images/bottomNavigationBar/recommend.png')
                 }
                 style={styles.icon3}
                 resizeMode='contain'
@@ -93,8 +93,8 @@ const BottomTabNavigator = () => {
               <Image
                 source={
                   focused
-                    ? require('@/assets/images/luggage-active.png')
-                    : require('@/assets/images/luggage.png')
+                    ? require('@/assets/images/bottomNavigationBar/baggage-active.png')
+                    : require('@/assets/images/bottomNavigationBar/baggage.png')
                 }
                 style={styles.icon4}
                 resizeMode='contain'
@@ -110,8 +110,8 @@ const BottomTabNavigator = () => {
               <Image
                 source={
                   focused
-                    ? require('@/assets/images/my-page-active.png')
-                    : require('@/assets/images/my-page.png')
+                    ? require('@/assets/images/bottomNavigationBar/my-page-active.png')
+                    : require('@/assets/images/bottomNavigationBar/my-page.png')
                 }
                 style={styles.icon5}
                 resizeMode='contain'
@@ -141,6 +141,7 @@ const styles = StyleSheet.create({
   icon4: {
     width: 80,  
     height: 50, 
+    marginLeft:10,
   },
   icon5: {
     width: 80,  
