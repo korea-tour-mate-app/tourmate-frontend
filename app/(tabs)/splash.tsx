@@ -10,11 +10,11 @@ import Svg, { Line } from 'react-native-svg';
 type SplashScreenNavigationProp = StackNavigationProp<RootStackParamList, 'splash'>;
 
 const splashScreens: ImageSourcePropType[] = [
-  require('@/assets/images/splash1.png'),
-  require('@/assets/images/splash2.png'),
-  require('@/assets/images/splash3.png'),
-  require('@/assets/images/splash4.png'),
-  require('@/assets/images/splash5.png'),
+  require('@/assets/images/splash/splash1.png'),
+  require('@/assets/images/splash/splash2.png'),
+  require('@/assets/images/splash/splash3.png'),
+  require('@/assets/images/splash/splash4.png'),
+  require('@/assets/images/splash/splash5.png'),
 ];
 
 const SplashScreen: React.FC = () => {

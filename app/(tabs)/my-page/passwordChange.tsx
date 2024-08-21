@@ -6,6 +6,7 @@ import Svg, { Line } from 'react-native-svg';
 import { useLanguage } from '@/components/LanguageProvider';
 import { translateText } from '@/utils/translation';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
+
 import { RootTabParamList } from '@/components/BottomTabNavigator';
 
 const PasswordChangeScreen: React.FC = () => {

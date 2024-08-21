@@ -56,6 +56,10 @@ export default function RootLayout() {
             options={{ headerShown: false }} 
           />
           <Stack.Screen
+            name="(tabs)/theme-page/day"
+            options={{ headerShown: false }} 
+          />
+          <Stack.Screen
             name="(tabs)/luggage-page/luggage"
             options={{ headerShown: false }} 
           />
