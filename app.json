@@ -8,14 +8,12 @@
     "scheme": "myapp",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.lehiewl.tourmate"
+      "bundleIdentifier": "com.tourmate.tourmate",
+      "supportsTablet": true
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
+      "package": "com.tourmate.tourmate"
+    },
       "web": {
         "bundler": "metro",
         "output": "static",

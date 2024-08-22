@@ -60,6 +60,14 @@ export default function RootLayout() {
             options={{ headerShown: false }} 
           />
           <Stack.Screen
+            name="(tabs)/theme-page/withWho"
+            options={{ headerShown: false }} 
+          />
+          <Stack.Screen
+            name="(tabs)/theme-page/budget"
+            options={{ headerShown: false }} 
+          />
+          <Stack.Screen
             name="(tabs)/luggage-page/luggage"
             options={{ headerShown: false }} 
           />

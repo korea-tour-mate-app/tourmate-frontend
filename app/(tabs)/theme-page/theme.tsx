@@ -226,7 +226,7 @@ const ThemeScreen: React.FC = () => {
 
   // 다음 버튼 클릭 시 dayScreen으로 이동하는 함수
   const handleNext = () => {
-    navigation.navigate('(tabs)/theme/day');
+    navigation.navigate('(tabs)/theme-page/day');
   };  
 
   // FlatList의 렌더링 아이템을 위한 함수

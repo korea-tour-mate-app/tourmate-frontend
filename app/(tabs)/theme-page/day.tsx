@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
 import { Stack } from 'expo-router';
-import { Calendar, CalendarList, Agenda } from 'react-native-calendars';
+import { Calendar } from 'react-native-calendars';
 import { useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
+import { RouteProp } from '@react-navigation/native';
+import { RootTabParamList } from '@/components/BottomTabNavigator';
+
 
 const DayScreen = () => {
+  const navigation = useNavigation();
   const router = useRouter();
 
   const [startDate, setStartDate] = useState<string | null>(null);
@@ -14,9 +19,15 @@ const DayScreen = () => {
     if (!startDate) {
       setStartDate(day.dateString);
     } else if (!endDate) {
-      setEndDate(day.dateString);
+      if (new Date(day.dateString) < new Date(startDate)) {
+        // 오는 날이 가는 날보다 이전인 경우, 그 날짜를 가는 날로 설정
+        setStartDate(day.dateString);
+        setEndDate(null);
+      } else {
+        setEndDate(day.dateString);
+      }
     } else {
-      // 날짜 리셋 
+      // 날짜 리셋
       setStartDate(day.dateString);
       setEndDate(null);
     }
@@ -24,8 +35,14 @@ const DayScreen = () => {
 
   const handleConfirm = () => {
     if (startDate && endDate) {
-
+      navigation.navigate('(tabs)/theme-page/withWho');
     }
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return `${date.getMonth() + 1}월 ${date.getDate()}일`;
   };
 
   return (
@@ -33,9 +50,9 @@ const DayScreen = () => {
       <Stack.Screen options={{ headerShown: false }} />
 
       <View style={styles.container}>
-      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-        <Image source={require('@/assets/images/back-button.png')} style={styles.backButton} />
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <Image source={require('@/assets/images/back-button.png')} style={styles.backButton} />
+        </TouchableOpacity>
         <Text style={styles.question}>Q2.</Text>
         <Text style={styles.title}>언제 가시나요?</Text>
         <Calendar
@@ -46,9 +63,15 @@ const DayScreen = () => {
           }}
           style={styles.calendar}
         />
-        <View style={styles.selectedDates}>
-          <Text style={styles.dateText}>가는 날: {startDate || ''}</Text>
-          <Text style={styles.dateText}>오는 날: {endDate || ''}</Text>
+        <View style={styles.selectedDatesRow}>
+          <View style={styles.dateContainer}>
+            <Text style={styles.dateLabel}>가는 날</Text>
+            <Text style={styles.dateText}>{formatDate(startDate)}</Text>
+          </View>
+          <View style={styles.dateContainer}>
+            <Text style={styles.dateLabel}>오는 날</Text>
+            <Text style={styles.dateText}>{formatDate(endDate)}</Text>
+          </View>
         </View>
         <TouchableOpacity style={styles.button} onPress={handleConfirm}>
           <Text style={styles.buttonText}>다음</Text>
@@ -67,7 +90,7 @@ const styles = StyleSheet.create({
   backButton: {
     marginBottom: 10,
   },
-  question:{
+  question: {
     fontFamily: 'AggroM',
     fontSize: 24,
   },
@@ -77,10 +100,22 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   calendar: {
+    marginBottom: 50,
+  },
+  selectedDatesRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 20,
   },
-  selectedDates: {
-    marginBottom: 20,
+  dateContainer: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    flex: 1,
+  },
+  dateLabel: {
+    fontFamily: 'AggroL',
+    fontSize: 24,
+    marginBottom: 10,
   },
   dateText: {
     fontFamily: 'AggroL',
@@ -91,6 +126,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
+    marginTop: 20,
   },
   buttonText: {
     fontFamily: 'AggroL',
