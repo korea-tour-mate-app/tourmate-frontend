@@ -6,6 +6,7 @@ import Svg, { Line } from 'react-native-svg';
 import { useLanguage } from '@/components/LanguageProvider';
 import { translateText } from '@/utils/translation';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
+
 import { RootTabParamList } from '@/components/BottomTabNavigator';
 
 const PasswordChangeScreen: React.FC = () => {
@@ -74,6 +75,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: 'AggroL',
     marginTop: 50,
+    marginBottom: 20,
   },
   input: {
     height: 45,

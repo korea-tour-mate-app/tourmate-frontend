@@ -8,25 +8,22 @@
     "scheme": "myapp",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.lehiewl.tourmate"
+      "bundleIdentifier": "com.tourmate.tourmate",
+      "supportsTablet": true
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "web": {
-        "bundler": "metro",
-        "output": "static",
-        "favicon": "./assets/images/favicon.png"
-      },
-      "plugins": [
-        "expo-router"
-      ],
-      "experiments": {
-        "typedRoutes": true
-      }
+      "package": "com.tourmate.tourmate"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": true
     },
     "extra": {
       "eas": {
