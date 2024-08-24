@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     width: '100%',
     position: 'absolute', // 절대 위치 설정
-    bottom: 50, // 하단에서 20px 위로 위치
+    bottom: 50, // 하단에서 50px 위로 위치
     left: 20,  // 좌우 padding을 고려해서 left와 right도 설정
   },
   nextText: {

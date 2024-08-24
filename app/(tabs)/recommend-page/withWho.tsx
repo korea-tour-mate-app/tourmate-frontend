@@ -121,9 +121,23 @@ const WithWhoScreen = () => {
 
         <Text style={styles.caption}>*사진출처 Microsoft Fluent Emoji – Color</Text>
 
-          <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-            <Text style={styles.nextText}>다음</Text>
-          </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.nextButton,
+            { backgroundColor: selectedOption ? '#0047A0' : '#E1E1E1' 
+        
+            }
+          ]}
+          onPress={handleNext}
+          disabled={!selectedOption}  // 선택된 옵션이 없으면 비활성화
+        >
+          <Text style={[
+            styles.nextText,
+            { color: selectedOption ? 'white' : '#C0C0C0' } // 선택된 옵션이 없으면 텍스트 색상을 회색으로 변경
+          ]}>
+            다음
+          </Text>
+        </TouchableOpacity>
         
       </View>
     </>
@@ -151,7 +165,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     marginTop: 20,
-
   },
   card: {
     width: '47%',
@@ -180,20 +193,18 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   nextButton: {
-    backgroundColor: '#0047A0',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 20,
     width: '100%',
     position: 'absolute', // 절대 위치 설정
-    bottom: 50, // 하단에서 20px 위로 위치
+    bottom: 50, // 하단에서 50px 위로 위치
     left: 20,  // 좌우 padding을 고려해서 left와 right도 설정
   },
   nextText: {
     fontFamily: 'AggroL',
     fontSize: 18,
-    color: 'white',
   },
   caption: {
     textAlign: 'left', // 왼쪽 정렬
