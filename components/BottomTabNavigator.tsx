@@ -1,18 +1,16 @@
 import React from 'react';
 import { Image, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import FavoritesScreen from '@/app/(tabs)/favorites-page/favorites';
 import ThemeScreen from '@/app/(tabs)/theme-page/theme';
 import RecommendScreen from '@/app/(tabs)/recommend-page/recommend';
-import LuggageScreen from '@/app/(tabs)/luggage-page/luggage';
+import BaggageScreen from '@/app/(tabs)/baggage-page/baggage';
 import MyPageScreen from '@/app/(tabs)/my-page/mypage';
 import { LanguageProvider } from '@/components/LanguageProvider';
 
 export type RootTabParamList = {
-  Favorites: undefined;
   Theme: undefined;
   Recommend: undefined;
-  Luggage: undefined;
+  Baggage: undefined;
   MyPage: { language: string };
 };
 
@@ -35,23 +33,6 @@ const BottomTabNavigator = () => {
         }}
       >
         <Tab.Screen
-          name="Favorites"
-          component={FavoritesScreen}
-          options={{
-            tabBarIcon: ({ focused }) => (
-              <Image
-                source={
-                  focused
-                    ? require('@/assets/images/bottomNavigationBar/favorites-active.png')
-                    : require('@/assets/images/bottomNavigationBar/favorites.png')
-                }
-                style={styles.icon1}
-                resizeMode='contain'
-              />
-            ),
-          }}
-        />
-        <Tab.Screen
           name="Theme"
           component={ThemeScreen}
           options={{
@@ -62,7 +43,7 @@ const BottomTabNavigator = () => {
                     ? require('@/assets/images/bottomNavigationBar/theme-active.png')
                     : require('@/assets/images/bottomNavigationBar/theme.png')
                 }
-                style={styles.icon2}
+                style={styles.icon1}
                 resizeMode='contain'
               />
             ),
@@ -79,15 +60,15 @@ const BottomTabNavigator = () => {
                     ? require('@/assets/images/bottomNavigationBar/recommend-active.png')
                     : require('@/assets/images/bottomNavigationBar/recommend.png')
                 }
-                style={styles.icon3}
+                style={styles.icon2}
                 resizeMode='contain'
               />
             ),
           }}
         />
         <Tab.Screen
-          name="Luggage"
-          component={LuggageScreen}
+          name="Baggage"
+          component={BaggageScreen}
           options={{
             tabBarIcon: ({ focused }) => (
               <Image
@@ -96,7 +77,7 @@ const BottomTabNavigator = () => {
                     ? require('@/assets/images/bottomNavigationBar/baggage-active.png')
                     : require('@/assets/images/bottomNavigationBar/baggage.png')
                 }
-                style={styles.icon4}
+                style={styles.icon3}
                 resizeMode='contain'
               />
             ),
@@ -113,7 +94,7 @@ const BottomTabNavigator = () => {
                     ? require('@/assets/images/bottomNavigationBar/my-page-active.png')
                     : require('@/assets/images/bottomNavigationBar/my-page.png')
                 }
-                style={styles.icon5}
+                style={styles.icon4}
                 resizeMode='contain'
               />
             ),
@@ -126,24 +107,20 @@ const BottomTabNavigator = () => {
 
 const styles = StyleSheet.create({
   icon1: {
-    width: 70, 
-    height: 45, 
-  },
-  icon2: {
     width: 70,  
     height: 50, 
     marginBottom: 6,
   },
-  icon3: {
+  icon2: {
     width: 80,  
     height: 50, 
   },
-  icon4: {
+  icon3: {
     width: 80,  
     height: 50, 
     marginLeft:10,
   },
-  icon5: {
+  icon4: {
     width: 80,  
     height: 50, 
   },
