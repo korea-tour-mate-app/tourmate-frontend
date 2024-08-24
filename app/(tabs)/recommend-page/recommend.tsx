@@ -339,10 +339,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   nextButton:{
-    width: 200,
+    width: '100%',
     height: 50,
     backgroundColor: '#0047A0',
-    borderRadius: 50,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
   },
