@@ -29,6 +29,7 @@ type Props = {
 const RecommendScreen: React.FC = () => {
   const navigation = useNavigation();
   const { language: globalLanguage } = useLanguage();
+  const [selectedThemes, setSelectedThemes] = useState<string[]>([]);
 
   const [question, setQuestion] = useState<string>('서울에서 어떤 여행 테마를 원하나요?');
   const [content, setContent] = useState<string>('원하는 테마를 모두 골라주세요.');
@@ -222,6 +223,12 @@ const RecommendScreen: React.FC = () => {
         textColor: prevThemes[key].textColor === '#000000' ? '#ffffff' : '#000000',
       },
     }));
+  
+    if (selectedThemes.includes(key)) {
+      setSelectedThemes(selectedThemes.filter((theme) => theme !== key));
+    } else {
+      setSelectedThemes([...selectedThemes, key]);
+    }
   };
 
   // 다음 버튼 클릭 시 dayScreen으로 이동하는 함수
@@ -274,9 +281,22 @@ const RecommendScreen: React.FC = () => {
         contentContainerStyle={styles.flatListContent}
         ListFooterComponent={
           <View style={styles.nextContainer}>
-            <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-              <Text style={styles.nextText}>{next}</Text>
-            </TouchableOpacity>
+<TouchableOpacity
+  style={[
+    styles.nextButton,
+    { backgroundColor: selectedThemes.length > 0 ? '#0047A0' : '#D3D3D3' }
+  ]}
+  onPress={handleNext}
+  disabled={selectedThemes.length === 0}
+>
+  <Text style={[
+    styles.nextText,
+    { color: 'white' }
+  ]}>
+    {next}
+  </Text>
+</TouchableOpacity>
+
           </View>
         }
       />
