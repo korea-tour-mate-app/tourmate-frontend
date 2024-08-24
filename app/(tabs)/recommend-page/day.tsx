@@ -8,7 +8,6 @@ import { useNavigation } from '@react-navigation/native';
 import { RouteProp } from '@react-navigation/native';
 import { RootTabParamList } from '@/components/BottomTabNavigator';
 
-
 const DayScreen = () => {
   const navigation = useNavigation();
   const router = useRouter();
@@ -158,9 +157,13 @@ const DayScreen = () => {
             <Text style={styles.dateText}>{formatDate(endDate)}</Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
+        <TouchableOpacity 
+          style={[styles.nextButton, { backgroundColor: startDate && endDate ? '#0047A0' : '#D3D3D3' }]} 
+          onPress={handleNext}
+          disabled={!startDate || !endDate}  // 버튼을 비활성화 시킴
+        >
             <Text style={styles.nextText}>다음</Text>
-          </TouchableOpacity>
+        </TouchableOpacity>
       </View>
     </>
   );
@@ -212,7 +215,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   nextButton: {
-    backgroundColor: '#0047A0',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
@@ -239,7 +241,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold', 
     textDecorationLine: 'underline', // 밑줄 추가
   },
-  
 });
 
 export default DayScreen;
