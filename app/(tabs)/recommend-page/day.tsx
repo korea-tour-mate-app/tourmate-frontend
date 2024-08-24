@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
+import { eachDayOfInterval, format } from 'date-fns'; 
 import { Stack } from 'expo-router';
 import { Calendar } from 'react-native-calendars';
 import { useRouter } from 'expo-router';
@@ -19,11 +20,20 @@ const DayScreen = () => {
     if (!startDate) {
       setStartDate(day.dateString);
     } else if (!endDate) {
-      if (new Date(day.dateString) < new Date(startDate)) {
-        // 오는 날이 가는 날보다 이전인 경우, 그 날짜를 가는 날로 설정
+      const selectedDate = new Date(day.dateString);
+      const startDateObj = new Date(startDate);
+      const maxEndDate = new Date(startDateObj);
+      maxEndDate.setDate(startDateObj.getDate() + 2); // 가는 날로부터 3일 후의 날짜 계산
+  
+      if (selectedDate > maxEndDate) {
+        // 사용자가 3일 이상의 날짜를 선택하면
+        setEndDate(format(maxEndDate, 'yyyy-MM-dd')); // 오는 날을 최대 3일 후로 설정
+      } else if (selectedDate < startDateObj) {
+        // 선택한 날짜가 가는 날 이전인 경우
         setStartDate(day.dateString);
         setEndDate(null);
       } else {
+        // 사용자가 3일 이내의 날짜를 선택하면
         setEndDate(day.dateString);
       }
     } else {
@@ -31,8 +41,79 @@ const DayScreen = () => {
       setStartDate(day.dateString);
       setEndDate(null);
     }
-  };
+  };  
 
+  const getMarkedDates = () => {
+    let markedDates: { [key: string]: any } = {};
+  
+    if (startDate) {
+      markedDates[startDate] = {
+        customStyles: {
+          container: {
+            backgroundColor: '#4F8EF7',
+            borderTopLeftRadius: 15, // 왼쪽 상단 모서리를 둥글게
+            borderBottomLeftRadius: 15, // 왼쪽 하단 모서리를 둥글게
+            borderTopRightRadius: 15,
+            borderBottomRightRadius: 15,
+          },
+          text: {
+            color: 'white',
+            fontWeight: 'bold',
+          },
+        },
+        startingDay: true,
+        color: '#4F8EF7',
+        textColor: 'white',
+      };
+    }
+  
+    if (endDate) {
+      markedDates[endDate] = {
+        customStyles: {
+          container: {
+            backgroundColor: '#4F8EF7',
+            borderTopRightRadius: 15, // 오른쪽 상단 모서리를 둥글게
+            borderBottomRightRadius: 15, // 오른쪽 하단 모서리를 둥글게
+            borderTopLeftRadius: 15,
+            borderBottomLeftRadius: 15,
+          },
+          text: {
+            color: 'white',
+            fontWeight: 'bold',
+          },
+        },
+        endingDay: true,
+        color: '#4F8EF7',
+        textColor: 'white',
+      };
+  
+      // 가는 날과 오는 날 사이의 날짜들 처리
+      const datesInRange = eachDayOfInterval({
+        start: new Date(startDate!),
+        end: new Date(endDate!),
+      }).slice(1, -1);
+  
+      datesInRange.forEach((date) => {
+        const formattedDate = format(date, 'yyyy-MM-dd');
+        markedDates[formattedDate] = {
+          customStyles: {
+            container: {
+              backgroundColor: '#4F8EF7', // 중간 날짜들에 동일한 색상 적용
+              borderRadius: 0, // 모서리 둥글지 않게 설정
+            },
+            text: {
+              color: 'white',
+            },
+          },
+          color: '#4F8EF7',
+          textColor: 'white',
+        };
+      });
+    }
+  
+    return markedDates;
+  };
+  
   const handleConfirm = () => {
     if (startDate && endDate) {
       navigation.navigate('(tabs)/recommend-page/withWho');
@@ -55,13 +136,17 @@ const DayScreen = () => {
         </TouchableOpacity>
         <Text style={styles.question}>Q2.</Text>
         <Text style={styles.title}>언제 가시나요?</Text>
+        <Text style={styles.infoText}>
+          TourMate와 함께 하는 여정은 {''}
+          <Text style={styles.highlightedText}>최대 3일</Text>
+          까지 가능합니다.
+        </Text>
         <Calendar
           onDayPress={handleDayPress}
-          markedDates={{
-            [startDate || '']: { selected: true, startingDay: true, color: 'blue', textColor: 'white' },
-            [endDate || '']: { selected: true, endingDay: true, color: 'blue', textColor: 'white' },
-          }}
-          style={styles.calendar}
+          markedDates={getMarkedDates()} // 함수 호출로 대체
+          style={[styles.calendar, { borderRadius: 30, backgroundColor: 'transparent' }]} // 배경색을 투명하게 설정
+          markingType={'period'} 
+
         />
         <View style={styles.selectedDatesRow}>
           <View style={styles.dateContainer}>
@@ -91,10 +176,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   question: {
+    paddingLeft: 10,
+    paddingBottom: 2,
     fontFamily: 'AggroM',
     fontSize: 24,
   },
   title: {
+    paddingLeft: 10,
     fontFamily: 'AggroM',
     fontSize: 24,
     marginBottom: 20,
@@ -106,6 +194,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 20,
+    height: 50,  // 고정된 높이를 지정하여 레이아웃 변경 방지
   },
   dateContainer: {
     flexDirection: 'column',
@@ -133,6 +222,19 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: 'white',
   },
+  infoText: {
+    fontSize: 13.5,
+    color: 'black',
+    marginBottom: 20,
+    textAlign: 'center',
+    fontFamily: 'AggroL',
+  },
+  highlightedText: {
+    color: '#0047A0',
+    fontWeight: 'bold', 
+    textDecorationLine: 'underline', // 밑줄 추가
+  },
+  
 });
 
 export default DayScreen;
