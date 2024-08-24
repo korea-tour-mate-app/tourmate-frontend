@@ -1,347 +1,344 @@
-import React, { useEffect, useState } from 'react';
-import { ScrollView, FlatList, Image, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import { Stack } from 'expo-router';
-import { useNavigation } from '@react-navigation/native';
-import { RouteProp } from '@react-navigation/native';
-import { RootTabParamList } from '@/components/BottomTabNavigator';
-import { useLanguage } from '@/components/LanguageProvider';
-import { translateText } from '@/utils/translation';
+import React, { useEffect, useState, useCallback } from 'react';
+import { StyleSheet, View, TouchableOpacity, Text, ScrollView, Dimensions, Platform, Image } from 'react-native';
+import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
+import * as Location from 'expo-location';
+import BottomSheet from '@gorhom/bottom-sheet';
+import mapStyle from '@/components/MapStyle';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
-// Theme 객체의 타입 정의
-interface Theme {
-  label: string;
-  subLabel?: string;
-  backgroundColor: string;
-  textColor: string;
-  image: any;  // 이미지의 타입을 any로 설정, 필요에 따라 수정
+const { height: screenHeight } = Dimensions.get('window');
+
+interface LocationType {
+  latitude: number;
+  longitude: number;
+  latitudeDelta: number;
+  longitudeDelta: number;
 }
 
-type Themes = {
-  [key: string]: Theme;
-};
+interface Place {
+  id: number;
+  name: string;
+  description: string;
+  address: String;
+  coordinate: {
+    latitude: number;
+    longitude: number;
+  };
+}
 
-type ThemeScreenRouteProp = RouteProp<RootTabParamList, 'Theme'>;
+function ThemeScreen() {
+  const [location, setLocation] = useState<LocationType | undefined>();
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
+  const bottomSheetRef = React.useRef<BottomSheet>(null);
 
-type Props = {
-  route: ThemeScreenRouteProp;
-};
+  // 미리 정의된 장소 목록
+  const places: Place[] = [
+    { id: 1, name: '경복궁', description: '서울의 대표 고궁', address: '서울시 종로구', coordinate: { latitude: 37.5796, longitude: 126.9794 } },
+    { id: 2, name: '명동', description: '서울의 쇼핑 거리', address: '서울시 어딘가',coordinate: { latitude: 37.5636, longitude: 126.9858 } },
+    { id: 3, name: '남산타워', description: '서울의 랜드마크',address: '서울시에 있겠지 용산구 그 어딘가 산 속에', coordinate: { latitude: 37.5512, longitude: 126.9882 } },
+  ];
 
-const ThemeScreen: React.FC = () => {
-  const navigation = useNavigation();
-  const { language: globalLanguage } = useLanguage();
-
-  const [question, setQuestion] = useState<string>('서울에서 어떤 여행 테마를 원하나요?');
-  const [content, setContent] = useState<string>('원하는 테마를 모두 골라주세요.');
-  const [Kpop, setKpop] = useState<string>('K-POP');
-  const [palace, setPalace] = useState<string>('궁궐');
-  const [templeStay, setTempleStay] = useState<string>('템플스테이');
-  const [leisure, setLeisure] = useState<string>('레저스포츠');
-  const [hotel, setHotel] = useState<string>('호캉스');
-  const [hiking, setHiking] = useState<string>('등산코스');
-  const [theme, setTheme] = useState<string>('테마시설');
-  const [community, setCommunity] = useState<string>('문화시설');
-  const [handcraft, setHandcraft] = useState<string>('공방여행');
-  const [shopping, setShopping] = useState<string>('쇼핑');
-  const [camping, setCamping] = useState<string>('캠핑');
-  const [entertainment, setEntertainment] = useState<string>('유흥/오락');
-  const [spa, setSpa] = useState<string>('온천/스파');
-  const [education, setEducation] = useState<string>('교육/체험');
-  const [program, setProgram] = useState<string>('프로그램');
-  const [drama, setDrama] = useState<string>('드라마 촬영지');
-  const [religion, setReligion] = useState<string>('종교/성지 순례');
-  const [wellness, setWellness] = useState<string>('웰니스');
-  const [sns, setSns] = useState<string>('SNS 인생샷');
-  const [pet, setPet] = useState<string>('반려동물 동반');
-  const [influencer, setInfluencer] = useState<string>('인플루언서 따라하기');
-  const [environment, setEnvironment] = useState<string>('친환경 여행');
-  const [plogging, setPlogging] = useState<string>('(플로깅 여행)');
-  const [next, setNext] = useState<string>('다음');
-
-  const [themes, setThemes] = useState<Themes>({
-    kpop: {
-      label: 'K-POP',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('@/assets/images/themeIcon/k-pop.png'),
-    },
-    palace: {
-      label: '궁궐',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('@/assets/images/themeIcon/palace.png'),
-    },
-    templeStay: {
-      label: '템플스테이',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('@/assets/images/themeIcon/temple-stay.png'),
-    },
-    leisure: {
-      label: '레저스포츠',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('@/assets/images/themeIcon/leisure.png'),
-    },
-    hotel: {
-      label: '호캉스',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('@/assets/images/themeIcon/hotel.png'),
-    },
-    hiking: {
-      label: '등산코스',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('@/assets/images/themeIcon/hiking.png'),
-    },
-    theme: {
-      label: '테마시설',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('@/assets/images/themeIcon/amusement-park.png'),
-    },
-    community: {
-      label: '문화시설',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('@/assets/images/themeIcon/community.png'),
-    },
-    handcraft: {
-      label: '공방여행',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('@/assets/images/themeIcon/handcraft.png'),
-    },
-    shopping: {
-      label: '쇼핑',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('@/assets/images/themeIcon/shopping.png'),
-    },
-    camping: {
-      label: '캠핑',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('@/assets/images/themeIcon/camping.png'),
-    },
-    entertainment: {
-      label: '유흥/오락',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('@/assets/images/themeIcon/yoohoo.png'),
-    },
-    spa: {
-      label: '온천/스파',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('@/assets/images/themeIcon/spa.png'),
-    },
-    education: {
-      label: '교육/체험',
-      subLabel: '참여하기',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('@/assets/images/themeIcon/education.png'),
-    },
-    drama: {
-      label: '드라마 촬영지',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('@/assets/images/themeIcon/drama.png'),
-    },
-    religion: {
-      label: '종교/성지 순례',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('@/assets/images/themeIcon/religion.png'),
-    },
-    wellness: {
-      label: '웰니스',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('@/assets/images/themeIcon/wellness.png'),
-    },
-    sns: {
-      label: 'SNS 인생샷',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('@/assets/images/themeIcon/sns.png'),
-    },
-    pet: {
-      label: '반려동물 동반',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('@/assets/images/themeIcon/pet.png'),
-    },
-    influencer: {
-      label: '인플루언서',
-      subLabel: '따라하기',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('@/assets/images/themeIcon/influencer.png'),
-    },
-    environment: {
-      label: '친환경 여행',
-      subLabel: '(플로깅 여행)',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('@/assets/images/themeIcon/plogging.png'),
-    },
-  });
-
-  // 번역된 텍스트를 관리하는 useEffect
   useEffect(() => {
-    const translateMenuTexts = async () => {
-      try {
-        const keys = Object.keys(themes) as (keyof Themes)[];
-        const translatedThemes = await Promise.all(
-          keys.map(async (key) => {
-            const theme = themes[key];
-            const translatedLabel = await translateText(theme.label, globalLanguage);
-            const translatedSubLabel = theme.subLabel
-              ? await translateText(theme.subLabel, globalLanguage)
-              : undefined;
-            return { [key]: { ...theme, label: translatedLabel, subLabel: translatedSubLabel } };
-          })
-        );
-        setThemes(Object.assign({}, ...translatedThemes));
-      } catch (error) {
-        console.error('Translation Error:', error);
+    const getLocation = async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.log('위치 접근 권한이 거부되었습니다.');
+        return;
       }
+
+      let location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+
+      setLocation({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+      });
     };
 
-    translateMenuTexts();
-  }, [globalLanguage]);
+    getLocation();
+  }, []);
 
-  const handlePress = (key: keyof Themes) => {
-    setThemes((prevThemes) => ({
-      ...prevThemes,
-      [key]: {
-        ...prevThemes[key],
-        backgroundColor: prevThemes[key].backgroundColor === '#ffffff' ? '#0047A0' : '#ffffff',
-        textColor: prevThemes[key].textColor === '#000000' ? '#ffffff' : '#000000',
-      },
-    }));
+  const mapProvider = Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined; // 구글 맵을 사용하는 경우
+  const isGoogleMap = Platform.OS === 'android' || mapProvider === PROVIDER_GOOGLE;
+
+  const handleFilterPress = (filter: string) => {
+    setActiveFilter(prev => prev === filter ? null : filter);
   };
 
-  // 다음 버튼 클릭 시 dayScreen으로 이동하는 함수
-  const handleNext = () => {
-    navigation.navigate('(tabs)/theme-page/day');
-  };  
+  const handleMarkerPress = (place: Place) => {
+    setSelectedPlace(place);
+    bottomSheetRef.current?.expand(); // 선택된 장소가 있을 때 바텀 시트를 열도록 설정
+  };
 
-  // FlatList의 렌더링 아이템을 위한 함수
-  const renderItem = ({ item }: { item: { key: string; theme: Theme } }) => (
-    <View style={styles.row}>
-      <TouchableOpacity
-        style={[styles.rectangle, { backgroundColor: item.theme.backgroundColor }]}
-        onPress={() => handlePress(item.key as keyof Themes)}
-      >
-        <Image source={item.theme.image} style={styles.icon} resizeMode='contain' />
-        <View style={styles.textContainer}>
-          <Text style={[styles.title, { color: item.theme.textColor }]}>{item.theme.label}</Text>
-          {item.theme.subLabel && <Text style={[styles.title, { color: item.theme.textColor }]}>{item.theme.subLabel}</Text>}
-        </View>
-      </TouchableOpacity>
-    </View>
-  );
-
-  const data = Object.keys(themes).map(key => ({ key, theme: themes[key] }));
+  const handleCloseBottomSheet = useCallback(() => {
+    setSelectedPlace(null); // 바텀 시트가 닫힐 때 선택된 장소를 null로 설정
+    bottomSheetRef.current?.close();
+  }, []);
 
   return (
-    <View style={styles.container}>
-      <Stack.Screen options={{ headerShown: false }} />
+    <GestureHandlerRootView style={styles.container}>
+      {location && (
+        <MapView
+          provider={isGoogleMap ? PROVIDER_GOOGLE : undefined} // 구글 맵을 사용하는 경우
+          style={styles.map}
+          initialRegion={location}
+          customMapStyle={isGoogleMap ? mapStyle : undefined} // 구글 맵일 때만 스타일 적용
+          showsUserLocation={true}
+        >
+          {places.map((place) => (
+            <Marker
+              key={place.id}
+              coordinate={place.coordinate}
+              onPress={() => handleMarkerPress(place)}
+            >
+              <View style={styles.markerContainer}>
+                <Image source={require('../../../assets/images/map/theme-marker.png')} style={styles.themeMarker}/>
+              </View>
+            </Marker>
+          ))}
+        </MapView>
+      )}
 
-      <View style={styles.fixedContent}>
-        <Text style={styles.question}>Q1.</Text>
-        <Text style={styles.question}>{question}</Text>
-        <Text style={styles.content}>{content}</Text>
+      <View style={styles.filterContainer}>
+        <ScrollView
+          horizontal
+          contentContainerStyle={styles.filterScrollView}
+          showsHorizontalScrollIndicator={false}
+        >
+          <TouchableOpacity
+            style={[styles.filterButton, activeFilter === 'K-pop' && styles.activeFilterButton]}
+            onPress={() => handleFilterPress('K-pop')}
+          >
+            <Text style={[styles.filterText, activeFilter === 'K-pop' && styles.activeFilterText]}>K-pop</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.filterButton, activeFilter === '고궁' && styles.activeFilterButton]}
+            onPress={() => handleFilterPress('고궁')}
+          >
+            <Text style={[styles.filterText, activeFilter === '고궁' && styles.activeFilterText]}>고궁</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.filterButton, activeFilter === '템플스테이' && styles.activeFilterButton]}
+            onPress={() => handleFilterPress('템플스테이')}
+          >
+            <Text style={[styles.filterText, activeFilter === '템플스테이' && styles.activeFilterText]}>템플스테이</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.filterButton, activeFilter === '식도락' && styles.activeFilterButton]}
+            onPress={() => handleFilterPress('식도락')}
+          >
+            <Text style={[styles.filterText, activeFilter === '식도락' && styles.activeFilterText]}>식도락</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.filterButton, activeFilter === '레저스포츠' && styles.activeFilterButton]}
+            onPress={() => handleFilterPress('레저스포츠')}
+          >
+            <Text style={[styles.filterText, activeFilter === '레저스포츠' && styles.activeFilterText]}>레저스포츠</Text>
+          </TouchableOpacity>
+        </ScrollView>
       </View>
 
-      <FlatList
-        data={data}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.key}
-        numColumns={2}
-        contentContainerStyle={styles.flatListContent}
-        ListFooterComponent={
-          <View style={styles.nextContainer}>
-            <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-              <Text style={styles.nextText}>{next}</Text>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.buttonVisited} onPress={() => console.log('Visited 버튼 클릭됨')}>
+          <Text style={styles.buttonText}>Visited</Text>
+          <Image source={require('../../../assets/images/map/visited-active.png')} style={styles.buttonVisitedIcon}/>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.buttonLikes} onPress={() => console.log('Likes 버튼 클릭됨')}>
+          <Text style={styles.buttonText}>Likes</Text>
+          <Image source={require('../../../assets/images/map/likes-active.png')} style={styles.buttonLikesIcon}/> 
+        </TouchableOpacity>
+      </View>
+
+      <BottomSheet
+        ref={bottomSheetRef} // BottomSheet 참조를 설정합니다.
+        index={-1} // 초기 상태가 닫힌 상태
+        snapPoints={['80%', '25%']} // 유효한 snap points
+        enablePanDownToClose={true} // 아래로 스와이프하여 닫기 가능
+        onChange={(index) => {
+          if (index === -1) {
+            setSelectedPlace(null); // 바텀 시트가 닫힐 때 선택된 장소를 null로 설정
+          }
+        }}
+      >
+        {selectedPlace && (
+          <View style={styles.bottomSheetContainer}>
+            <View style={styles.bottomSheetTitleContainer}>
+            <Text style={styles.bottomSheetTitle}>{selectedPlace.name}</Text>
+              <TouchableOpacity>
+              <Image source={require('../../../assets/images/map/likes-active.png')} style={styles.bottomSheetLikesButton}></Image>
+              </TouchableOpacity>
+              <TouchableOpacity>
+              <Image source={require('../../../assets/images/map/visited-active.png')} style={styles.bottomSheetVisitedButton}></Image>
+              </TouchableOpacity>
+              <View style={styles.bottomSheetAddressContainer}>
+              <Text style={styles.bottomSheetAddress}>{selectedPlace.address}</Text>
+              </View>
+          </View>
+
+            <Text style={styles.bottomSheetDescription}>{selectedPlace.description}</Text>
+            <TouchableOpacity style={styles.closeButton} onPress={handleCloseBottomSheet}>
+              <Text style={styles.closeButtonText}>닫기</Text>
             </TouchableOpacity>
           </View>
-        }
-      />
-    </View>
+        )}
+      </BottomSheet>
+    </GestureHandlerRootView>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    marginTop: 80,
   },
-  fixedContent: {
-    marginBottom: 20,
+  map: {
+    width: '100%',
+    height: '100%',
   },
-  row: {
-    flexDirection: 'row', 
-    justifyContent: 'space-between',
+  markerContainer: {
+    width: 30,
+    height: 30,
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 30,
   },
-  rectangle: {
-    width: 150,
-    height: 150,
-    borderRadius: 30,
+  themeMarker: {
+    width: 20,
+    height: 20,
+    resizeMode: 'contain',
+  },
+  filterContainer: {
+    position: 'absolute',
+    top: 55,
+    left: 20,
+    right: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    zIndex: 1,
+  },
+  filterScrollView: {
+    maxHeight: 50,
+  },
+  filterButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0)',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 5,
+    marginRight: 10,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  activeFilterButton: {
+    borderBottomColor: '#0047A0',
+  },
+  filterText: {
+    color: 'black',
+    fontSize: 16,
+  },
+  activeFilterText: {
+    color: '#0047A0',
+    fontFamily: 'AggroM',
+    fontSize: 15,
+  },
+  buttonContainer: {
+    position: 'absolute',
+    top: 100,
+    left: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  buttonVisited: {
     backgroundColor: 'white',
-    alignItems: 'center', 
-    justifyContent: 'center', 
-    marginLeft: 10,
-    marginRight: 20,
-  },
-  flatListContent: {
-    flexGrow: 1,
-  },
-  textContainer: {
+    width: 100,
+    height: 30,
+    borderRadius: 10,
+    marginLeft: 5,
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  question: {
+  buttonLikes: {
+    backgroundColor: 'white',
+    width: 80,
+    height: 30,
+    borderRadius: 10,
+    marginLeft: 5,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: 'black',
+    fontSize: 16,
+    fontFamily: 'AggroL',
+  },
+  buttonVisitedIcon: {
+    width: 24,
+    height: 24,
+    marginLeft: 5,
+  },
+  buttonLikesIcon: {
+    width: 20,
+    height: 20,
+    marginLeft: 5,
+  },
+
+  bottomSheetTitleContainer:{
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start'
+  },
+  bottomSheetContainer: {
+    flex: 1,
+    padding: 15,
+  },
+  bottomSheetTitle: {
     fontFamily: 'AggroM',
     fontSize: 24,
   },
-  content: {
-    fontFamily: 'AggroL',
-    fontSize: 20,
-    marginTop: 20,
-    marginBottom: 20,
+  bottomSheetLikesButton:{
+    marginLeft: 10,
+    width: 25,
+    height: 25,
+    resizeMode: 'contain',
   },
-  title: {
+  bottomSheetVisitedButton:{
+    marginLeft: 10,
+    width: 30,
+    height: 30,
+  },
+  bottomSheetAddressContainer:{
+    width: 200,
+  },
+  bottomSheetAddress: {
     fontFamily: 'AggroL',
     fontSize: 18,
+    marginLeft: 20,
   },
-  icon: {
-    width: 70,
-    height: 70,
-    marginBottom:10,
+  bottomSheetDescription: {
+    fontSize: 16,
+    marginVertical: 10,
   },
-  nextContainer:{
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  nextButton:{
-    width: 200,
-    height: 50,
+  closeButton: {
+    marginTop: 10,
+    padding: 10,
     backgroundColor: '#0047A0',
-    borderRadius: 50,
+    borderRadius: 5,
     alignItems: 'center',
-    justifyContent: 'center',
   },
-  nextText:{
-    fontFamily: 'AggroL',
-    fontSize: 20,
+  closeButtonText: {
     color: 'white',
-  }
+    fontSize: 16,
+  },
 });
 
 export default ThemeScreen;

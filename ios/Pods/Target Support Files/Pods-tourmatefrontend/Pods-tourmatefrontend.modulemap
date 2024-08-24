@@ -1,6 +1,0 @@
-module Pods_tourmatefrontend {
-  umbrella header "Pods-tourmatefrontend-umbrella.h"
-
-  export *
-  module * { export * }
-}

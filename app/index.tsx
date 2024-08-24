@@ -1,13 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { Image, StyleSheet, Text, View, TextInput, TouchableOpacity, StatusBar, Platform } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
-import * as Font from 'expo-font';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { HelloWave } from '@/components/HelloWave';
-import { LanguageProvider } from '@/components/LanguageProvider';
-import SplashScreen from './(tabs)/splash';
+import React from 'react';
+import { View, Text } from 'react-native';
 import { useFonts } from 'expo-font';
-
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import SplashScreen from './(tabs)/splash'; // 또는 필요에 따라 다른 경로
+import { LanguageProvider } from '@/components/LanguageProvider'; // 적절한 경로로 수정
 
 export default function Index() {
   const [fontsLoaded] = useFonts({
@@ -17,11 +13,18 @@ export default function Index() {
   });
 
   if (!fontsLoaded) {
-    return <View><Text>Loading...</Text></View>;
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Loading...</Text>
+      </View>
+    );
   }
+
   return (
-    <LanguageProvider>
-      <SplashScreen/>
-    </LanguageProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <LanguageProvider>
+        <SplashScreen />
+      </LanguageProvider>
+    </GestureHandlerRootView>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Image, StyleSheet, Text, TextInput, TouchableOpacity, Animated, Dimensions } from 'react-native';
+import { View, Image, StyleSheet, Text, TextInput, TouchableOpacity, Animated, Dimensions, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -46,132 +46,134 @@ const SplashScreen: React.FC = () => {
   };
 
   const windowWidth = Dimensions.get('window').width;
+  const windowHeight = Dimensions.get('window').height;
+
+  // 플랫폼에 따라 폰트 크기 조정
+  const platformFontSize = (size: number) => {
+    return Platform.OS === 'android' ? size - 2 : size; // Android에서 폰트 크기를 2 줄임
+  };
+
+  // 플랫폼에 따라 버튼 크기 조정
+  const platformButtonSize = (size: number) => {
+    return Platform.OS === 'android' ? size * 0.9 : size;
+  };
+
+  // 플랫폼에 따라 간격 조정
+  const platformSpacing = (size: number) => {
+    return Platform.OS === 'android' ? size * 0.7 : size;
+  };
+
+  // 로그인 박스 크기 조정
+  const platformLoginBoxSize = () => {
+    return Platform.OS === 'android' 
+      ? { width: windowWidth * 0.8, height: windowHeight * 0.6 } 
+      : { width: windowWidth * 0.8, height: windowHeight * 0.5 };
+  };
+
+  // 회원가입 박스 크기 조정
+  const platformSignUpBoxSize = () => {
+    return Platform.OS === 'android' 
+      ? { width: windowWidth * 0.8 , height: windowHeight * 0.75 } 
+      : { width: windowWidth * 0.8, height: windowHeight * 0.7 };
+  };
 
   return (
     <>
-    <Stack.Screen options={{ headerShown: false }} />
-    <View style={styles.container}>
-      {selectedSplash && (
-        <Image source={selectedSplash} style={styles.splashImage} />
-      )}
+      <Stack.Screen options={{ headerShown: false }} />
+      <View style={styles.container}>
+        {selectedSplash && (
+          <Image source={selectedSplash} style={styles.splashImage} />
+        )}
 
-      {showLoginBox && !showSignUp && (
-        <Animated.View style={[
-          styles.loginBox,
-          { opacity: fadeAnim }
-        ]}>
-          {/* 로그인 박스 콘텐츠 */}
-          <Text style={styles.title}>당신의 서울여행 동반자,</Text>
-          <Text style={styles.titleBlue}>TOURMATE<Text style={styles.title}>입니다.</Text></Text>
-          <Text style={styles.content}>회원 서비스 이용을 위해 로그인 해주세요.</Text>
+        {showLoginBox && !showSignUp && (
+          <Animated.View style={[
+            styles.loginBox,
+            platformLoginBoxSize(),
+            { opacity: fadeAnim }
+          ]}>
+            {/* 로그인 박스 콘텐츠 */}
+            <Text style={[styles.title, { fontSize: platformFontSize(25) }]}>당신의 서울여행 동반자,</Text>
+            <Text style={[styles.titleBlue, { fontSize: platformFontSize(25) }]}>
+              TOURMATE<Text style={styles.title}>입니다.</Text>
+            </Text>
+            <Text style={[styles.content, { fontSize: platformFontSize(16) }]}>회원 서비스 이용을 위해 로그인 해주세요.</Text>
 
-          <TextInput style={styles.input} placeholder="Email" />
-          <Svg height="2" width="75%">
-            <Line
-              x1="0"
-              y1="1"
-              x2={windowWidth * 0.75}
-              y2="1"
-              stroke="#0047A0"
-              strokeWidth="1.5"
-            />
-          </Svg>
-
-          <TextInput style={styles.input} placeholder="Password" secureTextEntry />
-          <Svg height="2" width="75%">
-            <Line
-              x1="0"
-              y1="1"
-              x2={windowWidth * 0.75}
-              y2="1"
-              stroke="#0047A0"
-              strokeWidth="1.5"
-            />
-          </Svg>
-
-          <TouchableOpacity style={styles.signIn} onPress={LoginFunction}>
-            <Text style={styles.signInText}>로그인</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.signUp} onPress={() => {
-            setShowSignUp(true);
-            setShowLoginBox(false); // 로그인 화면을 숨김
-          }}>
-            <Text style={styles.signUpText}>회원이 아니신가요?</Text>
-          </TouchableOpacity>
-          <Svg height="2" width="50%">
-            <Line
-              x1="0"
-              y1="1"
-              x2={windowWidth * 0.5}
-              y2="1"
-              stroke="#0047A0"
-              strokeWidth="1.5"
-            />
-          </Svg>
-        </Animated.View>
-      )}
-
-      {showSignUp && (
-        <View style={[styles.signUpBox]}>
-          {/* 회원가입 박스 콘텐츠 */}
-          <Text style={styles.title}>처음이신가요?</Text>
-          <Text style={styles.content}>TOURMATE는 회원 가입 후에</Text>
-          <Text style={styles.content}>이용해보실 수 있습니다.</Text>
-
-          <View style={styles.signUpContainer}>
-            <TextInput style={styles.signUpInput} placeholder="이름" />
-            <Svg height="2" width="100%">
+            <TextInput style={[styles.input, { fontSize: platformFontSize(20) }]} placeholder="Email" />
+            <Svg height="2" width="75%">
               <Line
                 x1="0"
                 y1="1"
-                x2={windowWidth * 0.8}
+                x2={windowWidth * 0.75}
                 y2="1"
                 stroke="#0047A0"
                 strokeWidth="1.5"
               />
             </Svg>
-          </View>
 
-          <View style={styles.emailContainer}>
-            <TextInput style={styles.emailInput} placeholder="이메일" />
-            <TouchableOpacity style={styles.authButton}>
-              <Text style={styles.auth}>인증번호 받기</Text>
+            <TextInput style={[styles.input, { fontSize: platformFontSize(20) }]} placeholder="Password" secureTextEntry />
+            <Svg height="2" width="75%">
+              <Line
+                x1="0"
+                y1="1"
+                x2={windowWidth * 0.75}
+                y2="1"
+                stroke="#0047A0"
+                strokeWidth="1.5"
+              />
+            </Svg>
+
+            <TouchableOpacity style={[styles.signIn, { width: platformButtonSize(210), height: platformButtonSize(50) }]} onPress={LoginFunction}>
+              <Text style={[styles.signInText, { fontSize: platformFontSize(20) }]}>로그인</Text>
             </TouchableOpacity>
-          </View>
 
-          <Svg height="2" width="80%">
-            <Line
-              x1="0"
-              y1="1"
-              x2={windowWidth * 0.8}
-              y2="1"
-              stroke="#0047A0"
-              strokeWidth="1.5"
-            />
-          </Svg>
-
-          <View style={styles.emailContainer}>
-            <TextInput style={styles.emailInput} placeholder="이메일 인증번호" />
-            <TouchableOpacity style={styles.authenticationButton}>
-              <Text style={styles.auth}>확인</Text>
+            <TouchableOpacity style={[styles.signUp, { marginTop: platformSpacing(18) }]} onPress={() => {
+              setShowSignUp(true);
+              setShowLoginBox(false); // 로그인 화면을 숨김
+            }}>
+              <Text style={[styles.signUpText, { fontSize: platformFontSize(15) }]}>회원이 아니신가요?</Text>
             </TouchableOpacity>
-          </View>
+            <Svg height="2" width="50%">
+              <Line
+                x1="0"
+                y1="1"
+                x2={windowWidth * 0.5}
+                y2="1"
+                stroke="#0047A0"
+                strokeWidth="1.5"
+              />
+            </Svg>
+          </Animated.View>
+        )}
 
-          <Svg height="2" width="80%">
-            <Line
-              x1="0"
-              y1="1"
-              x2={windowWidth * 0.8}
-              y2="1"
-              stroke="#0047A0"
-              strokeWidth="1.5"
-            />
-          </Svg>
+        {showSignUp && (
+          <View style={[styles.signUpBox, platformSignUpBoxSize()]}>
+            {/* 회원가입 박스 콘텐츠 */}
+            <Text style={[styles.title, { fontSize: platformFontSize(25) }]}>처음이신가요?</Text>
+            <Text style={[styles.content, { fontSize: platformFontSize(16) }]}>TOURMATE는 회원 가입 후에</Text>
+            <Text style={[styles.content, { fontSize: platformFontSize(16) }]}>이용해보실 수 있습니다.</Text>
 
-          <View style={styles.passwordContainer}>
-            <TextInput style={styles.passwordInput} placeholder="비밀번호(8자리 이상)" secureTextEntry />
-            <Svg height="2" width="100%">
+            <View style={[styles.signUpContainer, { marginTop: platformSpacing(45) }]}>
+              <TextInput style={[styles.signUpInput, { fontSize: platformFontSize(17) }]} placeholder="이름" />
+              <Svg height="2" width="100%">
+                <Line
+                  x1="0"
+                  y1="1"
+                  x2={windowWidth * 0.8}
+                  y2="1"
+                  stroke="#0047A0"
+                  strokeWidth="1.5"
+                />
+              </Svg>
+            </View>
+
+            <View style={[styles.emailContainer, { marginTop: platformSpacing(27) }]}>
+              <TextInput style={[styles.emailInput, { fontSize: platformFontSize(17) }]} placeholder="이메일" />
+              <TouchableOpacity style={[styles.authButton, { width: platformButtonSize(85), height: platformButtonSize(30) }]}>
+                <Text style={[styles.auth, { fontSize: platformFontSize(12) }]}>인증번호 받기</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Svg height="2" width="80%">
               <Line
                 x1="0"
                 y1="1"
@@ -181,9 +183,15 @@ const SplashScreen: React.FC = () => {
                 strokeWidth="1.5"
               />
             </Svg>
-            
-            <TextInput style={styles.passwordInput} placeholder="비밀번호 확인" secureTextEntry />
-            <Svg height="2" width="100%">
+
+            <View style={[styles.emailContainer, { marginTop: platformSpacing(27) }]}>
+              <TextInput style={[styles.emailInput, { fontSize: platformFontSize(17) }]} placeholder="이메일 인증번호" />
+              <TouchableOpacity style={[styles.authenticationButton, { width: platformButtonSize(60), height: platformButtonSize(30) }]}>
+                <Text style={[styles.auth, { fontSize: platformFontSize(12) }]}>확인</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Svg height="2" width="80%">
               <Line
                 x1="0"
                 y1="1"
@@ -193,32 +201,57 @@ const SplashScreen: React.FC = () => {
                 strokeWidth="1.5"
               />
             </Svg>
+
+            <View style={[styles.passwordContainer, { marginTop: platformSpacing(27) }]}>
+              <TextInput style={[styles.passwordInput, { fontSize: platformFontSize(17) }]} placeholder="비밀번호(8자리 이상)" secureTextEntry />
+              <Svg height="2" width="100%">
+                <Line
+                  x1="0"
+                  y1="1"
+                  x2={windowWidth * 0.8}
+                  y2="1"
+                  stroke="#0047A0"
+                  strokeWidth="1.5"
+                />
+              </Svg>
+
+              <TextInput style={[styles.passwordInput, { fontSize: platformFontSize(17) }]} placeholder="비밀번호 확인" secureTextEntry />
+              <Svg height="2" width="100%">
+                <Line
+                  x1="0"
+                  y1="1"
+                  x2={windowWidth * 0.8}
+                  y2="1"
+                  stroke="#0047A0"
+                  strokeWidth="1.5"
+                />
+              </Svg>
+            </View>
+
+            <TouchableOpacity style={[styles.signUpButton, { width: platformButtonSize(210), height: platformButtonSize(50) }]}>
+              <Text style={[styles.signInText, { fontSize: platformFontSize(20) }]}>회원가입</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={[styles.signUp, { marginTop: platformSpacing(18) }]} onPress={() => {
+              setShowSignUp(false);
+              setShowLoginBox(true); // 로그인 화면을 다시 표시
+            }}>
+              <Text style={[styles.signUpText, { fontSize: platformFontSize(15) }]}>로그인하러 가기</Text>
+            </TouchableOpacity>
+
+            <Svg height="2" width="40%">
+              <Line
+                x1="0"
+                y1="1"
+                x2={windowWidth * 0.4}
+                y2="1"
+                stroke="#0047A0"
+                strokeWidth="1.5"
+              />
+            </Svg>
           </View>
-
-          <TouchableOpacity style={styles.signUpButton}>
-            <Text style={styles.signInText}>회원가입</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.signUp} onPress={() => {
-            setShowSignUp(false);
-            setShowLoginBox(true); // 로그인 화면을 다시 표시
-          }}>
-            <Text style={styles.signUpText}>로그인하러 가기</Text>
-          </TouchableOpacity>
-
-          <Svg height="2" width="40%">
-            <Line
-              x1="0"
-              y1="1"
-              x2={windowWidth * 0.4}
-              y2="1"
-              stroke="#0047A0"
-              strokeWidth="1.5"
-            />
-          </Svg>
-        </View>
-      )}
-    </View>
+        )}
+      </View>
     </>
   );
 };
@@ -237,8 +270,6 @@ const styles = StyleSheet.create({
   },
   loginBox: {
     position: 'absolute',
-    width: '80%',
-    height: '50%',
     padding: 10,
     backgroundColor: 'rgba(255, 255, 255, 0.9)', // 약간의 투명도를 준 배경
     borderRadius: 10,
@@ -246,58 +277,47 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: 'AggroM',
-    fontSize: 25,
     color: 'black',
     marginTop: 20,
     marginBottom: 10,
   },
   titleBlue: {
     fontFamily: 'AggroM',
-    fontSize: 25,
     color: '#0047A0',
     marginBottom: 10,
   },
   content: {
     fontFamily: 'AggroL',
-    fontSize: 16,
   },
   input: {
     width: 220,
     height: 50,
     fontFamily: 'AggroL',
-    fontSize: 20,
     marginTop: 20,
   },
   signIn: {
-    width: 210,
-    height: 50,
     backgroundColor: '#0047A0',
     borderRadius: 50,
-    marginTop: 50,
+    marginTop: 40,
     justifyContent: 'center',
     alignItems: 'center',
   },
   signInText: {
     fontFamily: 'AggroL',
-    fontSize: 20,
     color: 'white',
   },
   signUpBox: {
     position: 'absolute',
-    width: '80%',
-    height: '70%',
     padding: 10,
     backgroundColor: 'rgba(255, 255, 255, 0.9)', // 약간의 투명도를 준 배경
     borderRadius: 10,
     alignItems: 'center',
-    bottom: 50,
   },
   signUp: {
     marginTop: 20,
   },
   signUpText: {
     fontFamily: 'AggroM',
-    fontSize: 15,
     color: 'black',
   },
   signUpContainer: {
@@ -322,13 +342,11 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 30,
     fontFamily: 'AggroL',
-    fontSize: 17,
   },
   emailInput: {
     width: 150,
     height: 30,
     fontFamily: 'AggroL',
-    fontSize: 17,
     marginTop: 10,
     left: 30,
   },
@@ -336,13 +354,10 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 30,
     fontFamily: 'AggroL',
-    fontSize: 17,
     marginTop: 10,
   },
   signUpButton: {
-    width: 210,
-    height: 50,
-    marginTop: 50,
+    marginTop: 40,
     backgroundColor: '#0047A0',
     borderRadius: 50,
     justifyContent: 'center',
@@ -351,8 +366,6 @@ const styles = StyleSheet.create({
   authButton: {
     position: 'absolute',
     right: 25, // 버튼을 컨테이너의 오른쪽 끝에 배치
-    width: 85, // 버튼의 고정 너비 설정
-    height: 30,
     backgroundColor: '#D9D9D9',
     borderRadius: 15,
     justifyContent: 'center',
@@ -361,8 +374,6 @@ const styles = StyleSheet.create({
   authenticationButton: {
     position: 'absolute',
     right: 25, // 버튼을 컨테이너의 오른쪽 끝에 배치
-    width: 60, // 버튼의 고정 너비 설정
-    height: 30,
     backgroundColor: '#D9D9D9',
     borderRadius: 15,
     justifyContent: 'center',
@@ -370,7 +381,6 @@ const styles = StyleSheet.create({
   },
   auth: {
     fontFamily: 'AggroL',
-    fontSize: 12,
   },
 });
 
