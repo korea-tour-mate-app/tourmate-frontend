@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, FlatList, Image, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { ScrollView, FlatList, Image, StyleSheet, Text, View, TouchableOpacity, Alert } from 'react-native';
 import { Stack } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
 import { RouteProp } from '@react-navigation/native';
@@ -226,7 +226,16 @@ const RecommendScreen: React.FC = () => {
 
   // 다음 버튼 클릭 시 dayScreen으로 이동하는 함수
   const handleNext = () => {
-    navigation.navigate('(tabs)/recommend-page/day');
+    // 선택된 테마가 있는지 확인
+    const selectedThemes = Object.keys(themes).filter(
+      (key) => themes[key as keyof Themes].backgroundColor !== '#ffffff'
+    );
+    // 선택된 테마가 없으면 경고 메시지 표시
+    if (selectedThemes.length === 0) {
+      Alert.alert('TourMate', '하나 이상의 테마를 선택해주세요!');
+      return;
+    }
+      navigation.navigate('(tabs)/recommend-page/day');
   };  
 
   // FlatList의 렌더링 아이템을 위한 함수
