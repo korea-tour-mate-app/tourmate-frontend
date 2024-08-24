@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Image, Alert } from 'react-native';
 import { Stack } from 'expo-router';
 import { useRouter } from 'expo-router';
+import Toast from 'react-native-root-toast'; // Toast 라이브러리 임포트
 
 const WithWhoScreen = () => {
   const router = useRouter();
@@ -17,9 +18,17 @@ const WithWhoScreen = () => {
   // 다음 버튼 클릭 시 budget.tsx로 이동
   const handleNext = () => {
     if (selectedOption) {
-      router.push('(tabs)/recommend-page/budget');
+        router.push('(tabs)/recommend-page/budget');
     } else {
-      Alert.alert('TourMate', '여행 동반자를 선택해주세요!');
+        // 선택되지 않은 경우 Toast 메시지 표시
+        Toast.show('동반자를 선택해주세요!', {
+            duration: Toast.durations.SHORT,
+            position: Toast.positions.CENTER,
+            shadow: false,
+            animation: true,
+            hideOnPress: true,
+            delay: 0,
+        });
     }
   };
 
@@ -138,7 +147,6 @@ const WithWhoScreen = () => {
             다음
           </Text>
         </TouchableOpacity>
-        
       </View>
     </>
   );
@@ -186,7 +194,7 @@ const styles = StyleSheet.create({
   label: {
     marginTop: 10,
     fontFamily: 'AggroL',
-    fontSize: 16,
+    fontSize: 18,
     color: '#000000',
   },
   selectedLabel: {

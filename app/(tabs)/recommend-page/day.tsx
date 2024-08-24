@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 13.5,
-    color: 'black',
+    color: '#666565',
     marginBottom: 20,
     textAlign: 'center',
     fontFamily: 'AggroL',
