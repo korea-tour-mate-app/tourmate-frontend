@@ -124,7 +124,7 @@ const WithWhoScreen = () => {
         <TouchableOpacity
           style={[
             styles.nextButton,
-            { backgroundColor: selectedOption ? '#0047A0' : '#E1E1E1' 
+            { backgroundColor: selectedOption ? '#0047A0' : '#D3D3D3'
         
             }
           ]}
@@ -133,7 +133,7 @@ const WithWhoScreen = () => {
         >
           <Text style={[
             styles.nextText,
-            { color: selectedOption ? 'white' : '#C0C0C0' } // 선택된 옵션이 없으면 텍스트 색상을 회색으로 변경
+            { color: 'white' }  // 항상 흰색으로 고정
           ]}>
             다음
           </Text>
