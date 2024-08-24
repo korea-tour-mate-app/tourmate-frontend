@@ -114,7 +114,7 @@ const DayScreen = () => {
     return markedDates;
   };
   
-  const handleConfirm = () => {
+  const handleNext = () => {
     if (startDate && endDate) {
       navigation.navigate('(tabs)/recommend-page/withWho');
     }
@@ -158,9 +158,9 @@ const DayScreen = () => {
             <Text style={styles.dateText}>{formatDate(endDate)}</Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.button} onPress={handleConfirm}>
-          <Text style={styles.buttonText}>다음</Text>
-        </TouchableOpacity>
+        <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
+            <Text style={styles.nextText}>다음</Text>
+          </TouchableOpacity>
       </View>
     </>
   );
@@ -171,6 +171,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     marginTop: 50,
+    position: 'relative', // 부모 컨테이너의 위치를 relative로 설정
   },
   backButton: {
     marginBottom: 10,
@@ -210,14 +211,18 @@ const styles = StyleSheet.create({
     fontFamily: 'AggroL',
     fontSize: 18,
   },
-  button: {
+  nextButton: {
     backgroundColor: '#0047A0',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
     marginTop: 20,
+    width: '100%',
+    position: 'absolute', // 절대 위치 설정
+    bottom: 50, // 하단에서 20px 위로 위치
+    left: 20,  // 좌우 padding을 고려해서 left와 right도 설정
   },
-  buttonText: {
+  nextText: {
     fontFamily: 'AggroL',
     fontSize: 18,
     color: 'white',

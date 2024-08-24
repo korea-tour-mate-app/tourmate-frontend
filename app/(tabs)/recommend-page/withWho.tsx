@@ -9,10 +9,10 @@ const WithWhoScreen = () => {
   // 선택된 카드를 관리하기 위한 상태
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
-// 선택된 카드를 설정하거나 해제하는 함수
-const handleSelect = (option: string) => {
-  setSelectedOption(prevOption => (prevOption === option ? null : option));
-};
+  // 선택된 카드를 설정하거나 해제하는 함수
+  const handleSelect = (option: string) => {
+    setSelectedOption(prevOption => (prevOption === option ? null : option));
+  };
 
   // 다음 버튼 클릭 시 budget.tsx로 이동
   const handleNext = () => {
@@ -32,6 +32,7 @@ const handleSelect = (option: string) => {
         </TouchableOpacity>
         <Text style={styles.question}>Q3.</Text>
         <Text style={styles.question}>누구와 여행을 떠나시나요?</Text>
+
         <View style={styles.cardContainer}>
           <TouchableOpacity
             style={[
@@ -120,10 +121,10 @@ const handleSelect = (option: string) => {
 
         <Text style={styles.caption}>*사진출처 Microsoft Fluent Emoji – Color</Text>
 
-        <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
-          <Text style={styles.nextText}>다음</Text>
-        </TouchableOpacity>
-
+          <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
+            <Text style={styles.nextText}>다음</Text>
+          </TouchableOpacity>
+        
       </View>
     </>
   );
@@ -134,6 +135,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     marginTop: 50,
+    position: 'relative', // 부모 컨테이너의 위치를 relative로 설정
   },
   backButton: {
     marginBottom: 10,
@@ -149,6 +151,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     marginTop: 20,
+
   },
   card: {
     width: '47%',
@@ -176,27 +179,29 @@ const styles = StyleSheet.create({
   selectedLabel: {
     color: '#ffffff',
   },
-  nextButton:{
-    height: 50,
+  nextButton: {
     backgroundColor: '#0047A0',
+    padding: 15,
     borderRadius: 10,
     alignItems: 'center',
-    justifyContent: 'center',
-    alignSelf: 'center',
     marginTop: 20,
     width: '100%',
+    position: 'absolute', // 절대 위치 설정
+    bottom: 50, // 하단에서 20px 위로 위치
+    left: 20,  // 좌우 padding을 고려해서 left와 right도 설정
   },
-  nextText:{
+  nextText: {
     fontFamily: 'AggroL',
-    fontSize: 20,
+    fontSize: 18,
     color: 'white',
   },
   caption: {
-    marginTop: 20,
-    textAlign: 'center',
+    textAlign: 'left', // 왼쪽 정렬
     color: '#888',
     fontSize: 12,
     fontFamily: 'AggroL',
+    marginBottom: 100,
+    marginTop: -130
   },
 });
 
