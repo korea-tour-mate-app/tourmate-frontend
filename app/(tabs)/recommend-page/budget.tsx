@@ -17,7 +17,7 @@ const BudgetScreen = () => {
   // 다음 버튼 클릭 시 경로 추천 결과 페이지로 이동
   const handleNext = () => {
     if (selectedOption) {
-        router.push('(tabs)/recommend-page/results');
+        router.push('(tabs)/route-page/route');
     } else {
         // 선택되지 않은 경우 Toast 메시지 표시
     }
@@ -107,7 +107,7 @@ const BudgetScreen = () => {
             styles.nextText,
             { color: 'white' }  // 항상 흰색으로 고정
           ]}>
-            여행 경로 추천받기🌳
+            여행 경로 추천받기
           </Text>
         </TouchableOpacity>
       </View>
