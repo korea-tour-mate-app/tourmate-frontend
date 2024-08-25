@@ -6,7 +6,6 @@ import Constants from 'expo-constants';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useLocalSearchParams } from 'expo-router';
 
-// T-Map API로부터 받은 경로 데이터 타입 정의
 type RouteData = {
   type: string;
   properties: {
@@ -27,41 +26,39 @@ type RouteData = {
   }[];
 };
 
-// DayData 인터페이스 선언
 interface DayData {
   id: number;
   title: string;
-  img: any; // 실제 이미지 타입으로 변경 가능
+  img: any; 
+  travelTime?: string; // 이동 시간 추가
 }
 
-// DaysData 인터페이스 선언 (동적으로 키가 들어올 수 있도록 설정)
 interface DaysData {
-  [key: string]: DayData[]; // 인덱스 시그니처로 키를 문자열로 정의
+  [key: string]: DayData[];
 }
 
 const RouteScreen = () => {
   const [routeData, setRouteData] = useState<RouteData | null>(null);
   const [selectedDay, setSelectedDay] = useState("1일차");
+  const [selectedLocation, setSelectedLocation] = useState({ latitude: 37.54523875839218, longitude: 126.977613738705 });
   const bottomSheetRef = useRef<BottomSheet>(null);
-  const { totalDays = 1, startDate, endDate } = useLocalSearchParams(); // 기본값 1일로 설정 (undefined도 있을 수 있으므로)
-  const tMapApiKey = Constants.expoConfig?.extra?.tMapApiKey; // T-Map API 키 가져오기
+  const mapRef = useRef<MapView>(null);
+  const { totalDays = 1, startDate, endDate } = useLocalSearchParams();
+  const tMapApiKey = Constants.expoConfig?.extra?.tMapApiKey;
 
-  console.log("totalDays는? " + totalDays);
-  console.log("startDate는? " + startDate);
-  console.log("endDate는? " + endDate);
-
-  // totalDays에 따라 동적으로 데이터 생성
   const data: DaysData = {};
-  const daysCount = Number(totalDays) || 1; // totalDays가 NaN일 경우 기본값으로 1 설정
+  const daysCount = Number(totalDays) || 1;
+
   for (let i = 1; i <= daysCount; i++) {
     data[`${i}일차`] = [
-      { id: 1, title: "숭례문", img: require('@/assets/images/recommend/recommend-place.png') },
-      { id: 2, title: "운헌궁", img: require('@/assets/images/recommend/recommend-place.png') },
-      { id: 3, title: "경복궁", img: require('@/assets/images/recommend/recommend-place.png') },
-      { id: 4, title: "경복궁", img: require('@/assets/images/recommend/recommend-place.png') },
+      { id: 1, title: "숭례문", img: require('@/assets/images/recommend/recommend-place.png'), travelTime: "106분" },
+      { id: 2, title: "운현궁", img: require('@/assets/images/recommend/recommend-place.png'), travelTime: "18분" },
+      { id: 3, title: "경복궁", img: require('@/assets/images/recommend/recommend-place.png'), travelTime: "17분" },
+      { id: 4, title: "창덕궁", img: require('@/assets/images/recommend/recommend-place.png'), travelTime: "20분" },
       { id: 5, title: "남산서울타워", img: require('@/assets/images/recommend/recommend-place.png') },
     ];
   }
+
   useEffect(() => {
     const fetchRoute = async () => {
       if (!tMapApiKey) {
@@ -78,36 +75,21 @@ const RouteScreen = () => {
             'accept': 'application/json',
           },
           body: JSON.stringify({
-            reqCoordType: "WGS84GEO", // 요청 좌표 타입
-            resCoordType: "WGS84GEO", // 응답 좌표 타입
+            reqCoordType: "WGS84GEO",
+            resCoordType: "WGS84GEO",
             startName: "숭례문",
-            startX: "126.975208",  // 출발지 경도
-            startY: "37.561004",  // 출발지 위도
-            startTime: "202408251200", // 출발 시간 (예시로 2024년 8월 25일 12:00)
+            startX: "126.975208",
+            startY: "37.561004",
+            startTime: "202408251200",
             endName: "운현궁",
-            endX: "126.985512",  // 도착지 경도
-            endY: "37.574385",  // 도착지 위도
+            endX: "126.985512",
+            endY: "37.574385",
             searchOption: "0",
             carType: "4",
             viaPoints: [
-              {
-                viaPointId: "test01",
-                viaPointName: "경복궁",
-                viaX: "126.976889",
-                viaY: "37.579617"
-              },
-              {
-                viaPointId: "test02",
-                viaPointName: "창덕궁",
-                viaX: "126.991898",
-                viaY: "37.579620"
-              },
-              {
-                viaPointId: "test03",
-                viaPointName: "남산서울타워",
-                viaX: "126.988205",
-                viaY: "37.551169"
-              }
+              { viaPointId: "test01", viaPointName: "경복궁", viaX: "126.976889", viaY: "37.579617" },
+              { viaPointId: "test02", viaPointName: "창덕궁", viaX: "126.991898", viaY: "37.579620" },
+              { viaPointId: "test03", viaPointName: "남산서울타워", viaX: "126.988205", viaY: "37.551169" },
             ]
           }),
         });
@@ -115,7 +97,6 @@ const RouteScreen = () => {
         if (response.ok) {
           const data: RouteData = await response.json();
           setRouteData(data);
-          console.log('T-Map API 응답:', data);
         } else {
           const errorData = await response.json();
           console.error(`T-Map API 호출 중 오류 발생: ${errorData.message}`);
@@ -128,7 +109,6 @@ const RouteScreen = () => {
     fetchRoute();
   }, [tMapApiKey]);
 
-  // 지도에 표시될 경로와 마커들 생성
   const renderRoute = () => {
     if (!routeData || !routeData.features) {
       return null;
@@ -140,8 +120,8 @@ const RouteScreen = () => {
         <Marker
           key={`marker-${index}`}
           coordinate={{
-            latitude: parseFloat(feature.geometry.coordinates[1].toString()), // 숫자를 문자열로 변환 후 파싱
-            longitude: parseFloat(feature.geometry.coordinates[0].toString()), // 숫자를 문자열로 변환 후 파싱
+            latitude: parseFloat(feature.geometry.coordinates[1].toString()),
+            longitude: parseFloat(feature.geometry.coordinates[0].toString()),
           }}
         >
           <Callout>
@@ -154,31 +134,49 @@ const RouteScreen = () => {
       .filter(feature => feature.geometry.type === "LineString")
       .flatMap(feature =>
         feature.geometry.coordinates.map(coord => ({
-          latitude: parseFloat(coord[1].toString()), // 숫자를 문자열로 변환 후 파싱
-          longitude: parseFloat(coord[0].toString()), // 숫자를 문자열로 변환 후 파싱
+          latitude: parseFloat(coord[1].toString()),
+          longitude: parseFloat(coord[0].toString()),
         }))
       );
 
     return (
       <>
         {markers}
-        <Polyline
-          coordinates={polylineCoords}
-          strokeColor="#0000FF" // 파란색 선 색깔
-          strokeWidth={3}       // 선 두께
-        />
+        <Polyline coordinates={polylineCoords} strokeColor="#0000FF" strokeWidth={3} />
       </>
     );
   };
 
+  const handleLocationPress = (latitude: number, longitude: number) => {
+    setSelectedLocation({ latitude, longitude });
+    mapRef.current?.animateToRegion({
+      latitude,
+      longitude,
+      latitudeDelta: 0.01,
+      longitudeDelta: 0.01,
+    }, 1000);
+  };
+
   const renderDayView = (dayKey: string) => (
     <ScrollView contentContainerStyle={styles.dayContainer}>
-      {(data[dayKey as keyof typeof data] as DayData[]).map(item => (
+      {(data[dayKey as keyof typeof data] as DayData[]).map((item, index) => (
         <View key={item.id} style={styles.itemContainer}>
-          <Image source={item.img} style={styles.itemImage} />
-          <View style={styles.itemTextContainer}>
-            <Text style={styles.itemTitle}>{item.title}</Text>
+          <View style={styles.timeline}>
+            <Text style={styles.timelineText}>{index + 1}</Text>
+            {index < data[dayKey as keyof typeof data].length - 1 && (
+              <>
+                <Image source={require('@/assets/images/timeline-bus.png')} style={styles.timelineIcon} />
+                <Text style={styles.timelineText}>{item.travelTime}</Text>
+              </>
+            )}
           </View>
+          <View style={styles.locationDetails}>
+            <Text style={styles.itemTitle} onPress={() => handleLocationPress(selectedLocation.latitude, selectedLocation.longitude)}>
+              {item.title}
+            </Text>
+            <Text style={styles.travelTime}>{item.travelTime}</Text>
+          </View>
+          <Image source={item.img} style={styles.itemImage} />
         </View>
       ))}
     </ScrollView>
@@ -187,10 +185,11 @@ const RouteScreen = () => {
   return (
     <GestureHandlerRootView style={styles.container}>
       <MapView
+        ref={mapRef}
         style={StyleSheet.absoluteFillObject}
         initialRegion={{
-          latitude: 37.97523875839218, 
-          longitude: 126.977613738705,
+          latitude: selectedLocation.latitude,
+          longitude: selectedLocation.longitude,
           latitudeDelta: 0.0922,
           longitudeDelta: 0.0421,
         }}
@@ -198,20 +197,13 @@ const RouteScreen = () => {
         {renderRoute()}
       </MapView>
 
-      <BottomSheet
-        ref={bottomSheetRef}
-        index={1}
-        snapPoints={['10%', '50%', '85%']}
-      >
+      <BottomSheet ref={bottomSheetRef} index={1} snapPoints={['10%', '50%', '85%']}>
         <View style={styles.bottomSheetHeader}>
-          {Object.keys(data).slice(0, daysCount).map(day => ( // totalDays만큼만 표시
-            <TouchableOpacity 
-              key={day} 
+          {Object.keys(data).slice(0, daysCount).map(day => (
+            <TouchableOpacity
+              key={day}
               onPress={() => setSelectedDay(day)}
-              style={[
-                styles.dayButton, 
-                selectedDay === day && styles.selectedDayButton // 선택된 버튼에만 추가 스타일 적용
-              ]}
+              style={[styles.dayButton, selectedDay === day && styles.selectedDayButton]}
             >
               <Text style={selectedDay === day ? styles.selectedDayText : styles.dayButtonText}>{day}</Text>
             </TouchableOpacity>
@@ -231,7 +223,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     padding: 10,
-    // backgroundColor: '#f0f0f0',
   },
   dayButton: {
     paddingVertical: 8,
@@ -243,11 +234,11 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   selectedDayButton: {
-    backgroundColor: '#0047A0', // 클릭된 버튼에 적용할 배경색
+    backgroundColor: '#0047A0',
   },
   selectedDayText: {
     fontSize: 16,
-    color: '#fff', // 클릭된 버튼의 텍스트 색상
+    color: '#fff',
   },
   dayContainer: {
     padding: 10,
@@ -255,18 +246,38 @@ const styles = StyleSheet.create({
   itemContainer: {
     flexDirection: 'row',
     marginBottom: 10,
+    alignItems: 'center',
   },
   itemImage: {
     width: 60,
     height: 60,
-    marginRight: 10,
-  },
-  itemTextContainer: {
-    justifyContent: 'center',
+    marginLeft: 10,
+    borderRadius: 10,
   },
   itemTitle: {
     fontSize: 16,
     fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  travelTime: {
+    color: '#666',
+    fontSize: 12,
+  },
+  timeline: {
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  timelineText: {
+    fontSize: 12,
+    color: '#666',
+  },
+  timelineIcon: {
+    width: 12,
+    height: 12,
+    marginVertical: 5,
+  },
+  locationDetails: {
+    flex: 1,
   },
 });
 
