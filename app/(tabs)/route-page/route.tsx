@@ -32,7 +32,6 @@ interface DayData {
   img: any; // any는 실제 이미지 타입으로 변경할 수 있습니다.
 }
 
-
 // 일차별 일정 데이터
 const data = {
   "1일차": [
@@ -186,9 +185,9 @@ const RouteScreen = () => {
   return (
     <GestureHandlerRootView style={styles.container}>
       <MapView
-        style={styles.map}
+        style={StyleSheet.absoluteFillObject}
         initialRegion={{
-          latitude: 37.56523875839218,
+          latitude: 37.58523875839218, // 기존 값에서 약간 증가시킴
           longitude: 126.977613738705,
           latitudeDelta: 0.0922,
           longitudeDelta: 0.0421,
@@ -204,8 +203,15 @@ const RouteScreen = () => {
       >
         <View style={styles.bottomSheetHeader}>
           {Object.keys(data).map(day => (
-            <TouchableOpacity key={day} onPress={() => setSelectedDay(day)}>
-              <Text style={styles.dayButton}>{day}</Text>
+            <TouchableOpacity 
+              key={day} 
+              onPress={() => setSelectedDay(day)}
+              style={[
+                styles.dayButton, 
+                selectedDay === day && styles.selectedDayButton // 선택된 버튼에만 추가 스타일 적용
+              ]}
+            >
+              <Text style={selectedDay === day ? styles.selectedDayText : styles.dayButtonText}>{day}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -219,10 +225,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  map: {
-    width: '100%',
-    height: '55%',
-  },
   bottomSheetHeader: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -230,8 +232,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
   },
   dayButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+  },
+  dayButtonText: {
     fontSize: 16,
     color: '#333',
+  },
+  selectedDayButton: {
+    backgroundColor: '#0047A0', // 클릭된 버튼에 적용할 배경색
+  },
+  selectedDayText: {
+    fontSize: 16,
+    color: '#fff', // 클릭된 버튼의 텍스트 색상
   },
   dayContainer: {
     padding: 10,
