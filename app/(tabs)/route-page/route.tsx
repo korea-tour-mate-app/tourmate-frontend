@@ -43,18 +43,22 @@ const RouteScreen = () => {
   const [routeData, setRouteData] = useState<RouteData | null>(null);
   const [selectedDay, setSelectedDay] = useState("1일차");
   const bottomSheetRef = useRef<BottomSheet>(null);
-  const { totalDays, startDate, endDate } = useLocalSearchParams(); // 기본값 3일로 설정
+  const { totalDays = 1, startDate, endDate } = useLocalSearchParams(); // 기본값 1일로 설정 (undefined도 있을 수 있으므로)
   const tMapApiKey = Constants.expoConfig?.extra?.tMapApiKey; // T-Map API 키 가져오기
 
   console.log("totalDays는? " + totalDays);
+  console.log("startDate는? " + startDate);
+  console.log("endDate는? " + endDate);
+
   // totalDays에 따라 동적으로 데이터 생성
   const data: DaysData = {};
-  for (let i = 1; i <= Number(totalDays); i++) {
+  const daysCount = Number(totalDays) || 1; // totalDays가 NaN일 경우 기본값으로 1 설정
+  for (let i = 1; i <= daysCount; i++) {
     data[`${i}일차`] = [
       { id: 1, title: "숭례문", img: require('@/assets/images/recommend/recommend-place.png') },
       { id: 2, title: "운헌궁", img: require('@/assets/images/recommend/recommend-place.png') },
       { id: 3, title: "경복궁", img: require('@/assets/images/recommend/recommend-place.png') },
-      { id: 4, title: "창덕궁", img: require('@/assets/images/recommend/recommend-place.png') },
+      { id: 4, title: "경복궁", img: require('@/assets/images/recommend/recommend-place.png') },
       { id: 5, title: "남산서울타워", img: require('@/assets/images/recommend/recommend-place.png') },
     ];
   }
@@ -185,7 +189,7 @@ const RouteScreen = () => {
       <MapView
         style={StyleSheet.absoluteFillObject}
         initialRegion={{
-          latitude: 40.17523875839218, // 기존 값에서 약간 증가시킴
+          latitude: 37.97523875839218, 
           longitude: 126.977613738705,
           latitudeDelta: 0.0922,
           longitudeDelta: 0.0421,
@@ -200,7 +204,7 @@ const RouteScreen = () => {
         snapPoints={['10%', '50%', '85%']}
       >
         <View style={styles.bottomSheetHeader}>
-          {Object.keys(data).slice(0, Number(totalDays)).map(day => ( // totalDays만큼만 표시
+          {Object.keys(data).slice(0, daysCount).map(day => ( // totalDays만큼만 표시
             <TouchableOpacity 
               key={day} 
               onPress={() => setSelectedDay(day)}

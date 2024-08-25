@@ -19,7 +19,13 @@ const WithWhoScreen = () => {
   const handleNext = () => {
     if (selectedOption) {
       // totalDays와 startDate, endDate를 budget 페이지로 전달
-      router.push('(tabs)/recommend-page/budget', { totalDays, startDate, endDate });
+      console.log("totalDays는? " + totalDays);
+      console.log("startDate는? " + startDate);
+      console.log("endDate는? " + endDate);
+      router.push({
+        pathname: '(tabs)/recommend-page/budget',
+        params: { totalDays, startDate, endDate }
+      });
     } else {
         // 선택되지 않은 경우 Toast 메시지 표시
     }

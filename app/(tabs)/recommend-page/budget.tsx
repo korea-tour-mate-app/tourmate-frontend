@@ -19,7 +19,14 @@ const BudgetScreen = () => {
   const handleNext = () => {
     if (selectedOption) {
         // 필요에 따라 totalDays, startDate, endDate를 route 페이지로 전달
-        router.push('(tabs)/route-page/route', { totalDays, startDate, endDate });
+
+        console.log("totalDays는? " + totalDays);
+        console.log("startDate는? " + startDate);
+        console.log("endDate는? " + endDate);
+        router.push({
+          pathname: '(tabs)/route-page/route',
+          params: { totalDays, startDate, endDate }
+        });
     } else {
         // 선택되지 않은 경우 Toast 메시지 표시
     }
