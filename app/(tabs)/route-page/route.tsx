@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import MapView, { Marker, Polyline, Callout } from 'react-native-maps';
 import Constants from 'expo-constants';
+import BottomSheet from '@gorhom/bottom-sheet';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 // 여기에 타입을 정의합니다
 type RouteData = {
@@ -27,6 +29,9 @@ type RouteData = {
 const RouteScreen = () => {
   const [routeData, setRouteData] = useState<RouteData | null>(null);
   const tMapApiKey = Constants.expoConfig?.extra?.tMapApiKey; // T-Map API 키 가져오기
+
+  // bottomSheetRef를 useRef로 정의합니다.
+  const bottomSheetRef = useRef<BottomSheet>(null);
 
   useEffect(() => {
     const fetchRoute = async () => {
@@ -131,14 +136,14 @@ const RouteScreen = () => {
         <Polyline
           coordinates={polylineCoords}
           strokeColor="#0000FF" // 파란색 선 색깔
-          strokeWidth={5}       // 선 두께
+          strokeWidth={3}       // 선 두께
         />
       </>
     );
   };  
 
   return (
-    <View style={styles.container}>
+    <GestureHandlerRootView style={styles.container}>
       <MapView
         style={styles.map}
         initialRegion={{
@@ -150,8 +155,25 @@ const RouteScreen = () => {
       >
         {renderRoute()}
       </MapView>
-      <Text>T-Map 경로 최적화 중...</Text>
-    </View>
+
+      <BottomSheet
+        ref={bottomSheetRef}
+        index={1} // 초기 상태가 45%만큼 올라오도록 설정
+        snapPoints={['10%', '45%', '80%']} // snap points 설정
+        enablePanDownToClose={false} // 아래로 스와이프하여 닫기 불가, 특정 위치로만 이동 가능
+      >
+        <View style={styles.bottomSheetContent}>
+          <Text style={styles.sheetText}>경로 정보</Text>
+          {routeData && (
+            <>
+              <Text>총 거리: {(parseInt(routeData.properties.totalDistance) / 1000).toFixed(1)} km</Text>
+              <Text>총 시간: {(parseInt(routeData.properties.totalTime) / 60).toFixed(0)} 분</Text>
+              <Text>총 요금: {routeData.properties.totalFare} 원</Text>
+            </>
+          )}
+        </View>
+      </BottomSheet>
+    </GestureHandlerRootView>
   );
 };
 
@@ -161,6 +183,16 @@ const styles = StyleSheet.create({
   },
   map: {
     ...StyleSheet.absoluteFillObject,
+  },
+  bottomSheetContent: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  sheetText: {
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
 
