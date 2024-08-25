@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Image, Alert } from 'react-native';
 import { Stack } from 'expo-router';
 import { useRouter } from 'expo-router';
-import Toast from 'react-native-root-toast'; // Toast 라이브러리 임포트
 
 const BudgetScreen = () => {
   const router = useRouter();
@@ -21,14 +20,6 @@ const BudgetScreen = () => {
         router.push('(tabs)/recommend-page/results');
     } else {
         // 선택되지 않은 경우 Toast 메시지 표시
-        Toast.show('예산을 선택해주세요!', {
-            duration: Toast.durations.SHORT,
-            position: Toast.positions.CENTER,
-            shadow: false,
-            animation: true,
-            hideOnPress: true,
-            delay: 0,
-        });
     }
   };
 
@@ -116,7 +107,7 @@ const BudgetScreen = () => {
             styles.nextText,
             { color: 'white' }  // 항상 흰색으로 고정
           ]}>
-            여행 경로 추천받기
+            여행 경로 추천받기🌳
           </Text>
         </TouchableOpacity>
       </View>
