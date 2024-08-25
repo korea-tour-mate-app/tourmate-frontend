@@ -56,15 +56,23 @@ export default function RootLayout() {
             options={{ headerShown: false }} 
           />
           <Stack.Screen
-            name="(tabs)/theme-page/day"
+            name="(tabs)/recommend-page/recommend"
             options={{ headerShown: false }} 
           />
           <Stack.Screen
-            name="(tabs)/theme-page/withWho"
+            name="(tabs)/recommend-page/day"
             options={{ headerShown: false }} 
           />
           <Stack.Screen
-            name="(tabs)/theme-page/budget"
+            name="(tabs)/recommend-page/withWho"
+            options={{ headerShown: false }} 
+          />
+          <Stack.Screen
+            name="(tabs)/recommend-page/budget"
+            options={{ headerShown: false }} 
+          />
+          <Stack.Screen
+            name="(tabs)/route-page/route"
             options={{ headerShown: false }} 
           />
           <Stack.Screen
