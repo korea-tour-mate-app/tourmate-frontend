@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Image, Alert } from 'react-native';
 import { Stack } from 'expo-router';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 
 const BudgetScreen = () => {
   const router = useRouter();
+  const { totalDays, startDate, endDate } = useLocalSearchParams();
 
   // 선택된 카드를 관리하기 위한 상태
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -17,7 +18,8 @@ const BudgetScreen = () => {
   // 다음 버튼 클릭 시 경로 추천 결과 페이지로 이동
   const handleNext = () => {
     if (selectedOption) {
-        router.push('(tabs)/route-page/route');
+        // 필요에 따라 totalDays, startDate, endDate를 route 페이지로 전달
+        router.push('(tabs)/route-page/route', { totalDays, startDate, endDate });
     } else {
         // 선택되지 않은 경우 Toast 메시지 표시
     }

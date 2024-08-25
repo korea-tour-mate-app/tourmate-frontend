@@ -4,6 +4,7 @@ import BottomSheet from '@gorhom/bottom-sheet';
 import MapView, { Marker, Polyline, Callout } from 'react-native-maps';
 import Constants from 'expo-constants';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useLocalSearchParams } from 'expo-router';
 
 // T-Map API로부터 받은 경로 데이터 타입 정의
 type RouteData = {
@@ -26,40 +27,37 @@ type RouteData = {
   }[];
 };
 
+// DayData 인터페이스 선언
 interface DayData {
   id: number;
   title: string;
-  img: any; // any는 실제 이미지 타입으로 변경할 수 있습니다.
+  img: any; // 실제 이미지 타입으로 변경 가능
 }
 
-// 일차별 일정 데이터
-const data = {
-  "1일차": [
-    { id: 1, title: "제주국제공항", img: require('@/assets/images/recommend/recommend-place.png') },
-    { id: 2, title: "스위트호텔 제주", img: require('@/assets/images/recommend/recommend-place.png') },
-    { id: 3, title: "대기정", img: require('@/assets/images/recommend/recommend-place.png') },
-    { id: 4, title: "스위트호텔 제주", img: require('@/assets/images/recommend/recommend-place.png') },
-  ],
-  "2일차": [
-    { id: 1, title: "스위트호텔 제주", img: require('@/assets/images/recommend/recommend-place.png') },
-    { id: 2, title: "협재해변", img: require('@/assets/images/recommend/recommend-place.png') },
-    { id: 3, title: "새별오름 나홀로나무", img: require('@/assets/images/recommend/recommend-place.png') },
-    { id: 4, title: "스위트호텔 제주", img: require('@/assets/images/recommend/recommend-place.png') },
-  ],
-  "3일차": [
-    { id: 1, title: "제주국제공항", img: require('@/assets/images/recommend/recommend-place.png') },
-    { id: 2, title: "스위트호텔 제주", img: require('@/assets/images/recommend/recommend-place.png') },
-    { id: 3, title: "대기정", img: require('@/assets/images/recommend/recommend-place.png') },
-    { id: 4, title: "스위트호텔 제주", img: require('@/assets/images/recommend/recommend-place.png') },
-  ]
-};
+// DaysData 인터페이스 선언 (동적으로 키가 들어올 수 있도록 설정)
+interface DaysData {
+  [key: string]: DayData[]; // 인덱스 시그니처로 키를 문자열로 정의
+}
 
 const RouteScreen = () => {
   const [routeData, setRouteData] = useState<RouteData | null>(null);
   const [selectedDay, setSelectedDay] = useState("1일차");
   const bottomSheetRef = useRef<BottomSheet>(null);
+  const { totalDays, startDate, endDate } = useLocalSearchParams(); // 기본값 3일로 설정
   const tMapApiKey = Constants.expoConfig?.extra?.tMapApiKey; // T-Map API 키 가져오기
 
+  console.log("totalDays는? " + totalDays);
+  // totalDays에 따라 동적으로 데이터 생성
+  const data: DaysData = {};
+  for (let i = 1; i <= Number(totalDays); i++) {
+    data[`${i}일차`] = [
+      { id: 1, title: "숭례문", img: require('@/assets/images/recommend/recommend-place.png') },
+      { id: 2, title: "운헌궁", img: require('@/assets/images/recommend/recommend-place.png') },
+      { id: 3, title: "경복궁", img: require('@/assets/images/recommend/recommend-place.png') },
+      { id: 4, title: "창덕궁", img: require('@/assets/images/recommend/recommend-place.png') },
+      { id: 5, title: "남산서울타워", img: require('@/assets/images/recommend/recommend-place.png') },
+    ];
+  }
   useEffect(() => {
     const fetchRoute = async () => {
       if (!tMapApiKey) {
@@ -187,7 +185,7 @@ const RouteScreen = () => {
       <MapView
         style={StyleSheet.absoluteFillObject}
         initialRegion={{
-          latitude: 37.58523875839218, // 기존 값에서 약간 증가시킴
+          latitude: 40.17523875839218, // 기존 값에서 약간 증가시킴
           longitude: 126.977613738705,
           latitudeDelta: 0.0922,
           longitudeDelta: 0.0421,
@@ -199,10 +197,10 @@ const RouteScreen = () => {
       <BottomSheet
         ref={bottomSheetRef}
         index={1}
-        snapPoints={['10%', '45%', '80%']}
+        snapPoints={['10%', '50%', '85%']}
       >
         <View style={styles.bottomSheetHeader}>
-          {Object.keys(data).map(day => (
+          {Object.keys(data).slice(0, Number(totalDays)).map(day => ( // totalDays만큼만 표시
             <TouchableOpacity 
               key={day} 
               onPress={() => setSelectedDay(day)}
@@ -229,7 +227,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     padding: 10,
-    backgroundColor: '#f0f0f0',
+    // backgroundColor: '#f0f0f0',
   },
   dayButton: {
     paddingVertical: 8,

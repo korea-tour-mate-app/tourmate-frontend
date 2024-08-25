@@ -115,9 +115,15 @@ const DayScreen = () => {
   
   const handleNext = () => {
     if (startDate && endDate) {
-      navigation.navigate('(tabs)/recommend-page/withWho');
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const totalDays = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1; // 여행 총 일수 계산
+  
+      // totalDays와 함께 다음 화면으로 이동
+      navigation.navigate('(tabs)/recommend-page/withWho', { totalDays, startDate, endDate });
     }
   };
+
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return '';
