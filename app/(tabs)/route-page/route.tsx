@@ -6,14 +6,14 @@ const RouteScreen = () => {
   const tMapApiKey = Constants.expoConfig?.extra?.tMapApiKey; // T-Map API 키 가져오기
 
   useEffect(() => {
-    const fetchRoute = async () => {
+    const fetchRouteOptimization = async () => {
       if (!tMapApiKey) {
         console.error('T-Map API 키가 설정되지 않았습니다.');
         return;
       }
 
       try {
-        const response = await fetch('https://apis.openapi.sk.com/tmap/routes/routeSequential30?version=1', {
+        const response = await fetch('https://apis.openapi.sk.com/tmap/routes/routeOptimization10?version=1', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -30,6 +30,8 @@ const RouteScreen = () => {
             endName: encodeURIComponent("도착"),  // 목적지 명칭 (UTF-8 인코딩)
             endX: "127.12668555134137",  // 목적지 경도
             endY: "37.42007356038663",  // 목적지 위도
+            searchOption: "0",  // 경로 탐색 옵션 (기본값: 0: 교통최적+추천(기본값)
+            carType: "1",  // 차량 종류 (1: 승용차)
             viaPoints: [
               { 
                 viaPointId: "test01",
@@ -37,10 +39,13 @@ const RouteScreen = () => {
                 viaX: "127.000", 
                 viaY: "37.570"
               },
-              // 추가적인 경유지들을 여기에 추가
-            ],
-            searchOption: "0",  // 경로 탐색 옵션 (기본값: 0)
-            carType: "4"  // 차량 종류 (예: 대형화물차)
+              { 
+                viaPointId: "test02",
+                viaPointName: "경유지2",
+                viaX: "127.00221495976581", 
+                viaY: "37.56568310756034"
+              },
+            ]
           }),
         });
 
@@ -51,12 +56,12 @@ const RouteScreen = () => {
       }
     };
 
-    fetchRoute();
+    fetchRouteOptimization();
   }, [tMapApiKey]);
 
   return (
     <View style={styles.container}>
-      <Text>T-Map API 경로 탐색 중...</Text>
+      <Text>T-Map API 경유지 순서 최적화 중...</Text>
     </View>
   );
 };
