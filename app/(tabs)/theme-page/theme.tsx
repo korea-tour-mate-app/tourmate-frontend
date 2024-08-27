@@ -5,6 +5,7 @@ import * as Location from 'expo-location';
 import BottomSheet from '@gorhom/bottom-sheet';
 import mapStyle from '@/components/MapStyle';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import bottomSheet from '@gorhom/bottom-sheet/lib/typescript/components/bottomSheet';
 
 const { height: screenHeight } = Dimensions.get('window');
 
@@ -20,6 +21,9 @@ interface Place {
   name: string;
   description: string;
   address: string;
+  homepage: string;
+  contact: string;
+  hour: string;
   coordinate: {
     latitude: number;
     longitude: number;
@@ -30,13 +34,16 @@ function ThemeScreen() {
   const [location, setLocation] = useState<LocationType | undefined>();
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
+  const [isVisitedActive, setIsVisitedActive] = useState(false);
+  const [isLikesActive, setIsLikesActive] = useState(false);
   const [bottomSheetIndex, setBottomSheetIndex] = useState<number>(-1);
   const bottomSheetRef = React.useRef<BottomSheet>(null);
+  
 
   const places: Place[] = [
-    { id: 1, name: '경복궁', description: '서울의 대표 고궁', address: '서울시 종로구', coordinate: { latitude: 37.5796, longitude: 126.9794 } },
-    { id: 2, name: '명동', description: '서울의 쇼핑 거리', address: '서울시 어딘가', coordinate: { latitude: 37.5636, longitude: 126.9858 } },
-    { id: 3, name: '남산타워', description: '서울의 랜드마크', address: '서울시에 있겠지 용산구 그 어딘가 산 속에', coordinate: { latitude: 37.5512, longitude: 126.9882 } },
+    { id: 1, name: '경복궁', description: '서울의 대표 고궁', address: '서울시 종로구', homepage: 'www.royal.khs.go.kr/', contact: '02-3700-3900', hour: '10:00 ~ 20:00', coordinate: { latitude: 37.5796, longitude: 126.9794 } },
+    { id: 2, name: '명동', description: '서울의 쇼핑 거리', address: '서울시 어딘가', homepage: 'www.whdfh.go.kr', contact: '02-3750-2345', hour: '08:00 ~ 20:00', coordinate: { latitude: 37.5636, longitude: 126.9858 } },
+    { id: 3, name: '남산타워', description: '서울의 랜드마크', address: '서울시에 있겠지 용산구 그 어딘가 산 속에', homepage: 'www.all.all/', contact: '02-1000-3920', hour: '10:00 ~ 17:00', coordinate: { latitude: 37.5512, longitude: 126.9882 } },
   ];
 
   useEffect(() => {
@@ -71,8 +78,18 @@ function ThemeScreen() {
 
   const handleMarkerPress = (place: Place) => {
     setSelectedPlace(place);
-    bottomSheetRef.current?.expand(); 
+    bottomSheetRef.current?.snapToIndex(0); 
   };
+  
+    // 방문 버튼을 클릭했을 때의 처리
+    const handleVisitedPress = () => {
+      setIsVisitedActive(prevState => !prevState); 
+    };
+  
+    // 좋아요 버튼을 클릭했을 때의 처리
+    const handleLikesPress = () => {
+      setIsLikesActive(prevState => !prevState); 
+    };
 
   const handleCloseBottomSheet = useCallback(() => {
     setSelectedPlace(null);
@@ -85,6 +102,8 @@ function ThemeScreen() {
       setSelectedPlace(null);
     }
   }, []);
+
+  
 
   return (
     <GestureHandlerRootView style={styles.container}>
@@ -143,41 +162,105 @@ function ThemeScreen() {
 
       <BottomSheet
         ref={bottomSheetRef}
-        index={1}
-        snapPoints={['80%', '30%']}
+        index={-1}
+        snapPoints={['30%', '80%']}
         enablePanDownToClose={true}
         onChange={handleBottomSheetChange}
       >
         {selectedPlace && (
           <View style={styles.bottomSheetContainer}>
-            <View style={[
-              styles.bottomSheetTitleContainer,
-              bottomSheetIndex === 0 ? styles.bottomSheetTitleCentered : styles.bottomSheetTitleLeft,
-            ]}>
-              <Text style={[
-                styles.bottomSheetTitle,
-                bottomSheetIndex === 0 && styles.bottomSheetTitleCenteredText
-              ]}>
+            {bottomSheetIndex === 0 && ( // 30%일 때의 내용
+              <>
+            <View style={styles.bottomSheetTitleContainerCollapsed}>
+              <Text style={styles.bottomSheetTitleCollapsed}>
                 {selectedPlace.name}
               </Text>
-              <View style={bottomSheetIndex === 0 && styles.bottomSheetButtonContainer}>
-                <TouchableOpacity style={styles.bottomSheetButton}>
-                  <Image source={require('../../../assets/images/map/likes-active.png')} style={styles.bottomSheetLikesButton}/>
+              <View style={styles.bottomSheetButtonContainer}>
+                <TouchableOpacity style={styles.bottomSheetButton} onPress={handleVisitedPress}>
+                <Image
+          source={
+            isVisitedActive 
+              ? require('../../../assets/images/map/visited-active.png') 
+              : require('../../../assets/images/map/visited-inactive.png') 
+          }
+          style={styles.bottomSheetVisitedButton}
+        />
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.bottomSheetButton}>
-                  <Image source={require('../../../assets/images/map/visited-active.png')} style={styles.bottomSheetVisitedButton}/>
+                <TouchableOpacity style={styles.bottomSheetButton} onPress={handleLikesPress}>
+                <Image
+          source={
+            isLikesActive 
+              ? require('../../../assets/images/map/likes-active.png') 
+              : require('../../../assets/images/map/likes-inactive.png') 
+          }
+          style={styles.bottomSheetLikesButton}
+        />
                 </TouchableOpacity>
               </View>
-            </View>
-
-            <View style={styles.bottomSheetAddressContainer}>
+              <View style={styles.bottomSheetAddressContainerCollapsed}>
               <Text style={styles.bottomSheetAddress}>{selectedPlace.address}</Text>
             </View>
+            </View>
 
+            <View style={styles.bottomSheetDescriptionContainer}>
+            <Image source={require('../../../assets/images/map/example-image.png')} style={styles.bottomSheetImageContainerCollapsed}></Image>
             <Text style={styles.bottomSheetDescription}>{selectedPlace.description}</Text>
-            <TouchableOpacity style={styles.closeButton} onPress={handleCloseBottomSheet}>
-              <Text style={styles.closeButtonText}>닫기</Text>
-            </TouchableOpacity>
+            </View>
+            </>
+            )}
+            {bottomSheetIndex === 1 && ( // 80%일 때의 내용 
+            <ScrollView>
+              <View style={styles.bottomSheetTitleContainerExpand}>
+                <Text style={styles.bottomSheetTitleExpand}>{selectedPlace.name}</Text>
+                <View style={styles.bottomSheetButtonContainer}>
+                <TouchableOpacity
+          style={[styles.bottomSheetButton, isVisitedActive]}
+          onPress={handleVisitedPress}
+        >
+          <Image
+            source={
+              isVisitedActive
+                ? require('../../../assets/images/map/visited-active.png')
+                : require('../../../assets/images/map/visited-inactive.png')
+            }
+            style={styles.bottomSheetVisitedButton}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.bottomSheetButton, isLikesActive]}
+          onPress={handleLikesPress}
+        >
+          <Image
+            source={
+              isLikesActive
+                ? require('../../../assets/images/map/likes-active.png')
+                : require('../../../assets/images/map/likes-inactive.png')
+            }
+            style={styles.bottomSheetLikesButton}
+          />
+        </TouchableOpacity>
+              </View>
+              </View>
+                <View style={styles.bottomSheetAddressContainerExpand}>
+                  <Text style={styles.bottomSheetAddress}>{selectedPlace.address}</Text>
+                </View>
+              <Image source={require('../../../assets/images/map/example-image.png')} style={styles.bottomSheetImageContainerExpand}/>
+              
+              <View style={styles.bottomSheetListContainer}>
+              <Text style={styles.bottomSheetListAddressTitle}>주소</Text>
+              <Text style={styles.bottomSheetListAddress}>{selectedPlace.address}</Text>
+
+              <Text style={styles.bottomSheetListHomepageTitle}>홈페이지</Text>
+              <Text style={styles.bottomSheetListHomepage}>{selectedPlace.homepage}</Text>
+
+              <Text style={styles.bottomSheetListContactTitle}>연락처</Text>
+              <Text style={styles.bottomSheetListContact}>{selectedPlace.contact}</Text>
+
+              <Text style={styles.bottomSheetListHourTitle}>이용시간</Text>
+              <Text style={styles.bottomSheetListHour}>{selectedPlace.hour}</Text>
+              </View>
+              </ScrollView>
+            )}
           </View>
         )}
       </BottomSheet>
@@ -250,107 +333,166 @@ const styles = StyleSheet.create({
   },
   buttonVisited: {
     backgroundColor: 'white',
-    width: 100,
-    height: 30,
-    borderRadius: 10,
-    marginLeft: 5,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    marginRight: 10,
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
+  },
+  buttonVisitedIcon: {
+    width: 20,
+    height: 20,
+    marginLeft: 5,
   },
   buttonLikes: {
     backgroundColor: 'white',
-    width: 80,
-    height: 30,
-    borderRadius: 10,
-    marginLeft: 5,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    marginRight: 10,
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
-  },
-  buttonText: {
-    color: 'black',
-    fontSize: 16,
-    fontFamily: 'AggroL',
-  },
-  buttonVisitedIcon: {
-    width: 24,
-    height: 24,
-    marginLeft: 5,
   },
   buttonLikesIcon: {
     width: 20,
     height: 20,
     marginLeft: 5,
   },
+  buttonText: {
+    fontSize: 16,
+    fontFamily: 'AggroL',
+  },
   bottomSheetContainer: {
     flex: 1,
-    padding: 20,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 20,
   },
-  bottomSheetTitleContainer: {
+  bottomSheetTitleContainerCollapsed: { //30% 
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    marginBottom: 10,
+    paddingTop: 10,
+    paddingBottom: 10,
   },
-  bottomSheetTitleLeft: {
-    justifyContent: 'flex-start',
-  },
-  bottomSheetTitleCentered: {
+  bottomSheetTitleContainerExpand: { //80%
+    flexDirection: 'row',
+    width: '100%',
     justifyContent: 'center',
-    alignItems: 'flex-start',
-
+    alignItems: 'center',
+    paddingTop: 20,
+    paddingBottom: 10,
   },
-  bottomSheetButtonContainer: {
-    flexDirection: 'row',
-  },
-  bottomSheetTitle: {
-    fontFamily: 'AggroM',
+  bottomSheetTitleCollapsed: { //30% 
+    fontFamily:'AggroM',
     fontSize: 24,
-    flex: 1,
+    marginLeft: 10, // 공간 확보
   },
-  bottomSheetTitleCenteredText: {
-    textAlign: 'center',
+  bottomSheetTitleExpand:{ //80%
+    fontFamily:'AggroL',
+    fontSize: 30,
+  },
+  bottomSheetButtonContainer: { //30%
+    flexDirection: 'row',
   },
   bottomSheetButton: {
-    marginLeft: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
+  },
+  bottomSheetVisitedButton: {
+    width: 25,
+    height: 25,
+    resizeMode: 'cover',
+    marginHorizontal: 5,
   },
   bottomSheetLikesButton: {
     width: 25,
     height: 25,
-    resizeMode: 'contain',
+    resizeMode: 'cover',
+    marginHorizontal: 5,
   },
-  bottomSheetVisitedButton: {
-    width: 30,
-    height: 30,
+  bottomSheetAddressContainerCollapsed: { //30%
+    width: 150,
+    marginLeft: 30,
   },
-  bottomSheetAddressContainer: {
-    width: '100%',
-    alignItems: 'center',
-    marginVertical: 10,
+  bottomSheetAddressContainerExpand: { //80%
+    width: '100%', 
+    justifyContent: 'center', 
+    alignItems: 'center',     
   },
   bottomSheetAddress: {
     fontFamily: 'AggroL',
-    fontSize: 18,
+    fontSize: 16,
+    color: 'black',
+  },
+  bottomSheetDescriptionContainer:{
+    flexDirection: 'row'
+  },
+  bottomSheetImageContainerCollapsed: {
+    width: 130,
+    height: 115,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 10,
+    borderRadius: 10,
+    resizeMode: 'cover',
+    marginRight: 40,
+  },
+  bottomSheetImageContainerExpand:{
+    width: '100%',
+    height: 150,
+    resizeMode: 'contain',
+    marginTop: 30,
   },
   bottomSheetDescription: {
+    fontFamily: 'AggroL',
     fontSize: 16,
-    marginVertical: 10,
-  },
-  closeButton: {
+    color: 'black',
     marginTop: 10,
+  },
+
+  bottomSheetListContainer:{
+    marginTop: 20,
     padding: 10,
-    backgroundColor: '#0047A0',
-    borderRadius: 5,
-    alignItems: 'center',
   },
-  closeButtonText: {
-    color: 'white',
-    fontSize: 16,
+  bottomSheetListAddressTitle:{
+    fontFamily: 'AggroM',
+    fontSize: 20,
   },
+  bottomSheetListAddress:{
+    fontFamily: 'AggroL',
+    fontSize: 20,
+    marginTop: 20
+  },
+  bottomSheetListHomepageTitle:{
+    fontFamily: 'AggroM',
+    fontSize: 20,
+    marginTop: 20,
+  },
+  bottomSheetListHomepage:{
+    fontFamily: 'AggroL',
+    fontSize: 20,
+    marginTop: 20,
+  },
+  bottomSheetListContactTitle:{
+    fontFamily: 'AggroM',
+    fontSize: 20,
+    marginTop: 20,
+  },
+  bottomSheetListContact:{
+    fontFamily: 'AggroL',
+    fontSize: 20,
+    marginTop: 20,
+  },
+  bottomSheetListHourTitle:{
+    fontFamily: 'AggroM',
+    fontSize: 20,
+    marginTop: 20,
+  },
+  bottomSheetListHour:{
+    fontFamily: 'AggroL',
+    fontSize: 20,
+    marginTop: 20,
+  }
 });
 
-export default ThemeScreen;
 
+export default ThemeScreen;
