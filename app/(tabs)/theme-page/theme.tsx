@@ -19,7 +19,7 @@ interface Place {
   id: number;
   name: string;
   description: string;
-  address: String;
+  address: string;
   coordinate: {
     latitude: number;
     longitude: number;
@@ -30,13 +30,13 @@ function ThemeScreen() {
   const [location, setLocation] = useState<LocationType | undefined>();
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
+  const [bottomSheetIndex, setBottomSheetIndex] = useState<number>(-1);
   const bottomSheetRef = React.useRef<BottomSheet>(null);
 
-  // 미리 정의된 장소 목록
   const places: Place[] = [
     { id: 1, name: '경복궁', description: '서울의 대표 고궁', address: '서울시 종로구', coordinate: { latitude: 37.5796, longitude: 126.9794 } },
-    { id: 2, name: '명동', description: '서울의 쇼핑 거리', address: '서울시 어딘가',coordinate: { latitude: 37.5636, longitude: 126.9858 } },
-    { id: 3, name: '남산타워', description: '서울의 랜드마크',address: '서울시에 있겠지 용산구 그 어딘가 산 속에', coordinate: { latitude: 37.5512, longitude: 126.9882 } },
+    { id: 2, name: '명동', description: '서울의 쇼핑 거리', address: '서울시 어딘가', coordinate: { latitude: 37.5636, longitude: 126.9858 } },
+    { id: 3, name: '남산타워', description: '서울의 랜드마크', address: '서울시에 있겠지 용산구 그 어딘가 산 속에', coordinate: { latitude: 37.5512, longitude: 126.9882 } },
   ];
 
   useEffect(() => {
@@ -62,7 +62,7 @@ function ThemeScreen() {
     getLocation();
   }, []);
 
-  const mapProvider = Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined; // 구글 맵을 사용하는 경우
+  const mapProvider = Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined;
   const isGoogleMap = Platform.OS === 'android' || mapProvider === PROVIDER_GOOGLE;
 
   const handleFilterPress = (filter: string) => {
@@ -71,22 +71,29 @@ function ThemeScreen() {
 
   const handleMarkerPress = (place: Place) => {
     setSelectedPlace(place);
-    bottomSheetRef.current?.expand(); // 선택된 장소가 있을 때 바텀 시트를 열도록 설정
+    bottomSheetRef.current?.expand(); 
   };
 
   const handleCloseBottomSheet = useCallback(() => {
-    setSelectedPlace(null); // 바텀 시트가 닫힐 때 선택된 장소를 null로 설정
+    setSelectedPlace(null);
     bottomSheetRef.current?.close();
+  }, []);
+
+  const handleBottomSheetChange = useCallback((index: number) => {
+    setBottomSheetIndex(index);
+    if (index === -1) {
+      setSelectedPlace(null);
+    }
   }, []);
 
   return (
     <GestureHandlerRootView style={styles.container}>
       {location && (
         <MapView
-          provider={isGoogleMap ? PROVIDER_GOOGLE : undefined} // 구글 맵을 사용하는 경우
+          provider={isGoogleMap ? PROVIDER_GOOGLE : undefined}
           style={styles.map}
           initialRegion={location}
-          customMapStyle={isGoogleMap ? mapStyle : undefined} // 구글 맵일 때만 스타일 적용
+          customMapStyle={isGoogleMap ? mapStyle : undefined}
           showsUserLocation={true}
         >
           {places.map((place) => (
@@ -98,6 +105,7 @@ function ThemeScreen() {
               <View style={styles.markerContainer}>
                 <Image source={require('../../../assets/images/map/theme-marker.png')} style={styles.themeMarker}/>
               </View>
+              <Text style={styles.markerPlace}>{place.name}</Text>
             </Marker>
           ))}
         </MapView>
@@ -109,40 +117,15 @@ function ThemeScreen() {
           contentContainerStyle={styles.filterScrollView}
           showsHorizontalScrollIndicator={false}
         >
-          <TouchableOpacity
-            style={[styles.filterButton, activeFilter === 'K-pop' && styles.activeFilterButton]}
-            onPress={() => handleFilterPress('K-pop')}
-          >
-            <Text style={[styles.filterText, activeFilter === 'K-pop' && styles.activeFilterText]}>K-pop</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.filterButton, activeFilter === '고궁' && styles.activeFilterButton]}
-            onPress={() => handleFilterPress('고궁')}
-          >
-            <Text style={[styles.filterText, activeFilter === '고궁' && styles.activeFilterText]}>고궁</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.filterButton, activeFilter === '템플스테이' && styles.activeFilterButton]}
-            onPress={() => handleFilterPress('템플스테이')}
-          >
-            <Text style={[styles.filterText, activeFilter === '템플스테이' && styles.activeFilterText]}>템플스테이</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.filterButton, activeFilter === '식도락' && styles.activeFilterButton]}
-            onPress={() => handleFilterPress('식도락')}
-          >
-            <Text style={[styles.filterText, activeFilter === '식도락' && styles.activeFilterText]}>식도락</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.filterButton, activeFilter === '레저스포츠' && styles.activeFilterButton]}
-            onPress={() => handleFilterPress('레저스포츠')}
-          >
-            <Text style={[styles.filterText, activeFilter === '레저스포츠' && styles.activeFilterText]}>레저스포츠</Text>
-          </TouchableOpacity>
+          {['K-pop', '고궁', '템플스테이', '식도락', '레저스포츠', '등산코스', '테마시설', '문화시설', '호캉스', '카페', '공방'].map(filter => (
+            <TouchableOpacity
+              key={filter}
+              style={[styles.filterButton, activeFilter === filter && styles.activeFilterButton]}
+              onPress={() => handleFilterPress(filter)}
+            >
+              <Text style={[styles.filterText, activeFilter === filter && styles.activeFilterText]}>{filter}</Text>
+            </TouchableOpacity>
+          ))}
         </ScrollView>
       </View>
 
@@ -159,30 +142,37 @@ function ThemeScreen() {
       </View>
 
       <BottomSheet
-        ref={bottomSheetRef} // BottomSheet 참조를 설정합니다.
-        index={-1} // 초기 상태가 닫힌 상태
-        snapPoints={['80%', '25%']} // 유효한 snap points
-        enablePanDownToClose={true} // 아래로 스와이프하여 닫기 가능
-        onChange={(index) => {
-          if (index === -1) {
-            setSelectedPlace(null); // 바텀 시트가 닫힐 때 선택된 장소를 null로 설정
-          }
-        }}
+        ref={bottomSheetRef}
+        index={1}
+        snapPoints={['80%', '30%']}
+        enablePanDownToClose={true}
+        onChange={handleBottomSheetChange}
       >
         {selectedPlace && (
           <View style={styles.bottomSheetContainer}>
-            <View style={styles.bottomSheetTitleContainer}>
-            <Text style={styles.bottomSheetTitle}>{selectedPlace.name}</Text>
-              <TouchableOpacity>
-              <Image source={require('../../../assets/images/map/likes-active.png')} style={styles.bottomSheetLikesButton}></Image>
-              </TouchableOpacity>
-              <TouchableOpacity>
-              <Image source={require('../../../assets/images/map/visited-active.png')} style={styles.bottomSheetVisitedButton}></Image>
-              </TouchableOpacity>
-              <View style={styles.bottomSheetAddressContainer}>
-              <Text style={styles.bottomSheetAddress}>{selectedPlace.address}</Text>
+            <View style={[
+              styles.bottomSheetTitleContainer,
+              bottomSheetIndex === 0 ? styles.bottomSheetTitleCentered : styles.bottomSheetTitleLeft,
+            ]}>
+              <Text style={[
+                styles.bottomSheetTitle,
+                bottomSheetIndex === 0 && styles.bottomSheetTitleCenteredText
+              ]}>
+                {selectedPlace.name}
+              </Text>
+              <View style={bottomSheetIndex === 0 && styles.bottomSheetButtonContainer}>
+                <TouchableOpacity style={styles.bottomSheetButton}>
+                  <Image source={require('../../../assets/images/map/likes-active.png')} style={styles.bottomSheetLikesButton}/>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.bottomSheetButton}>
+                  <Image source={require('../../../assets/images/map/visited-active.png')} style={styles.bottomSheetVisitedButton}/>
+                </TouchableOpacity>
               </View>
-          </View>
+            </View>
+
+            <View style={styles.bottomSheetAddressContainer}>
+              <Text style={styles.bottomSheetAddress}>{selectedPlace.address}</Text>
+            </View>
 
             <Text style={styles.bottomSheetDescription}>{selectedPlace.description}</Text>
             <TouchableOpacity style={styles.closeButton} onPress={handleCloseBottomSheet}>
@@ -209,6 +199,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  markerPlace: {
+    fontFamily: 'AggroL',
+    fontSize: 18,
+  },
   themeMarker: {
     width: 20,
     height: 20,
@@ -216,22 +210,20 @@ const styles = StyleSheet.create({
   },
   filterContainer: {
     position: 'absolute',
-    top: 55,
-    left: 20,
-    right: 20,
+    top: 60,
+    backgroundColor: 'white',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-start',
     zIndex: 1,
   },
   filterScrollView: {
-    maxHeight: 50,
+    maxHeight: 60,
   },
   filterButton: {
     backgroundColor: 'rgba(255, 255, 255, 0)',
-    paddingVertical: 8,
+    paddingVertical: 10,
     paddingHorizontal: 12,
-    borderRadius: 5,
     marginRight: 10,
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
@@ -241,16 +233,16 @@ const styles = StyleSheet.create({
   },
   filterText: {
     color: 'black',
-    fontSize: 16,
+    fontSize: 17,
   },
   activeFilterText: {
     color: '#0047A0',
     fontFamily: 'AggroM',
-    fontSize: 15,
+    fontSize: 16,
   },
   buttonContainer: {
     position: 'absolute',
-    top: 100,
+    top: 120,
     left: 20,
     flexDirection: 'row',
     alignItems: 'center',
@@ -291,38 +283,57 @@ const styles = StyleSheet.create({
     height: 20,
     marginLeft: 5,
   },
-
-  bottomSheetTitleContainer:{
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start'
-  },
   bottomSheetContainer: {
     flex: 1,
-    padding: 15,
+    padding: 20,
+  },
+  bottomSheetTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    marginBottom: 10,
+  },
+  bottomSheetTitleLeft: {
+    justifyContent: 'flex-start',
+  },
+  bottomSheetTitleCentered: {
+    justifyContent: 'center',
+    alignItems: 'flex-start',
+
+  },
+  bottomSheetButtonContainer: {
+    flexDirection: 'row',
   },
   bottomSheetTitle: {
     fontFamily: 'AggroM',
     fontSize: 24,
+    flex: 1,
   },
-  bottomSheetLikesButton:{
+  bottomSheetTitleCenteredText: {
+    textAlign: 'center',
+  },
+  bottomSheetButton: {
     marginLeft: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  bottomSheetLikesButton: {
     width: 25,
     height: 25,
     resizeMode: 'contain',
   },
-  bottomSheetVisitedButton:{
-    marginLeft: 10,
+  bottomSheetVisitedButton: {
     width: 30,
     height: 30,
   },
-  bottomSheetAddressContainer:{
-    width: 200,
+  bottomSheetAddressContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginVertical: 10,
   },
   bottomSheetAddress: {
     fontFamily: 'AggroL',
     fontSize: 18,
-    marginLeft: 20,
   },
   bottomSheetDescription: {
     fontSize: 16,
@@ -342,3 +353,4 @@ const styles = StyleSheet.create({
 });
 
 export default ThemeScreen;
+
