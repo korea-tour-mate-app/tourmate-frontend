@@ -1,17 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { RootStackNavigationProp, RootStackParamList } from '../navigation/NavigationTypes';
 import { useLanguage } from '../../components/LanguageProvider';
 import { translateText } from '../../utils/Translation';
 
-type MyPageScreenRouteProp = RouteProp<RootStackParamList, 'MyPage'>;
-type MyPageScreenNavigationProp = RootStackNavigationProp<'MyPage'>;
-
-const MyPageScreen: React.FC = () => {
-  const navigation = useNavigation<MyPageScreenNavigationProp>();
-  const route = useRoute<MyPageScreenRouteProp>();
+const MyPageScreen: React.FC = ({ navigation }: any) => {
   const { language: globalLanguage, setLanguage: setGlobalLanguage } = useLanguage();
 
   const [currentDate, setCurrentDate] = useState<string>('');
@@ -23,10 +16,12 @@ const MyPageScreen: React.FC = () => {
   const [logoutText, setLogoutText] = useState<string>('로그아웃');
 
   useEffect(() => {
-    if (route.params?.language) {
-      setGlobalLanguage(route.params.language);
+    // Update language if needed
+    const params = navigation.getParam('language');
+    if (params) {
+      setGlobalLanguage(params);
     }
-  }, [route.params?.language]);
+  }, [navigation, setGlobalLanguage]);
 
   useEffect(() => {
     const translateMenuTexts = async () => {
@@ -58,6 +53,10 @@ const MyPageScreen: React.FC = () => {
     setCurrentDate(formattedDate);
   }, []);
 
+  const handleNavigation = (screen: string) => {
+    navigation.navigate(screen);
+  };
+
   const LogoutFunction = () => {
     navigation.replace('SplashScreen'); // 'Splash'는 실제 네비게이션 스크린 이름으로 수정
   };
@@ -78,7 +77,7 @@ const MyPageScreen: React.FC = () => {
               <View style={styles.circle} />
             </View>
             <View style={styles.menuContainer}>
-              <TouchableOpacity onPress={() => navigation.navigate('PasswordChange')}>
+              <TouchableOpacity onPress={() => handleNavigation('PasswordChange')}>
                 <Text style={styles.menu}>{changePasswordText}</Text>
               </TouchableOpacity>
               <View style={styles.dottedLineContainer}>
@@ -95,7 +94,7 @@ const MyPageScreen: React.FC = () => {
                 </Svg>
               </View>
 
-              <TouchableOpacity onPress={() => navigation.navigate('MyReviews')}>
+              <TouchableOpacity onPress={() => handleNavigation('MyReviews')}>
                 <Text style={styles.menu}>{myReviewsText}</Text>
               </TouchableOpacity>
               <View style={styles.dottedLineContainer}>
@@ -112,7 +111,7 @@ const MyPageScreen: React.FC = () => {
                 </Svg>
               </View>
 
-              <TouchableOpacity onPress={() => navigation.navigate('MyPlaces')}>
+              <TouchableOpacity onPress={() => handleNavigation('MyPlaces')}>
                 <Text style={styles.menu}>{myPlacesText}</Text>
               </TouchableOpacity>
               <View style={styles.dottedLineContainer}>
@@ -129,7 +128,7 @@ const MyPageScreen: React.FC = () => {
                 </Svg>
               </View>
 
-              <TouchableOpacity onPress={() => navigation.navigate('LanguageSettings')}>
+              <TouchableOpacity onPress={() => handleNavigation('LanguageSettings')}>
                 <Text style={styles.menu}>{languageSettingsText}</Text>
               </TouchableOpacity>
               <View style={styles.dottedLineContainer}>
@@ -248,4 +247,3 @@ const styles = StyleSheet.create({
 });
 
 export default MyPageScreen;
-

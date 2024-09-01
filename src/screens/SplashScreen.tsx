@@ -1,12 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Image, StyleSheet, Text, TextInput, TouchableOpacity, Animated, Dimensions, Platform } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack'; 
-import { RootStackParamList } from './navigation/navigationTypes';
-import { ImageSourcePropType } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
-
-type SplashScreenNavigationProp = StackNavigationProp<RootStackParamList, 'SplashScreen'>;
 
 const splashScreens = [
   require('../assets/images/splash/splash1.png'),
@@ -16,11 +10,14 @@ const splashScreens = [
   require('../assets/images/splash/splash5.png'),
 ];
 
-const SplashScreen: React.FC = () => {
-  const [selectedSplash, setSelectedSplash] = useState<ImageSourcePropType | null>(null);
+interface SplashScreenProps {
+  navigateToHome: () => void;
+}
+
+const SplashScreen : React.FC<SplashScreenProps> = ({ navigateToHome }) => {
+  const [selectedSplash, setSelectedSplash] = useState(null);
   const [showLoginBox, setShowLoginBox] = useState(false);
   const [showSignUp, setShowSignUp] = useState(false);
-  const navigation = useNavigation<SplashScreenNavigationProp>();
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const windowWidth = Dimensions.get('window').width;
@@ -41,10 +38,6 @@ const SplashScreen: React.FC = () => {
 
     return () => clearTimeout(timer);
   }, []);
-
-  const LoginFunction = () => {
-    navigation.navigate('HomeScreen'); // 로그인 후 이동할 화면으로 변경 필요
-  };
 
   const platformFontSize = (size: number) => {
     return Platform.OS === 'android' ? size - 2 : size;
@@ -112,7 +105,7 @@ const SplashScreen: React.FC = () => {
             />
           </Svg>
 
-          <TouchableOpacity style={[styles.signIn, { width: platformButtonSize(210), height: platformButtonSize(50) }]} onPress={LoginFunction}>
+          <TouchableOpacity style={[styles.signIn, { width: platformButtonSize(210), height: platformButtonSize(50) }]} onPress={navigateToHome}>
             <Text style={[styles.signInText, { fontSize: platformFontSize(20) }]}>로그인</Text>
           </TouchableOpacity>
 
@@ -192,19 +185,7 @@ const SplashScreen: React.FC = () => {
           </Svg>
 
           <View style={[styles.passwordContainer, { marginTop: platformSpacing(27) }]}>
-            <TextInput style={[styles.passwordInput, { fontSize: platformFontSize(17) }]} placeholder="비밀번호(8자리 이상)" secureTextEntry />
-            <Svg height="2" width="100%">
-              <Line
-                x1="0"
-                y1="1"
-                x2={windowWidth * 0.8}
-                y2="1"
-                stroke="#0047A0"
-                strokeWidth="1.5"
-              />
-            </Svg>
-
-            <TextInput style={[styles.passwordInput, { fontSize: platformFontSize(17) }]} placeholder="비밀번호 확인" secureTextEntry />
+            <TextInput style={[styles.passwordInput, { fontSize: platformFontSize(17) }]} placeholder="비밀번호" secureTextEntry />
             <Svg height="2" width="100%">
               <Line
                 x1="0"
@@ -217,22 +198,21 @@ const SplashScreen: React.FC = () => {
             </Svg>
           </View>
 
-          <TouchableOpacity style={[styles.signUpButton, { width: platformButtonSize(210), height: platformButtonSize(50) }]}>
-            <Text style={[styles.signInText, { fontSize: platformFontSize(20) }]}>회원가입</Text>
+          <TouchableOpacity style={[styles.signIn, { width: platformButtonSize(210), height: platformButtonSize(50), marginTop: platformSpacing(36) }]}>
+            <Text style={[styles.signInText, { fontSize: platformFontSize(20) }]}>가입하기</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.signUp, { marginTop: platformSpacing(18) }]} onPress={() => {
             setShowSignUp(false);
             setShowLoginBox(true);
           }}>
-            <Text style={[styles.signUpText, { fontSize: platformFontSize(15) }]}>로그인하러 가기</Text>
+            <Text style={[styles.signUpText, { fontSize: platformFontSize(15) }]}>이미 회원이신가요?</Text>
           </TouchableOpacity>
-
-          <Svg height="2" width="40%">
+          <Svg height="2" width="50%">
             <Line
               x1="0"
               y1="1"
-              x2={windowWidth * 0.4}
+              x2={windowWidth * 0.5}
               y2="1"
               stroke="#0047A0"
               strokeWidth="1.5"
@@ -247,129 +227,130 @@ const SplashScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'white',
   },
   splashImage: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
+    position: 'absolute',
   },
   loginBox: {
-    position: 'absolute',
-    padding: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)', // 약간의 투명도를 준 배경
-    borderRadius: 10,
+    backgroundColor: 'white',
+    borderRadius: 15,
     alignItems: 'center',
+    position: 'absolute',
+    top: '15%',
+    alignSelf: 'center',
+    paddingTop: 30,
+  },
+  signUpBox: {
+    backgroundColor: 'white',
+    borderRadius: 15,
+    alignItems: 'center',
+    position: 'absolute',
+    top: '12%',
+    alignSelf: 'center',
+    paddingTop: 30,
   },
   title: {
-    fontFamily: 'AggroM',
-    color: 'black',
-    marginTop: 20,
-    marginBottom: 10,
+    color: '#707070',
+    fontWeight: '300',
+    textAlign: 'center',
   },
   titleBlue: {
-    fontFamily: 'AggroM',
     color: '#0047A0',
-    marginBottom: 10,
+    fontWeight: '500',
+    textAlign: 'center',
   },
   content: {
-    fontFamily: 'AggroL',
+    color: '#707070',
+    fontWeight: '300',
+    textAlign: 'center',
+    marginTop: 10,
   },
   input: {
-    width: 220,
+    width: '75%',
     height: 50,
-    fontFamily: 'AggroL',
-    marginTop: 20,
+    marginTop: 30,
+    textAlign: 'center',
+    fontWeight: '300',
+    color: '#0047A0',
   },
   signIn: {
     backgroundColor: '#0047A0',
-    borderRadius: 50,
-    marginTop: 40,
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: 50,
+    marginTop: 36,
   },
   signInText: {
-    fontFamily: 'AggroL',
     color: 'white',
   },
-  googleSignIn: {},
-  signUpBox: {
-    position: 'absolute',
-    padding: 10,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)', // 약간의 투명도를 준 배경
-    borderRadius: 10,
+  signUp: {
+    marginTop: 18,
     alignItems: 'center',
   },
-  signUp: {
-    marginTop: 20,
-  },
   signUpText: {
-    fontFamily: 'AggroM',
-    color: 'black',
+    color: '#0047A0',
+    fontWeight: '300',
   },
   signUpContainer: {
     width: '80%',
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
-    marginTop: 50,
-  },
-  emailContainer: {
-    flexDirection: 'row',
+    height: 50,
+    justifyContent: 'center',
     alignItems: 'center',
-    width: '100%',
-    marginTop: 30,
-  },
-  passwordContainer: {
-    width: '80%',
-    justifyContent: 'flex-start',
-    alignItems: 'flex-start',
-    marginTop: 30,
   },
   signUpInput: {
     width: '100%',
-    height: 30,
-    fontFamily: 'AggroL',
+    height: 50,
+    textAlign: 'center',
+    fontWeight: '300',
+    color: '#0047A0',
+  },
+  emailContainer: {
+    width: '80%',
+    height: 50,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   emailInput: {
-    width: 150,
-    height: 30,
-    fontFamily: 'AggroL',
-    marginTop: 10,
-    left: 30,
+    width: '60%',
+    height: 50,
+    textAlign: 'center',
+    fontWeight: '300',
+    color: '#0047A0',
+  },
+  authButton: {
+    backgroundColor: '#0047A0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 50,
+    marginLeft: 10,
+  },
+  auth: {
+    color: 'white',
+    fontWeight: '300',
+  },
+  authenticationButton: {
+    backgroundColor: '#0047A0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 50,
+    marginLeft: 10,
+  },
+  passwordContainer: {
+    width: '80%',
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   passwordInput: {
     width: '100%',
-    height: 30,
-    fontFamily: 'AggroL',
-    marginTop: 10,
-  },
-  signUpButton: {
-    marginTop: 40,
-    backgroundColor: '#0047A0',
-    borderRadius: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  authButton: {
-    position: 'absolute',
-    right: 25,
-    backgroundColor: '#D9D9D9',
-    borderRadius: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  authenticationButton: {
-    position: 'absolute',
-    right: 25,
-    backgroundColor: '#D9D9D9',
-    borderRadius: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  auth: {
-    fontFamily: 'AggroL',
+    height: 50,
+    textAlign: 'center',
+    fontWeight: '300',
+    color: '#0047A0',
   },
 });
 

@@ -3,14 +3,14 @@
 #import <React/RCTRootView.h>
 #import <React/RCTBundleURLProvider.h>
 #import <GoogleMaps/GoogleMaps.h>
+#import <RNScreens/RNSScreen.h>
 
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-  // Provide Google Maps API key
   [GMSServices provideAPIKey:@"AIzaSyCm30HktXXR1XGPWHGhCc1XrC641z_p6PY"];
-
+  
   // Create a bridge
   RCTBridge *bridge = [[RCTBridge alloc] initWithDelegate:self launchOptions:launchOptions];
   

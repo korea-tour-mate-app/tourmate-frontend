@@ -6,4 +6,5 @@ module.exports = {
     ['@babel/plugin-transform-private-property-in-object', { loose: false }],
     'react-native-reanimated/plugin',
   ],
+  
 };

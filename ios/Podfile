@@ -1,38 +1,99 @@
-platform :ios, '14.0'
-
-# Frameworks 설정
-linkage = ENV['USE_FRAMEWORKS']
-if linkage
-  Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
-  use_frameworks! :linkage => linkage.to_sym
+# Node.js script resolution function
+def node_require(script)
+  require Pod::Executable.execute_command('node', ['-p',
+    "require.resolve(
+      '#{script}',
+      {paths: [process.argv[1]]},
+    )", __dir__]).strip
 end
 
-# React Native 프로젝트 준비
-# React Native의 최신 버전에서는 prepare_react_native_project!를 사용하는 대신, `use_react_native!` 메소드에서 직접 설정을 수행합니다.
+# Define iOS platform and CocoaPods settings
+platform :ios, '14.0'
+install! 'cocoapods', :deterministic_uuids => false
 
+# Include React Native and other native module scripts
+require_relative '../node_modules/react-native/scripts/react_native_pods'
+require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
+require_relative '../node_modules/react-native-permissions/scripts/setup'
+
+# Use static linkage for frameworks
+use_frameworks! :linkage => :static
+
+# Define the static framework array
+$static_framework = [
+  'react-native-maps',
+  'react-native-google-maps',
+  'Google-Maps-iOS-Utils',
+  'GoogleMaps',
+  'RNPermissions',
+  'Permission-LocationWhenInUse',
+  'Permission-Notifications',
+]
+
+# Define the main target for the app
 target 'tourmate_frontend' do
+  # Use native modules
   config = use_native_modules!
 
+  # Flags change depending on the env values
+  flags = get_default_flags()
+
+  # React Native configuration
   use_react_native!(
     :path => config[:reactNativePath],
+    :hermes_enabled => flags[:hermes_enabled],  # true 또는 false
+    :fabric_enabled => flags[:fabric_enabled],
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
-  # Google Maps SDK 설정
-  pod 'GoogleMaps', '~> 6.0.0'
-  pod 'Google-Maps-iOS-Utils', '~> 3.10.0'
+  # Setup permissions for the app
+  setup_permissions([
+    'LocationAccuracy',
+    'LocationAlways',
+    'LocationWhenInUse',
+  ])
 
+  # React Native Maps dependencies
+  rn_maps_path = '../node_modules/react-native-maps'
+  pod 'react-native-maps', :path => rn_maps_path
+  pod 'GoogleMaps', '~> 7.4.0'
+  pod 'Google-Maps-iOS-Utils', '~> 4.2.2'
+
+  # Post-install actions
+  post_install do |installer|
+    # Allow static libraries to be used with frameworks
+    Pod::Installer::Xcode::TargetValidator.send(:define_method, :verify_no_static_framework_transitive_dependencies) {}
+    installer.pod_targets.each do |pod|
+      if $static_framework.include?(pod.name)
+        def pod.build_type
+          Pod::BuildType.static_library # >= 1.9
+        end
+      end
+    end
+
+    # Remove the '-ObjC' linker flag
+    installer.pods_project.build_configurations.each do |config|
+      if config.build_settings["OTHER_LDFLAGS"]
+        config.build_settings["OTHER_LDFLAGS"].each do |flag|
+          if flag.include?('-ObjC')
+            config.build_settings["OTHER_LDFLAGS"] = config.build_settings["OTHER_LDFLAGS"].reject { |f| f == '-ObjC' }
+          end
+        end
+      end
+    end
+
+    # React Native post-install configuration
+    react_native_post_install(installer)
+
+    # Exclude arm64 architecture for simulators
+    installer.pods_project.build_configurations.each do |config|
+      config.build_settings["EXCLUDED_ARCHS[sdk=iphonesimulator*]"] = "arm64"
+    end
+  end
+
+  # Define the test target
   target 'tourmate_frontendTests' do
     inherit! :complete
     # Pods for testing
-  end
-
-  post_install do |installer|
-    # React Native 포스트 설치 스크립트
-    react_native_post_install(
-      installer,
-      config[:reactNativePath],
-      :mac_catalyst_enabled => false
-    )
   end
 end

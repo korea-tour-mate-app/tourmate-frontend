@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { StyleSheet, View, TouchableOpacity, Text, ScrollView, Dimensions, Platform, Image, Alert } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Text, ScrollView, Dimensions, Image, Alert, Platform } from 'react-native';
 import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions'; // 위치 권한 확인을 위해 추가
 
 // 화면 높이 가져오기
 const { height: screenHeight } = Dimensions.get('window');
@@ -49,6 +50,19 @@ function ThemeScreen() {
 
   useEffect(() => {
     const getLocation = async () => {
+      // 위치 권한 요청 및 확인
+      const permissionStatus = await request(
+        Platform.OS === 'ios'
+          ? PERMISSIONS.IOS.LOCATION_WHEN_IN_USE
+          : PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION
+      );
+
+      if (permissionStatus !== RESULTS.GRANTED) {
+        setErrorMessage('위치 권한이 거부되었습니다. 설정에서 위치 권한을 허용해주세요.');
+        Alert.alert('위치 권한 오류', '위치 권한이 거부되었습니다. 설정에서 위치 권한을 허용해주세요.');
+        return;
+      }
+
       Geolocation.getCurrentPosition(
         (position) => {
           setLocation({
@@ -60,6 +74,8 @@ function ThemeScreen() {
         },
         (error) => {
           console.error(error);
+          setErrorMessage('위치를 가져오는 데 실패했습니다. 네트워크 상태를 확인해주세요.');
+          Alert.alert('위치 오류', '위치를 가져오는 데 실패했습니다. 네트워크 상태를 확인해주세요.');
         },
         { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
       );
@@ -121,6 +137,12 @@ function ThemeScreen() {
             </Marker>
           ))}
         </MapView>
+      )}
+
+      {errorMessage && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{errorMessage}</Text>
+        </View>
       )}
 
       <View style={styles.filterContainer}>
@@ -201,55 +223,55 @@ function ThemeScreen() {
                 </View>
               </>
             )}
-            {bottomSheetIndex === 1 && (
-              <ScrollView>
-                <View style={styles.bottomSheetTitleContainerExpand}>
-                  <Text style={styles.bottomSheetTitleExpand}>{selectedPlace.name}</Text>
-                  <View style={styles.bottomSheetButtonContainer}>
-                    <TouchableOpacity
-                      style={[styles.bottomSheetButton, isVisitedActive && { backgroundColor: '#e0e0e0' }]}
-                      onPress={handleVisitedPress}
-                    >
-                      <Image
-                        source={
-                          isVisitedActive
-                            ? require('../../assets/images/map/visited-active.png')
-                            : require('../../assets/images/map/visited-inactive.png')
-                        }
-                        style={styles.bottomSheetVisitedButton}
-                      />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.bottomSheetButton, isLikesActive && { backgroundColor: '#e0e0e0' }]}
-                      onPress={handleLikesPress}
-                    >
-                      <Image
-                        source={
-                          isLikesActive
-                            ? require('../../assets/images/map/likes-active.png')
-                            : require('../../assets/images/map/likes-inactive.png')
-                        }
-                        style={styles.bottomSheetLikesButton}
-                      />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-                <View style={styles.bottomSheetAddressContainerExpand}>
-                  <Text style={styles.bottomSheetAddress}>{selectedPlace.address}</Text>
-                </View>
-                <Image source={require('../../assets/images/map/example-image.png')} style={styles.bottomSheetImageContainerExpand}/>
-                <View style={styles.bottomSheetListContainer}>
-                  <Text style={styles.bottomSheetListAddressTitle}>주소</Text>
-                  <Text style={styles.bottomSheetListAddress}>{selectedPlace.address}</Text>
-                  <Text style={styles.bottomSheetListHomepageTitle}>홈페이지</Text>
-                  <Text style={styles.bottomSheetListHomepage}>{selectedPlace.homepage}</Text>
-                  <Text style={styles.bottomSheetListContactTitle}>연락처</Text>
-                  <Text style={styles.bottomSheetListContact}>{selectedPlace.contact}</Text>
-                  <Text style={styles.bottomSheetListHourTitle}>이용시간</Text>
-                  <Text style={styles.bottomSheetListHour}>{selectedPlace.hour}</Text>
-                </View>
-              </ScrollView>
-            )}
+{bottomSheetIndex === 1 && (
+  <ScrollView>
+    <View style={styles.bottomSheetTitleContainerExpand}>
+      <Text style={styles.bottomSheetTitleExpand}>{selectedPlace.name}</Text>
+      <View style={styles.bottomSheetButtonContainer}>
+        <TouchableOpacity
+          style={[styles.bottomSheetButton, isVisitedActive && { backgroundColor: '#e0e0e0' }]}
+          onPress={handleVisitedPress}
+        >
+          <Image
+            source={
+              isVisitedActive
+                ? require('../../assets/images/map/visited-active.png')
+                : require('../../assets/images/map/visited-inactive.png')
+            }
+            style={styles.bottomSheetVisitedButton}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.bottomSheetButton, isLikesActive && { backgroundColor: '#e0e0e0' }]}
+          onPress={handleLikesPress}
+        >
+          <Image
+            source={
+              isLikesActive
+                ? require('../../assets/images/map/likes-active.png')
+                : require('../../assets/images/map/likes-inactive.png')
+            }
+            style={styles.bottomSheetLikesButton}
+          />
+        </TouchableOpacity>
+      </View>
+    </View>
+    <View style={styles.bottomSheetAddressContainerExpand}>
+      <Text style={styles.bottomSheetAddress}>{selectedPlace.address}</Text>
+    </View>
+    <Image source={require('../../assets/images/map/example-image.png')} style={styles.bottomSheetImageContainerExpand}/>
+    <View style={styles.bottomSheetListContainer}>
+      <Text style={styles.bottomSheetListAddressTitle}>주소</Text>
+      <Text style={styles.bottomSheetListAddress}>{selectedPlace.address}</Text>
+      <Text style={styles.bottomSheetListHomepageTitle}>홈페이지</Text>
+      <Text style={styles.bottomSheetListHomepage}>{selectedPlace.homepage}</Text>
+      <Text style={styles.bottomSheetListContactTitle}>연락처</Text>
+      <Text style={styles.bottomSheetListContact}>{selectedPlace.contact}</Text>
+      <Text style={styles.bottomSheetListHourTitle}>이용시간</Text>
+      <Text style={styles.bottomSheetListHour}>{selectedPlace.hour}</Text>
+    </View>
+  </ScrollView>
+)}
           </View>
         )}
       </BottomSheet>
@@ -479,7 +501,22 @@ const styles = StyleSheet.create({
     fontFamily: 'AggroL',
     fontSize: 20,
     marginTop: 20,
-  }
+  },
+
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  errorMessage: {
+    fontSize: 18,
+    color: 'red',
+  },
+  errorText: {
+    fontSize: 18,
+    color: 'red',
+  },
 });
 
 export default ThemeScreen;
