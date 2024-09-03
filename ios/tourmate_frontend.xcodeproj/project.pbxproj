@@ -37,6 +37,7 @@
 		30BFDD2A2C8387AA006B0D29 /* AIRGoogleMapWMSTile.m in Sources */ = {isa = PBXBuildFile; fileRef = 30BFDD0B2C8387AA006B0D29 /* AIRGoogleMapWMSTile.m */; };
 		30BFDD2B2C8387AA006B0D29 /* AIRGoogleMapWMSTileManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 30BFDD0D2C8387AA006B0D29 /* AIRGoogleMapWMSTileManager.m */; };
 		30BFDD2C2C8387AA006B0D29 /* RCTConvert+GMSMapViewType.m in Sources */ = {isa = PBXBuildFile; fileRef = 30BFDD0F2C8387AA006B0D29 /* RCTConvert+GMSMapViewType.m */; };
+		30C9EC7A2C85DB0700A709EB /* Fonts in Resources */ = {isa = PBXBuildFile; fileRef = 30C9EC782C85D81700A709EB /* Fonts */; };
 		6C527AD4A4CE82F654E89739 /* Pods_tourmate_frontend.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 169EBB85CC14EE966FE25C4B /* Pods_tourmate_frontend.framework */; };
 		74A2B892D2CC500C835C59B6 /* Pods_tourmate_frontend_tourmate_frontendTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E1312D27BFBCBAD237334F82 /* Pods_tourmate_frontend_tourmate_frontendTests.framework */; };
 		A7C17122AAA9685CA6000EF1 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = FCF2C58110DEC19EA555052D /* PrivacyInfo.xcprivacy */; };
@@ -120,6 +121,7 @@
 		30BFDD0D2C8387AA006B0D29 /* AIRGoogleMapWMSTileManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AIRGoogleMapWMSTileManager.m; sourceTree = "<group>"; };
 		30BFDD0E2C8387AA006B0D29 /* RCTConvert+GMSMapViewType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "RCTConvert+GMSMapViewType.h"; sourceTree = "<group>"; };
 		30BFDD0F2C8387AA006B0D29 /* RCTConvert+GMSMapViewType.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "RCTConvert+GMSMapViewType.m"; sourceTree = "<group>"; };
+		30C9EC782C85D81700A709EB /* Fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Fonts; sourceTree = "<group>"; };
 		677ED27C790A4F3A094F9AE3 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = tourmate_frontend/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		7BCB2147CB30F6A1EFE23302 /* Pods-tourmate_frontend-tourmate_frontendTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-tourmate_frontend-tourmate_frontendTests.debug.xcconfig"; path = "Target Support Files/Pods-tourmate_frontend-tourmate_frontendTests/Pods-tourmate_frontend-tourmate_frontendTests.debug.xcconfig"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = tourmate_frontend/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -127,7 +129,7 @@
 		E1312D27BFBCBAD237334F82 /* Pods_tourmate_frontend_tourmate_frontendTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_tourmate_frontend_tourmate_frontendTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		FA30DC27872774BEE3555191 /* Pods-tourmate_frontend-tourmate_frontendTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-tourmate_frontend-tourmate_frontendTests.release.xcconfig"; path = "Target Support Files/Pods-tourmate_frontend-tourmate_frontendTests/Pods-tourmate_frontend-tourmate_frontendTests.release.xcconfig"; sourceTree = "<group>"; };
-		FCF2C58110DEC19EA555052D /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = tourmate_frontend/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		FCF2C58110DEC19EA555052D /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = tourmate_frontend/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -274,6 +276,7 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				30C9EC782C85D81700A709EB /* Fonts */,
 				30BFDD102C8387AA006B0D29 /* AirGoogleMaps */,
 				13B07FAE1A68108700A75B9A /* tourmate_frontend */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
@@ -281,6 +284,7 @@
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				BBD78D7AC51CEA395F1C20DB /* Pods */,
+				CE94A178ABFB46DBBF6EEBEE /* Resources */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -305,6 +309,13 @@
 				FA30DC27872774BEE3555191 /* Pods-tourmate_frontend-tourmate_frontendTests.release.xcconfig */,
 			);
 			path = Pods;
+			sourceTree = "<group>";
+		};
+		CE94A178ABFB46DBBF6EEBEE /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Resources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -400,6 +411,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				30C9EC7A2C85DB0700A709EB /* Fonts in Resources */,
 				A7C17122AAA9685CA6000EF1 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -652,7 +664,6 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = B8PTPQQTP6;
 				ENABLE_BITCODE = NO;
-
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"COCOAPODS=1",
@@ -734,6 +745,8 @@
 					"\"$(PODS_ROOT)/../../node_modules/react-native/ReactCommon\"",
 					"\"$(PODS_ROOT)/Headers/Private/React-Core\"",
 					"$(SRCROOT)/../node_modules/react-native-maps/ios/**",
+					"$(SRCROOT)/../node_modules/react-native/React/**",
+					"$(SRCROOT)/../node_modules/react-native-maps/lib/ios/AirMaps/**",
 				);
 				INFOPLIST_FILE = tourmate_frontend/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -764,7 +777,6 @@
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = B8PTPQQTP6;
-
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"$(inherited)",
 					"COCOAPODS=1",
@@ -846,6 +858,8 @@
 					"\"$(PODS_ROOT)/../../node_modules/react-native/ReactCommon\"",
 					"\"$(PODS_ROOT)/Headers/Private/React-Core\"",
 					"$(SRCROOT)/../node_modules/react-native-maps/ios/**",
+					"$(SRCROOT)/../node_modules/react-native/React/**",
+					"$(SRCROOT)/../node_modules/react-native-maps/lib/ios/AirMaps/**",
 				);
 				INFOPLIST_FILE = tourmate_frontend/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -900,7 +914,7 @@
 				CXX = "";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-	
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = i386;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -996,7 +1010,7 @@
 				CXX = "";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				
+				"EXCLUDED_ARCHS[sdk=iphonesimulator*]" = i386;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;

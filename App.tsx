@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import SplashScreen from './src/screens/SplashScreen';
 import HomeScreen from './src/screens/HomeScreen';
+import { LanguageProvider } from './src/components/LanguageProvider'; // LanguageProvider를 임포트합니다.
+import { NavigationContainer } from '@react-navigation/native';
+import AppNavigator from './src/screens/navigation/AppNavigator';
 
 const App = () => {
   const [currentScreen, setCurrentScreen] = useState('SplashScreen');
@@ -11,10 +14,13 @@ const App = () => {
   };
 
   return (
-    <View style={styles.container}>
-      {currentScreen === 'SplashScreen' && <SplashScreen navigateToHome={navigateToHome} />}
-      {currentScreen === 'HomeScreen' && <HomeScreen />}
-    </View>
+    <NavigationContainer>
+    <LanguageProvider>
+      <View style={styles.container}>
+      <AppNavigator/>
+      </View>
+    </LanguageProvider>
+    </NavigationContainer>
   );
 };
 

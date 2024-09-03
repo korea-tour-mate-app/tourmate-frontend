@@ -1,0 +1,17 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "src/assets/fonts/SB Aggro B.ttf",
+      "sha1": "1a27e81be9c1a27dbac17d0b743155d29ad88371"
+    },
+    {
+      "path": "src/assets/fonts/SB Aggro L.ttf",
+      "sha1": "1e4e1cfdfff2c242b1976592abcd9739817ec79d"
+    },
+    {
+      "path": "src/assets/fonts/SB Aggro M.ttf",
+      "sha1": "862c097443cdfb24050904d3a9bd9ed80e395b5b"
+    }
+  ]
+}

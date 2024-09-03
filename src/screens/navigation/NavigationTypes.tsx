@@ -8,14 +8,12 @@ export type RootStackParamList = {
   BudgetScreen: undefined;
   DayScreen: undefined;
   WithWhoScreen: undefined;
-
+  MyPage: { language?: string };
   PasswordChange: undefined;
   MyReviews: undefined;
   MyPlaces: undefined;
   LanguageSettings: undefined;
   LanguageScreen: undefined;
-  MyPage: { language: string }; // MyPage 화면에 전달할 파라미터
 };
 
 export type RootStackNavigationProp<T extends keyof RootStackParamList> = NativeStackNavigationProp<RootStackParamList, T>;
-

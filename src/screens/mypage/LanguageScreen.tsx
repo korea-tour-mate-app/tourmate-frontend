@@ -10,17 +10,22 @@ const LanguageScreen: React.FC = () => {
   const { setLanguage } = useLanguage(); // 언어 설정 업데이트 함수
 
   const handleLanguageChange = (newLang: string) => {
-    console.log('Changing language to:', newLang); // 언어 변경 로그
-    setLanguage(newLang); // 언어 설정 업데이트
-    navigation.navigate('MyPage', { language: newLang }); // MyPage 화면으로 이동하면서 언어 파라미터 전달
+    setLanguage(newLang);
+    
+    // 스택을 재설정하여 새로 렌더링
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'MyPage', params: { language: newLang } }],
+    });
   };
+
 
   return (
     <>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <View style={styles.container}>
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Image source={require('@/assets/images/back-button.png')} />
+            <Image source={require('../../assets/images/back-button.png')} />
           </TouchableOpacity>
 
           <View style={styles.redLine}></View>

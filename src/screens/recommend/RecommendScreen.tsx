@@ -1,28 +1,34 @@
 import React, { useEffect, useState } from 'react';
 import { FlatList, Image, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { RootStackParamList } from '../navigation/NavigationTypes'; 
-import { useLanguage } from '../../components/LanguageProvider'; 
-import { translateText } from '../../utils/Translation'; 
+import { RouteProp } from '@react-navigation/native';
+import { RootStackParamList } from '../navigation/navigationTypes';
+import { RootStackNavigationProp } from '../navigation/navigationTypes';
+import { useLanguage } from '../../components/LanguageProvider';
+import { translateText } from '../../utils/Translation';
 
+// Theme 객체의 타입 정의
 interface Theme {
   label: string;
   subLabel?: string;
   backgroundColor: string;
   textColor: string;
-  image: any; 
+  image: any;  // 이미지의 타입을 any로 설정, 필요에 따라 수정
 }
 
 type Themes = {
   [key: string]: Theme;
 };
 
-type RecommendScreenNavigationProp = {
-  navigate: (screen: keyof RootStackParamList) => void;
+type ThemeScreenRouteProp = RouteProp<RootStackParamList, 'RecommendScreen'>;
+
+type Props = {
+  route: ThemeScreenRouteProp;
 };
 
+
 const RecommendScreen: React.FC = () => {
-  const navigation = useNavigation<RecommendScreenNavigationProp>();
+  const navigation = useNavigation<RootStackNavigationProp<'RecommendScreen'>>();
   const { language: globalLanguage } = useLanguage();
 
   const [question, setQuestion] = useState<string>('서울에서 어떤 여행 테마를 원하나요?');
@@ -30,9 +36,138 @@ const RecommendScreen: React.FC = () => {
   const [next, setNext] = useState<string>('다음');
 
   const [themes, setThemes] = useState<Themes>({
-    // 테마 설정 ...
+    kpop: {
+      label: 'K-POP',
+      backgroundColor: '#ffffff',
+      textColor: '#000000',
+      image: require('../../assets/images/themeIcon/k-pop.png'),
+    },
+    palace: {
+      label: '궁궐',
+      backgroundColor: '#ffffff',
+      textColor: '#000000',
+      image: require('../../assets/images/themeIcon/palace.png'),
+    },
+    templeStay: {
+      label: '템플스테이',
+      backgroundColor: '#ffffff',
+      textColor: '#000000',
+      image: require('../../assets/images/themeIcon/temple-stay.png'),
+    },
+    leisure: {
+      label: '레저스포츠',
+      backgroundColor: '#ffffff',
+      textColor: '#000000',
+      image: require('../../assets/images/themeIcon/leisure.png'),
+    },
+    hotel: {
+      label: '호캉스',
+      backgroundColor: '#ffffff',
+      textColor: '#000000',
+      image: require('../../assets/images/themeIcon/hotel.png'),
+    },
+    hiking: {
+      label: '등산코스',
+      backgroundColor: '#ffffff',
+      textColor: '#000000',
+      image: require('../../assets/images/themeIcon/hiking.png'),
+    },
+    theme: {
+      label: '테마시설',
+      backgroundColor: '#ffffff',
+      textColor: '#000000',
+      image: require('../../assets/images/themeIcon/amusement-park.png'),
+    },
+    community: {
+      label: '문화시설',
+      backgroundColor: '#ffffff',
+      textColor: '#000000',
+      image: require('../../assets/images/themeIcon/community.png'),
+    },
+    handcraft: {
+      label: '공방여행',
+      backgroundColor: '#ffffff',
+      textColor: '#000000',
+      image: require('../../assets/images/themeIcon/handcraft.png'),
+    },
+    shopping: {
+      label: '쇼핑',
+      backgroundColor: '#ffffff',
+      textColor: '#000000',
+      image: require('../../assets/images/themeIcon/shopping.png'),
+    },
+    camping: {
+      label: '캠핑',
+      backgroundColor: '#ffffff',
+      textColor: '#000000',
+      image: require('../../assets/images/themeIcon/camping.png'),
+    },
+    entertainment: {
+      label: '유흥/오락',
+      backgroundColor: '#ffffff',
+      textColor: '#000000',
+      image: require('../../assets/images/themeIcon/yoohoo.png'),
+    },
+    spa: {
+      label: '온천/스파',
+      backgroundColor: '#ffffff',
+      textColor: '#000000',
+      image: require('../../assets/images/themeIcon/spa.png'),
+    },
+    education: {
+      label: '교육/체험',
+      subLabel: '참여하기',
+      backgroundColor: '#ffffff',
+      textColor: '#000000',
+      image: require('../../assets/images/themeIcon/education.png'),
+    },
+    drama: {
+      label: '드라마 촬영지',
+      backgroundColor: '#ffffff',
+      textColor: '#000000',
+      image: require('../../assets/images/themeIcon/drama.png'),
+    },
+    religion: {
+      label: '종교/성지 순례',
+      backgroundColor: '#ffffff',
+      textColor: '#000000',
+      image: require('../../assets/images/themeIcon/religion.png'),
+    },
+    wellness: {
+      label: '웰니스',
+      backgroundColor: '#ffffff',
+      textColor: '#000000',
+      image: require('../../assets/images/themeIcon/wellness.png'),
+    },
+    sns: {
+      label: 'SNS 인생샷',
+      backgroundColor: '#ffffff',
+      textColor: '#000000',
+      image: require('../../assets/images/themeIcon/sns.png'),
+    },
+    pet: {
+      label: '반려동물 동반',
+      backgroundColor: '#ffffff',
+      textColor: '#000000',
+      image: require('../../assets/images/themeIcon/pet.png'),
+    },
+    influencer: {
+      label: '인플루언서',
+      subLabel: '따라하기',
+      backgroundColor: '#ffffff',
+      textColor: '#000000',
+      image: require('../../assets/images/themeIcon/influencer.png'),
+    },
+    environment: {
+      label: '친환경 여행',
+      subLabel: '(플로깅 여행)',
+      backgroundColor: '#ffffff',
+      textColor: '#000000',
+      image: require('../../assets/images/themeIcon/plogging.png'),
+    },
   });
 
+  // 번역된 텍스트를 관리하는 useEffect
   useEffect(() => {
     const translateMenuTexts = async () => {
       try {
@@ -67,10 +202,12 @@ const RecommendScreen: React.FC = () => {
     }));
   };
 
+  // 다음 버튼 클릭 시 dayScreen으로 이동하는 함수
   const handleNext = () => {
-    navigation.navigate('DayScreen'); // 또는 다른 탭 화면으로 이동
-  };
+    navigation.navigate('DayScreen');
+  };  
 
+  // FlatList의 렌더링 아이템을 위한 함수
   const renderItem = ({ item }: { item: { key: string; theme: Theme } }) => (
     <View style={styles.row}>
       <TouchableOpacity
@@ -124,7 +261,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   row: {
-    flexDirection: 'row',
+    flexDirection: 'row', 
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 30,
@@ -134,8 +271,8 @@ const styles = StyleSheet.create({
     height: 150,
     borderRadius: 30,
     backgroundColor: 'white',
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center', 
+    justifyContent: 'center', 
     marginLeft: 10,
     marginRight: 20,
   },
@@ -162,13 +299,13 @@ const styles = StyleSheet.create({
   icon: {
     width: 70,
     height: 70,
-    marginBottom: 10,
+    marginBottom:10,
   },
-  nextContainer: {
+  nextContainer:{
     alignItems: 'center',
     justifyContent: 'center',
   },
-  nextButton: {
+  nextButton:{
     width: 200,
     height: 50,
     backgroundColor: '#0047A0',
@@ -176,11 +313,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  nextText: {
+  nextText:{
     fontFamily: 'AggroL',
     fontSize: 20,
     color: 'white',
-  },
+  }
 });
 
 export default RecommendScreen;

@@ -3,9 +3,14 @@ import { ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-nati
 import Svg, { Line } from 'react-native-svg';
 import { useLanguage } from '../../components/LanguageProvider';
 import { translateText } from '../../utils/Translation';
+import { useRoute } from '@react-navigation/native';
+import { RouteProp } from '@react-navigation/native';
+import { RootStackParamList } from '../navigation/NavigationTypes';
 
-const MyPageScreen: React.FC = ({ navigation }: any) => {
+const MyPageScreen: React.FC<any> = ({ navigation }) => {
+
   const { language: globalLanguage, setLanguage: setGlobalLanguage } = useLanguage();
+  const route = useRoute<RouteProp<RootStackParamList, 'MyPage'>>();
 
   const [currentDate, setCurrentDate] = useState<string>('');
   const [changeHi, setChangeHi] = useState<string>('안녕하세요,');
@@ -15,13 +20,15 @@ const MyPageScreen: React.FC = ({ navigation }: any) => {
   const [languageSettingsText, setLanguageSettingsText] = useState<string>('언어 설정');
   const [logoutText, setLogoutText] = useState<string>('로그아웃');
 
+  console.log('현재 언어:',route.params?.language);
+  
   useEffect(() => {
-    // Update language if needed
-    const params = navigation.getParam('language');
+
+    const params = route.params?.language;
     if (params) {
       setGlobalLanguage(params);
     }
-  }, [navigation, setGlobalLanguage]);
+  }, [route.params?.language, setGlobalLanguage]);
 
   useEffect(() => {
     const translateMenuTexts = async () => {
@@ -58,7 +65,7 @@ const MyPageScreen: React.FC = ({ navigation }: any) => {
   };
 
   const LogoutFunction = () => {
-    navigation.replace('SplashScreen'); // 'Splash'는 실제 네비게이션 스크린 이름으로 수정
+    navigation.replace('SplashScreen');
   };
 
   return (
@@ -128,7 +135,7 @@ const MyPageScreen: React.FC = ({ navigation }: any) => {
                 </Svg>
               </View>
 
-              <TouchableOpacity onPress={() => handleNavigation('LanguageSettings')}>
+              <TouchableOpacity onPress={() => handleNavigation('LanguageScreen')}>
                 <Text style={styles.menu}>{languageSettingsText}</Text>
               </TouchableOpacity>
               <View style={styles.dottedLineContainer}>

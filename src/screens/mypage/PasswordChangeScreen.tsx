@@ -39,7 +39,7 @@ const PasswordChangeScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Image source={require('@/assets/images/back-button.png')} />
+        <Image source={require('../../assets/images/back-button.png')} />
       </TouchableOpacity>
 
       <View style={styles.container}>
