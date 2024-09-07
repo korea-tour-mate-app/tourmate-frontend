@@ -121,8 +121,8 @@ function ThemeScreen() {
         <MapView
           provider={PROVIDER_GOOGLE} 
           style={styles.map}
-          // initialRegion={location}
           region={location}
+          initialRegion={location}
           showsUserLocation={true}
         >
           {places.map((place) => (

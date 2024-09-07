@@ -7,19 +7,14 @@ import { RootTabParamList } from '../../components/BottomTabNavigator';
 
 const LanguageScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootTabParamList>>();
-  const { setLanguage } = useLanguage(); // 언어 설정 업데이트 함수
+  const { setLanguage } = useLanguage();
 
   const handleLanguageChange = (newLang: string) => {
-    setLanguage(newLang);
-    
-    // 스택을 재설정하여 새로 렌더링
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'MyPage', params: { language: newLang } }],
-    });
+    console.log('Changing language to:', newLang); 
+    setLanguage(newLang); 
+    navigation.navigate('MyPage', { language: newLang }); 
   };
-
-
+  
   return (
     <>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
@@ -43,7 +38,7 @@ const LanguageScreen: React.FC = () => {
                   y2="1"
                   stroke="black"
                   strokeWidth="2"
-                  strokeDasharray="5,2" // 점선 스타일
+                  strokeDasharray="5,2"
                 />
               </Svg>
             </View>
@@ -61,7 +56,7 @@ const LanguageScreen: React.FC = () => {
                   y2="1"
                   stroke="black"
                   strokeWidth="2"
-                  strokeDasharray="5,2" // 점선 스타일
+                  strokeDasharray="5,2" 
                 />
               </Svg>
             </View>
@@ -79,7 +74,7 @@ const LanguageScreen: React.FC = () => {
                   y2="1"
                   stroke="black"
                   strokeWidth="2"
-                  strokeDasharray="5,2" // 점선 스타일
+                  strokeDasharray="5,2"
                 />
               </Svg>
             </View>
@@ -97,7 +92,7 @@ const LanguageScreen: React.FC = () => {
                   y2="1"
                   stroke="black"
                   strokeWidth="2"
-                  strokeDasharray="5,2" // 점선 스타일
+                  strokeDasharray="5,2"
                 />
               </Svg>
             </View>
@@ -115,7 +110,7 @@ const LanguageScreen: React.FC = () => {
                   y2="1"
                   stroke="black"
                   strokeWidth="2"
-                  strokeDasharray="5,2" // 점선 스타일
+                  strokeDasharray="5,2"
                 />
               </Svg>
             </View>
@@ -133,7 +128,7 @@ const LanguageScreen: React.FC = () => {
                   y2="1"
                   stroke="black"
                   strokeWidth="2"
-                  strokeDasharray="5,2" // 점선 스타일
+                  strokeDasharray="5,2"
                 />
               </Svg>
             </View>
@@ -151,7 +146,7 @@ const LanguageScreen: React.FC = () => {
                   y2="1"
                   stroke="black"
                   strokeWidth="2"
-                  strokeDasharray="5,2" // 점선 스타일
+                  strokeDasharray="5,2"
                 />
               </Svg>
             </View>
@@ -169,7 +164,7 @@ const LanguageScreen: React.FC = () => {
                   y2="1"
                   stroke="black"
                   strokeWidth="2"
-                  strokeDasharray="5,2" // 점선 스타일
+                  strokeDasharray="5,2"
                 />
               </Svg>
             </View>
@@ -187,7 +182,7 @@ const LanguageScreen: React.FC = () => {
                   y2="1"
                   stroke="black"
                   strokeWidth="2"
-                  strokeDasharray="5,2" // 점선 스타일
+                  strokeDasharray="5,2"
                 />
               </Svg>
             </View>
@@ -205,7 +200,7 @@ const LanguageScreen: React.FC = () => {
                   y2="1"
                   stroke="black"
                   strokeWidth="2"
-                  strokeDasharray="5,2" // 점선 스타일
+                  strokeDasharray="5,2"
                 />
               </Svg>
             </View>
@@ -223,7 +218,7 @@ const LanguageScreen: React.FC = () => {
                   y2="1"
                   stroke="black"
                   strokeWidth="2"
-                  strokeDasharray="5,2" // 점선 스타일
+                  strokeDasharray="5,2"
                 />
               </Svg>
             </View>
@@ -241,7 +236,7 @@ const LanguageScreen: React.FC = () => {
                   y2="1"
                   stroke="black"
                   strokeWidth="2"
-                  strokeDasharray="5,2" // 점선 스타일
+                  strokeDasharray="5,2"
                 />
               </Svg>
             </View>
@@ -259,7 +254,7 @@ const LanguageScreen: React.FC = () => {
                   y2="1"
                   stroke="black"
                   strokeWidth="2"
-                  strokeDasharray="5,2" // 점선 스타일
+                  strokeDasharray="5,2"
                 />
               </Svg>
             </View>

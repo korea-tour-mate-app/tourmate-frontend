@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Platform, StyleSheet, View, Text, ActivityIndicator, PermissionsAndroid } from 'react-native';
-import MapView, { PROVIDER_GOOGLE, Region } from 'react-native-maps';
+import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
 
 interface LocationType {
@@ -50,7 +50,8 @@ function BaggageScreen() {
           <MapView
             provider={PROVIDER_GOOGLE}
             style={styles.map}
-            initialRegion={location as Region}
+            region={location}
+            initialRegion={location}
             showsUserLocation={true}
             customMapStyle={Platform.OS === 'android' ? googleMapStyle : undefined}
           />

@@ -14,13 +14,13 @@ const App = () => {
   };
 
   return (
-    <NavigationContainer>
     <LanguageProvider>
+    <NavigationContainer>
       <View style={styles.container}>
       <AppNavigator/>
       </View>
-    </LanguageProvider>
     </NavigationContainer>
+    </LanguageProvider>
   );
 };
 

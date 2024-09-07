@@ -3,6 +3,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreen from '../HomeScreen';
 import RecommendScreen from '../recommend/RecommendScreen';
 import DayScreen from '../recommend/DayScreen';
+import WithWhoScreen from '../recommend/WithWhoScreen';
+import BudgetScreen from '../recommend/BudgetScreen';
 import MypageScreen from '../mypage/MypageScreen';  
 import PasswordChange from '../mypage/PasswordChangeScreen';
 import LanguageScreen from '../mypage/LanguageScreen';
@@ -36,7 +38,22 @@ function AppNavigator() {
         options={{ headerShown: false }}  
       />
       <Stack.Screen 
-        name="PasswordChange" 
+        name="WithWhoScreen" 
+        component={WithWhoScreen} 
+        options={{ headerShown: false }} 
+      />
+      <Stack.Screen 
+        name="BudgetScreen" 
+        component={BudgetScreen} 
+        options={{ headerShown: false }} 
+      />
+      <Stack.Screen 
+        name="MyPageScreen" 
+        component={MypageScreen} 
+        options={{ headerShown: false }} 
+      />
+      <Stack.Screen 
+        name="PasswordChangeScreen" 
         component={PasswordChange} 
         options={{ headerShown: false }}  
       />
@@ -45,11 +62,7 @@ function AppNavigator() {
         component={LanguageScreen} 
         options={{ headerShown: false }} 
       />
-      <Stack.Screen 
-        name="MyPage" 
-        component={MypageScreen} 
-        options={{ headerShown: false }} 
-      />
+
     </Stack.Navigator>
   );
 }

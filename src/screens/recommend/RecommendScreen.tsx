@@ -7,13 +7,12 @@ import { RootStackNavigationProp } from '../navigation/navigationTypes';
 import { useLanguage } from '../../components/LanguageProvider';
 import { translateText } from '../../utils/Translation';
 
-// Theme 객체의 타입 정의
 interface Theme {
   label: string;
   subLabel?: string;
   backgroundColor: string;
   textColor: string;
-  image: any;  // 이미지의 타입을 any로 설정, 필요에 따라 수정
+  image?: any;
 }
 
 type Themes = {
@@ -26,8 +25,7 @@ type Props = {
   route: ThemeScreenRouteProp;
 };
 
-
-const RecommendScreen: React.FC = () => {
+const RecommendScreen: React.FC<Props> = ({ route }) => {
   const navigation = useNavigation<RootStackNavigationProp<'RecommendScreen'>>();
   const { language: globalLanguage } = useLanguage();
 
@@ -167,9 +165,8 @@ const RecommendScreen: React.FC = () => {
     },
   });
 
-  // 번역된 텍스트를 관리하는 useEffect
   useEffect(() => {
-    const translateMenuTexts = async () => {
+    const translateTexts = async () => {
       try {
         const keys = Object.keys(themes) as (keyof Themes)[];
         const translatedThemes = await Promise.all(
@@ -182,13 +179,22 @@ const RecommendScreen: React.FC = () => {
             return { [key]: { ...theme, label: translatedLabel, subLabel: translatedSubLabel } };
           })
         );
-        setThemes(Object.assign({}, ...translatedThemes));
+        const newThemes = Object.assign({}, ...translatedThemes);
+
+        const translatedQuestion = await translateText('서울에서 어떤 여행 테마를 원하나요?', globalLanguage);
+        const translatedContent = await translateText('원하는 테마를 모두 골라주세요.', globalLanguage);
+        const translatedNext = await translateText('다음', globalLanguage);
+
+        setThemes(newThemes);
+        setQuestion(translatedQuestion);
+        setContent(translatedContent);
+        setNext(translatedNext);
       } catch (error) {
         console.error('Translation Error:', error);
       }
     };
 
-    translateMenuTexts();
+    translateTexts();
   }, [globalLanguage]);
 
   const handlePress = (key: keyof Themes) => {
@@ -202,26 +208,26 @@ const RecommendScreen: React.FC = () => {
     }));
   };
 
-  // 다음 버튼 클릭 시 dayScreen으로 이동하는 함수
   const handleNext = () => {
     navigation.navigate('DayScreen');
-  };  
+  };
 
-  // FlatList의 렌더링 아이템을 위한 함수
-  const renderItem = ({ item }: { item: { key: string; theme: Theme } }) => (
-    <View style={styles.row}>
-      <TouchableOpacity
-        style={[styles.rectangle, { backgroundColor: item.theme.backgroundColor }]}
-        onPress={() => handlePress(item.key as keyof Themes)}
-      >
-        <Image source={item.theme.image} style={styles.icon} resizeMode='contain' />
-        <View style={styles.textContainer}>
-          <Text style={[styles.title, { color: item.theme.textColor }]}>{item.theme.label}</Text>
-          {item.theme.subLabel && <Text style={[styles.title, { color: item.theme.textColor }]}>{item.theme.subLabel}</Text>}
-        </View>
-      </TouchableOpacity>
-    </View>
-  );
+  const renderItem = ({ item }: { item: { key: string; theme: Theme } }) => {
+    return (
+      <View style={styles.row}>
+        <TouchableOpacity
+          style={[styles.rectangle, { backgroundColor: item.theme.backgroundColor }]}
+          onPress={() => handlePress(item.key as keyof Themes)}
+        >
+          <Image source={item.theme.image} style={styles.icon} resizeMode='contain' />
+          <View style={styles.textContainer}>
+            <Text style={[styles.title, { color: item.theme.textColor }]}>{item.theme.label}</Text>
+            {item.theme.subLabel && <Text style={[styles.title, { color: item.theme.textColor }]}>{item.theme.subLabel}</Text>}
+          </View>
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   const data = Object.keys(themes).map(key => ({ key, theme: themes[key] }));
 
@@ -299,13 +305,13 @@ const styles = StyleSheet.create({
   icon: {
     width: 70,
     height: 70,
-    marginBottom:10,
+    marginBottom: 10,
   },
-  nextContainer:{
+  nextContainer: {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  nextButton:{
+  nextButton: {
     width: 200,
     height: 50,
     backgroundColor: '#0047A0',
@@ -313,7 +319,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  nextText:{
+  nextText: {
     fontFamily: 'AggroL',
     fontSize: 20,
     color: 'white',
