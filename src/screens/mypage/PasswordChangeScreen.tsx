@@ -1,26 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, View, TouchableOpacity, Image } from 'react-native';
-import Svg, { Line } from 'react-native-svg';
+import { StyleSheet, Text, TextInput, View, TouchableOpacity, Image } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useLanguage } from '../../components/LanguageProvider';
-import { translateText } from '../../utils/translation';
+import { translateText } from '../../utils/Translation';
 import { RootTabParamList } from '../../components/BottomTabNavigator';
 
-const PasswordChangeScreen: React.FC = () => {
+const PasswordChangeScreen= () => {
   const navigation = useNavigation<NavigationProp<RootTabParamList>>();
 
   const { language: globalLanguage, setLanguage: setGlobalLanguage } = useLanguage();
   console.log('현재언어:', globalLanguage);
 
   useEffect(() => {
-    console.log('Current language:', globalLanguage); // 현재 언어 확인
     const translateMenuTexts = async () => {
-      console.log('Translating texts...');
       try {
         const currentPassword = await translateText('현재 비밀번호', globalLanguage);
         const changePassword = await translateText('비밀번호 변경', globalLanguage);
         const confirm = await translateText('확인', globalLanguage);
-        
+  
         setCurrentPassword(currentPassword);
         setChangePassword(changePassword);
         setConfirm(confirm);
@@ -30,7 +27,8 @@ const PasswordChangeScreen: React.FC = () => {
     };
   
     translateMenuTexts();
-  }, [globalLanguage]); // 글로벌 언어가 변경될 때마다 번역 실행
+  }, [globalLanguage]);
+  
 
   const [currentPassword, setCurrentPassword] = useState<string>('현재 비밀번호');
   const [changePassword, setChangePassword] = useState<string>('비밀번호 변경');
@@ -39,7 +37,7 @@ const PasswordChangeScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Image source={require('@/assets/images/back-button.png')} />
+        <Image source={require('../../assets/images/back-button.png')} />
       </TouchableOpacity>
 
       <View style={styles.container}>
@@ -83,7 +81,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   checkButton: {
-    backgroundColor: 'black',
+    backgroundColor: '#0047A0',
     paddingVertical: 12,         
     paddingHorizontal: 24,       
     borderRadius: 8,             

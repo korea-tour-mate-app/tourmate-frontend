@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Platform, StyleSheet, View, Text, ActivityIndicator, PermissionsAndroid } from 'react-native';
-import MapView, { PROVIDER_GOOGLE, Region } from 'react-native-maps';
+import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
 
 interface LocationType {
@@ -16,22 +16,6 @@ function BaggageScreen() {
 
   useEffect(() => {
     const getLocation = async () => {
-      if (Platform.OS === 'android') {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-          {
-            title: "Location Permission",
-            message: "This app needs to access your location",
-            buttonNeutral: "Ask Me Later",
-            buttonNegative: "Cancel",
-            buttonPositive: "OK"
-          }
-        );
-        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('Permission to access location was denied');
-          return;
-        }
-      }
 
       Geolocation.getCurrentPosition(
         (position) => {
@@ -54,8 +38,6 @@ function BaggageScreen() {
     getLocation();
   }, []);
 
-  const mapProvider = Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined;
-
   return (
     <View style={styles.container}>
       {loading ? (
@@ -66,9 +48,10 @@ function BaggageScreen() {
       ) : (
         location && (
           <MapView
-            provider={mapProvider}
+            provider={PROVIDER_GOOGLE}
             style={styles.map}
-            initialRegion={location as Region}
+            region={location}
+            initialRegion={location}
             showsUserLocation={true}
             customMapStyle={Platform.OS === 'android' ? googleMapStyle : undefined}
           />

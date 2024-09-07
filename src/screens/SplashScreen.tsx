@@ -253,16 +253,19 @@ const styles = StyleSheet.create({
     paddingTop: 30,
   },
   title: {
+    fontFamily: 'SB Aggro M',
     color: '#707070',
     fontWeight: '300',
     textAlign: 'center',
   },
   titleBlue: {
+    fontFamily: 'SB Aggro M',
     color: '#0047A0',
     fontWeight: '500',
     textAlign: 'center',
   },
   content: {
+    fontFamily: 'SB Aggro L',
     color: '#707070',
     fontWeight: '300',
     textAlign: 'center',
@@ -272,7 +275,7 @@ const styles = StyleSheet.create({
     width: '75%',
     height: 50,
     marginTop: 30,
-    textAlign: 'center',
+    fontFamily: 'SB Aggro L',
     fontWeight: '300',
     color: '#0047A0',
   },
@@ -284,15 +287,18 @@ const styles = StyleSheet.create({
     marginTop: 36,
   },
   signInText: {
+    fontFamily: 'SB Aggro L',
     color: 'white',
   },
   signUp: {
     marginTop: 18,
     alignItems: 'center',
+    fontFamily: 'SB Aggro L',
   },
   signUpText: {
     color: '#0047A0',
     fontWeight: '300',
+    fontFamily: 'SB Aggro M',
   },
   signUpContainer: {
     width: '80%',
@@ -303,9 +309,8 @@ const styles = StyleSheet.create({
   signUpInput: {
     width: '100%',
     height: 50,
-    textAlign: 'center',
+    fontFamily: 'SB Aggro L',
     fontWeight: '300',
-    color: '#0047A0',
   },
   emailContainer: {
     width: '80%',
@@ -317,7 +322,7 @@ const styles = StyleSheet.create({
   emailInput: {
     width: '60%',
     height: 50,
-    textAlign: 'center',
+    fontFamily: 'SB Aggro L',
     fontWeight: '300',
     color: '#0047A0',
   },
@@ -329,6 +334,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   auth: {
+    fontFamily: 'AggroL',
     color: 'white',
     fontWeight: '300',
   },
@@ -348,7 +354,7 @@ const styles = StyleSheet.create({
   passwordInput: {
     width: '100%',
     height: 50,
-    textAlign: 'center',
+    fontFamily: 'SB Aggro L',
     fontWeight: '300',
     color: '#0047A0',
   },

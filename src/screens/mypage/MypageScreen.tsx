@@ -1,13 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
+import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '../navigation/NavigationTypes'; 
 import { useLanguage } from '../../components/LanguageProvider';
 import { translateText } from '../../utils/Translation';
 
-const MyPageScreen: React.FC = ({ navigation }: any) => {
+type MyPageScreenRouteProp = RouteProp<RootStackParamList, 'MyPageScreen'>;
+type MyPageScreenNavigationProp = StackNavigationProp<RootStackParamList, 'MyPageScreen'>;
+
+const MyPageScreen = () => {
+  const route = useRoute<MyPageScreenRouteProp>();
+  const navigation = useNavigation<MyPageScreenNavigationProp>();
+  const [currentDate, setCurrentDate] = useState<string>('');
+  const [forceUpdate, setForceUpdate] = useState<boolean>(false);
+
   const { language: globalLanguage, setLanguage: setGlobalLanguage } = useLanguage();
 
-  const [currentDate, setCurrentDate] = useState<string>('');
   const [changeHi, setChangeHi] = useState<string>('안녕하세요,');
   const [changePasswordText, setChangePasswordText] = useState<string>('비밀번호 변경');
   const [myReviewsText, setMyReviewsText] = useState<string>('내 리뷰');
@@ -16,29 +26,33 @@ const MyPageScreen: React.FC = ({ navigation }: any) => {
   const [logoutText, setLogoutText] = useState<string>('로그아웃');
 
   useEffect(() => {
-    // Update language if needed
-    const params = navigation.getParam('language');
-    if (params) {
-      setGlobalLanguage(params);
+    if (route.params?.language) {
+      setGlobalLanguage(route.params.language);
+      setForceUpdate(prev => !prev); 
     }
-  }, [navigation, setGlobalLanguage]);
+  }, [route.params?.language]);
 
   useEffect(() => {
     const translateMenuTexts = async () => {
       try {
-        const changeHi = await translateText('안녕하세요,', globalLanguage);
-        const changePassword = await translateText('비밀번호 변경', globalLanguage);
-        const myReviews = await translateText('내 리뷰', globalLanguage);
-        const myPlaces = await translateText('내가 가본 장소', globalLanguage);
-        const languageSettings = await translateText('언어 설정', globalLanguage);
-        const logout = await translateText('로그아웃', globalLanguage);
+        const translatedHi = await translateText('안녕하세요,', globalLanguage);
+        setChangeHi(translatedHi);
 
-        setChangeHi(changeHi);
-        setChangePasswordText(changePassword);
-        setMyReviewsText(myReviews);
-        setMyPlacesText(myPlaces);
-        setLanguageSettingsText(languageSettings);
-        setLogoutText(logout);
+        const translatedPassword = await translateText('비밀번호 변경', globalLanguage);
+        setChangePasswordText(translatedPassword);
+
+        const translatedReviews = await translateText('내 리뷰', globalLanguage);
+        setMyReviewsText(translatedReviews);
+
+        const translatedPlaces = await translateText('내가 가본 장소', globalLanguage);
+        setMyPlacesText(translatedPlaces);
+
+        const translatedLanguageSettings = await translateText('언어 설정', globalLanguage);
+        setLanguageSettingsText(translatedLanguageSettings);
+
+        const translatedLogout = await translateText('로그아웃', globalLanguage);
+        setLogoutText(translatedLogout);
+
       } catch (error) {
         console.error('Translation Error:', error);
       }
@@ -53,12 +67,12 @@ const MyPageScreen: React.FC = ({ navigation }: any) => {
     setCurrentDate(formattedDate);
   }, []);
 
-  const handleNavigation = (screen: string) => {
-    navigation.navigate(screen);
+  const navigateToPasswordChange = () => {
+    navigation.navigate('PasswordChangeScreen');
   };
 
-  const LogoutFunction = () => {
-    navigation.replace('SplashScreen'); // 'Splash'는 실제 네비게이션 스크린 이름으로 수정
+  const navigateToLanguageScreen = () => {
+    navigation.navigate('LanguageScreen');
   };
 
   return (
@@ -77,7 +91,7 @@ const MyPageScreen: React.FC = ({ navigation }: any) => {
               <View style={styles.circle} />
             </View>
             <View style={styles.menuContainer}>
-              <TouchableOpacity onPress={() => handleNavigation('PasswordChange')}>
+              <TouchableOpacity onPress={navigateToPasswordChange}>
                 <Text style={styles.menu}>{changePasswordText}</Text>
               </TouchableOpacity>
               <View style={styles.dottedLineContainer}>
@@ -94,7 +108,7 @@ const MyPageScreen: React.FC = ({ navigation }: any) => {
                 </Svg>
               </View>
 
-              <TouchableOpacity onPress={() => handleNavigation('MyReviews')}>
+              <TouchableOpacity>
                 <Text style={styles.menu}>{myReviewsText}</Text>
               </TouchableOpacity>
               <View style={styles.dottedLineContainer}>
@@ -111,7 +125,7 @@ const MyPageScreen: React.FC = ({ navigation }: any) => {
                 </Svg>
               </View>
 
-              <TouchableOpacity onPress={() => handleNavigation('MyPlaces')}>
+              <TouchableOpacity>
                 <Text style={styles.menu}>{myPlacesText}</Text>
               </TouchableOpacity>
               <View style={styles.dottedLineContainer}>
@@ -128,7 +142,7 @@ const MyPageScreen: React.FC = ({ navigation }: any) => {
                 </Svg>
               </View>
 
-              <TouchableOpacity onPress={() => handleNavigation('LanguageSettings')}>
+              <TouchableOpacity onPress={navigateToLanguageScreen}>
                 <Text style={styles.menu}>{languageSettingsText}</Text>
               </TouchableOpacity>
               <View style={styles.dottedLineContainer}>
@@ -144,7 +158,7 @@ const MyPageScreen: React.FC = ({ navigation }: any) => {
                   />
                 </Svg>
               </View>
-              <TouchableOpacity onPress={LogoutFunction}>
+              <TouchableOpacity>
                 <Text style={styles.menu}>{logoutText}</Text>
               </TouchableOpacity>
               <View style={styles.dottedLineContainer}>
@@ -180,7 +194,6 @@ const styles = StyleSheet.create({
   },
   userText: {
     fontSize: 30,
-    fontFamily: 'AggroL',
   },
   redLine: {
     marginTop: 30,
@@ -194,7 +207,6 @@ const styles = StyleSheet.create({
   date: {
     color: 'white',
     fontSize: 18,
-    fontFamily: 'AggroL',
     marginRight: 20,
   },
   rectangleContainer: {
@@ -225,7 +237,6 @@ const styles = StyleSheet.create({
   },
   menu: {
     fontSize: 20,
-    fontFamily: 'AggroL',
     marginLeft: 40,
     marginTop: 35,
   },
