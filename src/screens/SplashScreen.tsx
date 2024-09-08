@@ -1,6 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Image, StyleSheet, Text, TextInput, TouchableOpacity, Animated, Dimensions, Platform } from 'react-native';
+import { View, Image, StyleSheet, Text, TextInput, TouchableOpacity, Animated, Dimensions, Platform, Alert } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+
+// 클라이언트 ID는 자신의 프로젝트에 맞게 설정하세요.
+const WEB_CLIENT_ID = '299344355959-ne6qtu0r6qi6bqf85hetkumnp51q32nu.apps.googleusercontent.com';
+const IOS_CLIENT_ID = '299344355959-92rr00u40av2vi80u9pk79kj5ve494h4.apps.googleusercontent.com';
 
 const splashScreens = [
   require('../assets/images/splash/splash1.png'),
@@ -14,16 +19,22 @@ interface SplashScreenProps {
   navigateToHome: () => void;
 }
 
-const SplashScreen : React.FC<SplashScreenProps> = ({ navigateToHome }) => {
+const SplashScreen: React.FC<SplashScreenProps> = ({ navigateToHome }) => {
   const [selectedSplash, setSelectedSplash] = useState(null);
   const [showLoginBox, setShowLoginBox] = useState(false);
   const [showSignUp, setShowSignUp] = useState(false);
-
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const windowWidth = Dimensions.get('window').width;
   const windowHeight = Dimensions.get('window').height;
 
   useEffect(() => {
+    GoogleSignin.configure({
+      webClientId: WEB_CLIENT_ID,  // 웹 클라이언트 ID
+      iosClientId: IOS_CLIENT_ID,  // iOS 클라이언트 ID
+      offlineAccess: true,
+      hostedDomain: '',
+    });
+
     const randomIndex = Math.floor(Math.random() * splashScreens.length);
     setSelectedSplash(splashScreens[randomIndex]);
 
@@ -39,6 +50,50 @@ const SplashScreen : React.FC<SplashScreenProps> = ({ navigateToHome }) => {
     return () => clearTimeout(timer);
   }, []);
 
+const loginWithGoogle = async (): Promise<{ idToken: string } | null> => {
+  try {
+    // Play Services가 설치되어 있는지 확인
+    await GoogleSignin.hasPlayServices();
+    
+    // 사용자 로그인
+    const userInfo = await GoogleSignin.signIn();
+
+    // ID 토큰을 가져오기
+    const tokens = await GoogleSignin.getTokens();
+    const idToken = tokens.idToken;
+
+    if (idToken) {
+      return {
+        idToken,
+      };
+    }
+
+    return null;
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === statusCodes.SIGN_IN_CANCELLED) {
+        Alert.alert('로그인이 취소되었습니다.');
+      } else if (error.message === statusCodes.IN_PROGRESS) {
+        Alert.alert('로그인이 진행 중입니다.');
+      } else if (error.message === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        Alert.alert('Google Play 서비스가 필요합니다.');
+      } else {
+        Alert.alert('로그인 실패: ', error.message);
+      }
+    } else {
+      Alert.alert('알 수 없는 오류가 발생했습니다.');
+    }
+    return null;
+  }
+};
+
+  const handleGoogleLogin = async () => {
+    const result = await loginWithGoogle();
+    if (result) {
+      console.log(result.idToken);  // ID 토큰을 콘솔에 출력합니다.
+      navigateToHome(); // 로그인 성공 시 홈으로 이동
+    }
+  };
   const platformFontSize = (size: number) => {
     return Platform.OS === 'android' ? size - 2 : size;
   };
@@ -52,16 +107,17 @@ const SplashScreen : React.FC<SplashScreenProps> = ({ navigateToHome }) => {
   };
 
   const platformLoginBoxSize = () => {
-    return Platform.OS === 'android' 
-      ? { width: windowWidth * 0.8, height: windowHeight * 0.6 } 
-      : { width: windowWidth * 0.8, height: windowHeight * 0.5 };
+    return Platform.OS === 'android'
+      ? { width: windowWidth * 0.8, height: windowHeight * 0.7 }
+      : { width: windowWidth * 0.8, height: windowHeight * 0.6 };
   };
 
   const platformSignUpBoxSize = () => {
-    return Platform.OS === 'android' 
-      ? { width: windowWidth * 0.8 , height: windowHeight * 0.75 } 
+    return Platform.OS === 'android'
+      ? { width: windowWidth * 0.8, height: windowHeight * 0.75 }
       : { width: windowWidth * 0.8, height: windowHeight * 0.7 };
   };
+
 
   return (
     <View style={styles.container}>
@@ -107,6 +163,9 @@ const SplashScreen : React.FC<SplashScreenProps> = ({ navigateToHome }) => {
 
           <TouchableOpacity style={[styles.signIn, { width: platformButtonSize(210), height: platformButtonSize(50) }]} onPress={navigateToHome}>
             <Text style={[styles.signInText, { fontSize: platformFontSize(20) }]}>로그인</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleGoogleLogin}>
+            <Image source={require('../assets/images/google-button.png')} style={[styles.googleLogin, { width: platformButtonSize(210), height: platformButtonSize(40) }]}></Image>
           </TouchableOpacity>
 
           <TouchableOpacity style={[styles.signUp, { marginTop: platformSpacing(18) }]} onPress={() => {
@@ -289,6 +348,10 @@ const styles = StyleSheet.create({
   signInText: {
     fontFamily: 'SB Aggro L',
     color: 'white',
+  },
+  googleLogin:{
+    borderRadius: 50,
+    marginTop: 10,
   },
   signUp: {
     marginTop: 18,

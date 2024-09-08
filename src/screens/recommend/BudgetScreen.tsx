@@ -1,9 +1,10 @@
-// screens/BudgetScreen.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Image, Alert } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native'; // 여기서 RouteProp을 가져옵니다
-import { RootStackParamList } from '../navigation/navigationTypes'; // 경로를 알맞게 수정해주세요
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { RootStackParamList } from '../navigation/navigationTypes';
+import { useLanguage } from '../../components/LanguageProvider';
+import { translateText } from '../../utils/Translation';
 
 type BudgetScreenNavigationProp = StackNavigationProp<RootStackParamList, 'BudgetScreen'>;
 type BudgetScreenRouteProp = RouteProp<RootStackParamList, 'BudgetScreen'>;
@@ -11,25 +12,59 @@ type BudgetScreenRouteProp = RouteProp<RootStackParamList, 'BudgetScreen'>;
 const BudgetScreen: React.FC = () => {
   const navigation = useNavigation<BudgetScreenNavigationProp>();
   const route = useRoute<BudgetScreenRouteProp>();
-  
   const { totalDays, startDate, endDate } = route.params;
 
-  // 선택된 카드를 관리하기 위한 상태
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
-  // 선택된 카드를 설정하거나 해제하는 함수
+  // 번역된 텍스트 상태
+  const [questionText, setQuestionText] = useState<string>('여행 예산에 대해 알려주세요!');
+  const [valueOption1, setValueOption1] = useState<string>('가성비 여행');
+  const [valueOption2, setValueOption2] = useState<string>('다소 가성비 여행');
+  const [valueOption3, setValueOption3] = useState<string>('다소 럭셔리 여행');
+  const [valueOption4, setValueOption4] = useState<string>('럭셔리 여행');
+  const [next, setNext] = useState<string>('여행경로 추천받기');
+
+  const { language: globalLanguage } = useLanguage();
+
+  useEffect(() => {
+    const translateTexts = async () => {
+      try {
+        const translatedQuestion = await translateText('여행 예산에 대해 알려주세요!', globalLanguage);
+        setQuestionText(translatedQuestion);
+
+        const translatedOption1 = await translateText('가성비 여행', globalLanguage);
+        setValueOption1(translatedOption1);
+
+        const translatedOption2 = await translateText('다소 가성비 여행', globalLanguage);
+        setValueOption2(translatedOption2);
+
+        const translatedOption3 = await translateText('다소 럭셔리 여행', globalLanguage);
+        setValueOption3(translatedOption3);
+
+        const translatedOption4 = await translateText('럭셔리 여행', globalLanguage);
+        setValueOption4(translatedOption4);
+        
+        const translatedNext = await translateText('여행경로 추천받기', globalLanguage);
+        setNext(translatedNext);
+      } catch (error) {
+        console.error('Translation Error:', error);
+      }
+    };
+
+    translateTexts();
+  }, [globalLanguage]);
+
   const handleSelect = (option: string) => {
     setSelectedOption(prevOption => (prevOption === option ? null : option));
   };
 
-  // 다음 버튼 클릭 시 경로 추천 결과 페이지로 이동
   const handleNext = () => {
     if (selectedOption) {
       console.log("totalDays는? " + totalDays);
       console.log("startDate는? " + startDate);
       console.log("endDate는? " + endDate);
 
-    //   navigation.navigate('RoutePage', { totalDays, startDate, endDate });
+      // navigation.navigate('RoutePage', { totalDays, startDate, endDate });
     } else {
       Alert.alert('오류', '여행 예산을 선택해주세요.');
     }
@@ -41,63 +76,63 @@ const BudgetScreen: React.FC = () => {
         <Image source={require('../../assets/images/back-button.png')} style={styles.backButton} />
       </TouchableOpacity>
       <Text style={styles.question}>Q4.</Text>
-      <Text style={styles.question}>여행 예산에 대해 알려주세요!</Text>
+      <Text style={styles.question}>{questionText}</Text>
 
       <View style={styles.cardContainer}>
         <TouchableOpacity
           style={[
             styles.card,
-            selectedOption === '가성비 여행' && styles.selectedCard,
+            selectedOption === valueOption1 && styles.selectedCard,
           ]}
-          onPress={() => handleSelect('가성비 여행')}
+          onPress={() => handleSelect(valueOption1)}
         >
           <Image source={require('../../assets/images/themeIcon/lowrange_travel.png')} style={[styles.icon, { width: 40, height: 40 }]} />
           <Text style={[
             styles.label,
-            selectedOption === '가성비 여행' && styles.selectedLabel,
-          ]}>가성비 여행</Text>
+            selectedOption === valueOption1 && styles.selectedLabel,
+          ]}>{valueOption1}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[
             styles.card,
-            selectedOption === '다소 가성비 여행' && styles.selectedCard,
+            selectedOption === valueOption2 && styles.selectedCard,
           ]}
-          onPress={() => handleSelect('다소 가성비 여행')}
+          onPress={() => handleSelect(valueOption2)}
         >
           <Image source={require('../../assets/images/themeIcon/lowrange_travel.png')} style={[styles.icon, { width: 60, height: 60 }]} />
           <Text style={[
             styles.label,
-            selectedOption === '다소 가성비 여행' && styles.selectedLabel,
-          ]}>다소 가성비 여행</Text>
+            selectedOption === valueOption2 && styles.selectedLabel,
+          ]}>{valueOption2}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[
             styles.card,
-            selectedOption === '다소 럭셔리 여행' && styles.selectedCard,
+            selectedOption === valueOption3 && styles.selectedCard,
           ]}
-          onPress={() => handleSelect('다소 럭셔리 여행')}
+          onPress={() => handleSelect(valueOption3)}
         >
           <Image source={require('../../assets/images/themeIcon/premium_travel.png')} style={[styles.icon, { width: 40, height: 40 }]} />
           <Text style={[
             styles.label,
-            selectedOption === '다소 럭셔리 여행' && styles.selectedLabel,
-          ]}>다소 럭셔리 여행</Text>
+            selectedOption === valueOption3 && styles.selectedLabel,
+          ]}>{valueOption3}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[
             styles.card,
-            selectedOption === '럭셔리 여행' && styles.selectedCard,
+            selectedOption === valueOption4 && styles.selectedCard,
           ]}
-          onPress={() => handleSelect('럭셔리 여행')}
+          onPress={() => handleSelect(valueOption4)}
         >
           <Image source={require('../../assets/images/themeIcon/premium_travel.png')} style={[styles.icon, { width: 60, height: 60 }]} />
           <Text style={[
             styles.label,
-            selectedOption === '럭셔리 여행' && styles.selectedLabel,
-          ]}>럭셔리 여행</Text>
+            selectedOption === valueOption4 && styles.selectedLabel,
+          ]}>{valueOption4}</Text>
         </TouchableOpacity>
       </View>
 
@@ -115,7 +150,7 @@ const BudgetScreen: React.FC = () => {
           styles.nextText,
           { color: 'white' } 
         ]}>
-          여행 경로 추천받기
+          {next}
         </Text>
       </TouchableOpacity>
     </View>
@@ -127,7 +162,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     marginTop: 50,
-    position: 'relative', // 부모 컨테이너의 위치를 relative로 설정
+    position: 'relative',
   },
   backButton: {
     marginBottom: 10,
@@ -174,16 +209,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 20,
     width: '100%',
-    position: 'absolute', // 절대 위치 설정
-    bottom: 50, // 하단에서 50px 위로 위치
-    left: 20,  // 좌우 padding을 고려해서 left와 right도 설정
+    position: 'absolute',
+    bottom: 50,
+    left: 20,
   },
   nextText: {
     fontFamily: 'AggroL',
     fontSize: 18,
   },
   caption: {
-    textAlign: 'left', // 왼쪽 정렬
+    textAlign: 'left',
     color: '#888',
     fontSize: 12,
     fontFamily: 'AggroL',

@@ -172,8 +172,10 @@ const RecommendScreen: React.FC<Props> = ({ route }) => {
         const translatedThemes = await Promise.all(
           keys.map(async (key) => {
             const theme = themes[key];
-            const translatedLabel = await translateText(theme.label, globalLanguage);
-            const translatedSubLabel = theme.subLabel
+            const translatedLabel = globalLanguage === 'ko' ? theme.label : await translateText(theme.label, globalLanguage);
+            const translatedSubLabel = globalLanguage === 'ko' && theme.subLabel
+              ? theme.subLabel
+              : theme.subLabel
               ? await translateText(theme.subLabel, globalLanguage)
               : undefined;
             return { [key]: { ...theme, label: translatedLabel, subLabel: translatedSubLabel } };
@@ -256,6 +258,8 @@ const RecommendScreen: React.FC<Props> = ({ route }) => {
     </View>
   );
 };
+
+
 
 const styles = StyleSheet.create({
   container: {

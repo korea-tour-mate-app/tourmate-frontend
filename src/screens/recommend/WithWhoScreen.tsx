@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Image, Alert } from 'react-native';
 import { useNavigation, RouteProp } from '@react-navigation/native';
 import { RootStackParamList, RootStackNavigationProp } from '../navigation/navigationTypes';
+import { useLanguage } from '../../components/LanguageProvider';
+import { translateText } from '../../utils/Translation';
 
 type WithWhoScreenNavigationProp = RootStackNavigationProp<'WithWhoScreen'>;
 type WithWhoScreenRouteProp = RouteProp<RootStackParamList, 'WithWhoScreen'>;
@@ -13,8 +15,50 @@ interface WithWhoScreenProps {
 const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
   const { totalDays, startDate, endDate } = route.params;
   const navigation = useNavigation<WithWhoScreenNavigationProp>();
+  const { language: globalLanguage } = useLanguage();
 
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
+
+  // 번역된 텍스트 상태
+  const [question, setQuestion] = useState<string>('누구와 여행을 떠나시나요?');
+  const [spouse, setSpouse] = useState<string>('배우자');
+  const [family, setFamily] = useState<string>('가족');
+  const [friend, setFriend] = useState<string>('친구/동료');
+  const [children, setChildren] = useState<string>('자녀');
+  const [lover, setLover] = useState<string>('연인');
+  const [club, setClub] = useState<string>('친목 단체/모임');
+
+  useEffect(() => {
+    const translateTexts = async () => {
+      try {
+        const translatedQuestion = await translateText('누구와 여행을 떠나시나요?', globalLanguage);
+        setQuestion(translatedQuestion);
+
+        const translatedSpouse = await translateText('배우자', globalLanguage);
+        setSpouse(translatedSpouse);
+
+        const translatedFamily = await translateText('가족', globalLanguage);
+        setFamily(translatedFamily);
+
+        const translatedFriend = await translateText('친구/동료', globalLanguage);
+        setFriend(translatedFriend);
+
+        const translatedChildren = await translateText('자녀', globalLanguage);
+        setChildren(translatedChildren);
+
+        const translatedLover = await translateText('연인', globalLanguage);
+        setLover(translatedLover);
+
+        const translatedClub = await translateText('친목 단체/모임', globalLanguage);
+        setClub(translatedClub);
+        
+      } catch (error) {
+        console.error('Translation Error:', error);
+      }
+    };
+
+    translateTexts();
+  }, [globalLanguage]);
 
   const handleSelect = (option: string) => {
     setSelectedOption(prevOption => (prevOption === option ? null : option));
@@ -37,91 +81,91 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
         <Image source={require('../../assets/images/back-button.png')} style={styles.backButton} />
       </TouchableOpacity>
       <Text style={styles.question}>Q3.</Text>
-      <Text style={styles.question}>누구와 여행을 떠나시나요?</Text>
+      <Text style={styles.question}>{question}</Text>
 
       <View style={styles.cardContainer}>
         <TouchableOpacity
           style={[
             styles.card,
-            selectedOption === '배우자' && styles.selectedCard,
+            selectedOption === spouse && styles.selectedCard,
           ]}
-          onPress={() => handleSelect('배우자')}
+          onPress={() => handleSelect(spouse)}
         >
           <Image source={require('../../assets/images/themeIcon/who_spouse.png')} style={styles.icon} />
           <Text style={[
             styles.label,
-            selectedOption === '배우자' && styles.selectedLabel,
-          ]}>배우자</Text>
+            selectedOption === spouse && styles.selectedLabel,
+          ]}>{spouse}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[
             styles.card,
-            selectedOption === '가족' && styles.selectedCard,
+            selectedOption === family && styles.selectedCard,
           ]}
-          onPress={() => handleSelect('가족')}
+          onPress={() => handleSelect(family)}
         >
           <Image source={require('../../assets/images/themeIcon/who_daughter.png')} style={styles.icon} />
           <Text style={[
             styles.label,
-            selectedOption === '가족' && styles.selectedLabel,
-          ]}>가족</Text>
+            selectedOption === family && styles.selectedLabel,
+          ]}>{family}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[
             styles.card,
-            selectedOption === '친구/동료' && styles.selectedCard,
+            selectedOption === friend && styles.selectedCard,
           ]}
-          onPress={() => handleSelect('친구/동료')}
+          onPress={() => handleSelect(friend)}
         >
           <Image source={require('../../assets/images/themeIcon/who_spouse.png')} style={styles.icon} />
           <Text style={[
             styles.label,
-            selectedOption === '친구/동료' && styles.selectedLabel,
-          ]}>친구/동료</Text>
+            selectedOption === friend && styles.selectedLabel,
+          ]}>{friend}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[
             styles.card,
-            selectedOption === '자녀' && styles.selectedCard,
+            selectedOption === children && styles.selectedCard,
           ]}
-          onPress={() => handleSelect('자녀')}
+          onPress={() => handleSelect(children)}
         >
           <Image source={require('../../assets/images/themeIcon/who_daughter.png')} style={styles.icon} />
           <Text style={[
             styles.label,
-            selectedOption === '자녀' && styles.selectedLabel,
-          ]}>자녀</Text>
+            selectedOption === children && styles.selectedLabel,
+          ]}>{children}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[
             styles.card,
-            selectedOption === '연인' && styles.selectedCard,
+            selectedOption === lover && styles.selectedCard,
           ]}
-          onPress={() => handleSelect('연인')}
+          onPress={() => handleSelect(lover)}
         >
           <Image source={require('../../assets/images/themeIcon/who_spouse.png')} style={styles.icon} />
           <Text style={[
             styles.label,
-            selectedOption === '연인' && styles.selectedLabel,
-          ]}>연인</Text>
+            selectedOption === lover && styles.selectedLabel,
+          ]}>{lover}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[
             styles.card,
-            selectedOption === '친목 단체/모임' && styles.selectedCard,
+            selectedOption === club && styles.selectedCard,
           ]}
-          onPress={() => handleSelect('친목 단체/모임')}
+          onPress={() => handleSelect(club)}
         >
           <Image source={require('../../assets/images/themeIcon/who_daughter.png')} style={styles.icon} />
           <Text style={[
             styles.label,
-            selectedOption === '친목 단체/모임' && styles.selectedLabel,
-          ]}>친목 단체/모임</Text>
+            selectedOption === club && styles.selectedLabel,
+          ]}>{club}</Text>
         </TouchableOpacity>
       </View>
 

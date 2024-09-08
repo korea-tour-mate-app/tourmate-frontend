@@ -2,6 +2,11 @@ import { Alert } from 'react-native';
 
 export const translateText = async (text: string, targetLang: string): Promise<string> => {
   
+  // targetLang이 'ko'인 경우 원문 반환
+  if (targetLang === 'ko') {
+    return text;
+  }
+
   const url = 'https://naveropenapi.apigw.ntruss.com/nmt/v1/translation';
   const headers = {
     'Content-Type': 'application/x-www-form-urlencoded',
