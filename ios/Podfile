@@ -86,6 +86,7 @@ target 'tourmate_frontend' do
   pod 'react-native-maps', :path => rn_maps_path
   pod 'GoogleMaps', '~> 7.3'
   pod 'Google-Maps-iOS-Utils', '~> 4.2.2'
+  pod 'GoogleSignIn', '~> 7.1'
 
   # Post-install actions
   post_install do |installer|
