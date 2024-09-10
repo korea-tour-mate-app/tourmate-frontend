@@ -6,45 +6,41 @@ import { RootStackParamList } from '../navigation/navigationTypes';
 import { useLanguage } from '../../components/LanguageProvider';
 import { translateText } from '../../utils/Translation';
 
-type BudgetScreenNavigationProp = StackNavigationProp<RootStackParamList, 'BudgetScreen'>;
-type BudgetScreenRouteProp = RouteProp<RootStackParamList, 'BudgetScreen'>;
+type VehicleScreenNavigationProp = StackNavigationProp<RootStackParamList, 'VehicleScreen'>;
+type VehicleScreenRouteProp = RouteProp<RootStackParamList, 'VehicleScreen'>;
 
-const BudgetScreen: React.FC = () => {
-  const navigation = useNavigation<BudgetScreenNavigationProp>();
-  const route = useRoute<BudgetScreenRouteProp>();
+const VehicleScreen: React.FC = () => {
+  const navigation = useNavigation<VehicleScreenNavigationProp>();
+  const route = useRoute<VehicleScreenRouteProp>();
   const { totalDays, startDate, endDate } = route.params;
 
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
   // 번역된 텍스트 상태
   const [questionText, setQuestionText] = useState<string>('여행 예산에 대해 알려주세요!');
-  const [valueOption1, setValueOption1] = useState<string>('가성비 여행');
-  const [valueOption2, setValueOption2] = useState<string>('다소 가성비 여행');
-  const [valueOption3, setValueOption3] = useState<string>('다소 럭셔리 여행');
-  const [valueOption4, setValueOption4] = useState<string>('럭셔리 여행');
-  const [next, setNext] = useState<string>('다음');
+  const [info, setInfo] = useState<string>('여행 시 이용하실 이동수단을 선택해주세요.');
+  const [valueOption1, setValueOption1] = useState<string>('대중교통');
+  const [valueOption2, setValueOption2] = useState<string>('자가용');
+  const [next, setNext] = useState<string>('여행경로 추천받기');
 
   const { language: globalLanguage } = useLanguage();
 
   useEffect(() => {
     const translateTexts = async () => {
       try {
-        const translatedQuestion = await translateText('여행 예산에 대해 알려주세요!', globalLanguage);
+        const translatedQuestion = await translateText('이동수단을 선택해주세요!', globalLanguage);
         setQuestionText(translatedQuestion);
 
-        const translatedOption1 = await translateText('가성비 여행', globalLanguage);
+        const translatedInfo = await translateText('여행 시 이용하실 이동수단을 선택해주세요.', globalLanguage);
+        setInfo(translatedInfo);
+
+        const translatedOption1 = await translateText('대중교통', globalLanguage);
         setValueOption1(translatedOption1);
 
-        const translatedOption2 = await translateText('다소 가성비 여행', globalLanguage);
+        const translatedOption2 = await translateText('자가용', globalLanguage);
         setValueOption2(translatedOption2);
-
-        const translatedOption3 = await translateText('다소 럭셔리 여행', globalLanguage);
-        setValueOption3(translatedOption3);
-
-        const translatedOption4 = await translateText('럭셔리 여행', globalLanguage);
-        setValueOption4(translatedOption4);
         
-        const translatedNext = await translateText('다음', globalLanguage);
+        const translatedNext = await translateText('여행경로 추천받기', globalLanguage);
         setNext(translatedNext);
       } catch (error) {
         console.error('Translation Error:', error);
@@ -56,6 +52,20 @@ const BudgetScreen: React.FC = () => {
 
   const handleSelect = (option: string) => {
     setSelectedOption(prevOption => (prevOption === option ? null : option));
+
+    if (selectedOption === option) {
+      setSelectedOption(null);
+      setInfo('여행 시 이용하실 이동수단을 선택해주세요.');
+    } else {
+      setSelectedOption(option);
+
+      // 각 옵션에 따라 info 업데이트
+      if (option === valueOption1) {
+        setInfo('버스나 지하철을 이용해요.');
+      } else if (option === valueOption2) {
+        setInfo('택시나 렌트카를 이용해요.');
+      }
+    }
   };
 
   const handleNext = () => {
@@ -64,9 +74,9 @@ const BudgetScreen: React.FC = () => {
       console.log("startDate는? " + startDate);
       console.log("endDate는? " + endDate);
 
-      navigation.navigate('VehicleScreen', { totalDays, startDate, endDate });
+      // navigation.navigate('RoutePage', { totalDays, startDate, endDate });
     } else {
-      Alert.alert('오류', '여행 예산을 선택해주세요.');
+      Alert.alert('오류', '이동수단을 선택해주세요.');
     }
   };
 
@@ -75,8 +85,14 @@ const BudgetScreen: React.FC = () => {
       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
         <Image source={require('../../assets/images/back-button.png')} style={styles.backButton} />
       </TouchableOpacity>
-      <Text style={styles.question}>Q4.</Text>
+      <Text style={styles.question}>Q5.</Text>
       <Text style={styles.question}>{questionText}</Text>
+
+      <View style={styles.rectangleContainer}>
+          <View style={styles.rectangle}>
+            <Text style={styles.info}>{info}</Text>
+          </View>
+        </View>
 
       <View style={styles.cardContainer}>
         <TouchableOpacity
@@ -86,7 +102,7 @@ const BudgetScreen: React.FC = () => {
           ]}
           onPress={() => handleSelect(valueOption1)}
         >
-          <Image source={require('../../assets/images/themeIcon/lowrange_travel.png')} style={[styles.icon, { width: 40, height: 40 }]} />
+          <Image source={require('../../assets/images/themeIcon/bus.png')} style={[styles.icon, { width: 80, height: 80 }]} />
           <Text style={[
             styles.label,
             selectedOption === valueOption1 && styles.selectedLabel,
@@ -100,39 +116,11 @@ const BudgetScreen: React.FC = () => {
           ]}
           onPress={() => handleSelect(valueOption2)}
         >
-          <Image source={require('../../assets/images/themeIcon/lowrange_travel.png')} style={[styles.icon, { width: 60, height: 60 }]} />
+          <Image source={require('../../assets/images/themeIcon/car.png')} style={[styles.icon, { width: 80, height: 80 }]} />
           <Text style={[
             styles.label,
             selectedOption === valueOption2 && styles.selectedLabel,
           ]}>{valueOption2}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.card,
-            selectedOption === valueOption3 && styles.selectedCard,
-          ]}
-          onPress={() => handleSelect(valueOption3)}
-        >
-          <Image source={require('../../assets/images/themeIcon/premium_travel.png')} style={[styles.icon, { width: 40, height: 40 }]} />
-          <Text style={[
-            styles.label,
-            selectedOption === valueOption3 && styles.selectedLabel,
-          ]}>{valueOption3}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.card,
-            selectedOption === valueOption4 && styles.selectedCard,
-          ]}
-          onPress={() => handleSelect(valueOption4)}
-        >
-          <Image source={require('../../assets/images/themeIcon/premium_travel.png')} style={[styles.icon, { width: 60, height: 60 }]} />
-          <Text style={[
-            styles.label,
-            selectedOption === valueOption4 && styles.selectedLabel,
-          ]}>{valueOption4}</Text>
         </TouchableOpacity>
       </View>
 
@@ -173,11 +161,31 @@ const styles = StyleSheet.create({
     fontFamily: 'AggroM',
     fontSize: 24,
   },
+    info: {
+    fontFamily: 'AggroL',
+    fontSize: 18,
+    marginTop: 20,
+    marginBottom: 20,
+  },
   cardContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     marginTop: 20,
+  },
+  rectangleContainer:{
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+  rectangle:{
+    width: '90%',
+    height: 65,
+    borderRadius: 20,
+    backgroundColor: 'white',
+    marginBottom: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   card: {
     width: '47%',
@@ -223,8 +231,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'AggroL',
     marginBottom: 100,
-    marginTop: -76
+    marginTop: 30,
   },
 });
 
-export default BudgetScreen;
+export default VehicleScreen;

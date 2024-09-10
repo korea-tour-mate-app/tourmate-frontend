@@ -10,6 +10,8 @@
 		00E356F31AD99517003FC87E /* tourmate_frontendTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* tourmate_frontendTests.m */; };
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
+		30BBED832C8ED3FA0090EDC7 /* fonts in Resources */ = {isa = PBXBuildFile; fileRef = 30BBED822C8ED3FA0090EDC7 /* fonts */; };
+		30BF40902C8E26CB00621FBA /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 30BF408F2C8E26CB00621FBA /* GoogleService-Info.plist */; };
 		30BFDD122C8387AA006B0D29 /* AIRDummyView.m in Sources */ = {isa = PBXBuildFile; fileRef = 30BFDCDB2C8387AA006B0D29 /* AIRDummyView.m */; };
 		30BFDD132C8387AA006B0D29 /* AIRGMSMarker.m in Sources */ = {isa = PBXBuildFile; fileRef = 30BFDCDD2C8387AA006B0D29 /* AIRGMSMarker.m */; };
 		30BFDD142C8387AA006B0D29 /* AIRGMSPolygon.m in Sources */ = {isa = PBXBuildFile; fileRef = 30BFDCDF2C8387AA006B0D29 /* AIRGMSPolygon.m */; };
@@ -37,7 +39,6 @@
 		30BFDD2A2C8387AA006B0D29 /* AIRGoogleMapWMSTile.m in Sources */ = {isa = PBXBuildFile; fileRef = 30BFDD0B2C8387AA006B0D29 /* AIRGoogleMapWMSTile.m */; };
 		30BFDD2B2C8387AA006B0D29 /* AIRGoogleMapWMSTileManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 30BFDD0D2C8387AA006B0D29 /* AIRGoogleMapWMSTileManager.m */; };
 		30BFDD2C2C8387AA006B0D29 /* RCTConvert+GMSMapViewType.m in Sources */ = {isa = PBXBuildFile; fileRef = 30BFDD0F2C8387AA006B0D29 /* RCTConvert+GMSMapViewType.m */; };
-		30C9EC7A2C85DB0700A709EB /* Fonts in Resources */ = {isa = PBXBuildFile; fileRef = 30C9EC782C85D81700A709EB /* Fonts */; };
 		6C527AD4A4CE82F654E89739 /* Pods_tourmate_frontend.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 169EBB85CC14EE966FE25C4B /* Pods_tourmate_frontend.framework */; };
 		74A2B892D2CC500C835C59B6 /* Pods_tourmate_frontend_tourmate_frontendTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E1312D27BFBCBAD237334F82 /* Pods_tourmate_frontend_tourmate_frontendTests.framework */; };
 		A7C17122AAA9685CA6000EF1 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = FCF2C58110DEC19EA555052D /* PrivacyInfo.xcprivacy */; };
@@ -66,6 +67,8 @@
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = tourmate_frontend/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		169EBB85CC14EE966FE25C4B /* Pods_tourmate_frontend.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_tourmate_frontend.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A3A0DB210112332B246A015 /* Pods-tourmate_frontend.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-tourmate_frontend.release.xcconfig"; path = "Target Support Files/Pods-tourmate_frontend/Pods-tourmate_frontend.release.xcconfig"; sourceTree = "<group>"; };
+		30BBED822C8ED3FA0090EDC7 /* fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; name = fonts; path = ../src/assets/fonts; sourceTree = "<group>"; };
+		30BF408F2C8E26CB00621FBA /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../Downloads/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		30BFDCD82C8387AA006B0D29 /* GoogleMapsPrivacy.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = GoogleMapsPrivacy.bundle; sourceTree = "<group>"; };
 		30BFDCDA2C8387AA006B0D29 /* AIRDummyView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AIRDummyView.h; sourceTree = "<group>"; };
 		30BFDCDB2C8387AA006B0D29 /* AIRDummyView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AIRDummyView.m; sourceTree = "<group>"; };
@@ -121,7 +124,6 @@
 		30BFDD0D2C8387AA006B0D29 /* AIRGoogleMapWMSTileManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AIRGoogleMapWMSTileManager.m; sourceTree = "<group>"; };
 		30BFDD0E2C8387AA006B0D29 /* RCTConvert+GMSMapViewType.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "RCTConvert+GMSMapViewType.h"; sourceTree = "<group>"; };
 		30BFDD0F2C8387AA006B0D29 /* RCTConvert+GMSMapViewType.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "RCTConvert+GMSMapViewType.m"; sourceTree = "<group>"; };
-		30C9EC782C85D81700A709EB /* Fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Fonts; sourceTree = "<group>"; };
 		677ED27C790A4F3A094F9AE3 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = tourmate_frontend/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		7BCB2147CB30F6A1EFE23302 /* Pods-tourmate_frontend-tourmate_frontendTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-tourmate_frontend-tourmate_frontendTests.debug.xcconfig"; path = "Target Support Files/Pods-tourmate_frontend-tourmate_frontendTests/Pods-tourmate_frontend-tourmate_frontendTests.debug.xcconfig"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = tourmate_frontend/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -175,6 +177,7 @@
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.mm */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
+				30BF408F2C8E26CB00621FBA /* GoogleService-Info.plist */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB71A68108700A75B9A /* main.m */,
@@ -276,7 +279,7 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
-				30C9EC782C85D81700A709EB /* Fonts */,
+				30BBED822C8ED3FA0090EDC7 /* fonts */,
 				30BFDD102C8387AA006B0D29 /* AirGoogleMaps */,
 				13B07FAE1A68108700A75B9A /* tourmate_frontend */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
@@ -359,6 +362,8 @@
 			dependencies = (
 			);
 			name = tourmate_frontend;
+			packageProductDependencies = (
+			);
 			productName = tourmate_frontend;
 			productReference = 13B07F961A680F5B00A75B9A /* tourmate_frontend.app */;
 			productType = "com.apple.product-type.application";
@@ -389,6 +394,9 @@
 				Base,
 			);
 			mainGroup = 83CBB9F61A601CBA00E9B192;
+			packageReferences = (
+				30BF40912C8E277500621FBA /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			productRefGroup = 83CBBA001A601CBA00E9B192 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -411,8 +419,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				30C9EC7A2C85DB0700A709EB /* Fonts in Resources */,
+				30BBED832C8ED3FA0090EDC7 /* fonts in Resources */,
 				A7C17122AAA9685CA6000EF1 /* PrivacyInfo.xcprivacy in Resources */,
+				30BF40902C8E26CB00621FBA /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -964,10 +973,7 @@
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
@@ -1052,10 +1058,7 @@
 					"-DFOLLY_CFG_NO_COROUTINES=1",
 					"-DFOLLY_HAVE_CLOCK_GETTIME=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = true;
@@ -1094,6 +1097,17 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		30BF40912C8E277500621FBA /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.1.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
 	};
 	rootObject = 83CBB9F71A601CBA00E9B192 /* Project object */;
 }

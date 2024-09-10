@@ -2,10 +2,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Image, StyleSheet, Text, TextInput, TouchableOpacity, Animated, Dimensions, Platform, Alert } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import { useNavigation } from '@react-navigation/native';
+import { RootStackNavigationProp } from './navigation/navigationTypes';
 
 // 클라이언트 ID는 자신의 프로젝트에 맞게 설정하세요.
 const WEB_CLIENT_ID = '299344355959-ne6qtu0r6qi6bqf85hetkumnp51q32nu.apps.googleusercontent.com';
 const IOS_CLIENT_ID = '299344355959-92rr00u40av2vi80u9pk79kj5ve494h4.apps.googleusercontent.com';
+const ANDROID_CLIENT_ID = '299344355959-hmvqnrqm4p60scun3mh6p8174hodgn2l.apps.googleusercontent.com';
 
 const splashScreens = [
   require('../assets/images/splash/splash1.png'),
@@ -19,13 +22,14 @@ interface SplashScreenProps {
   navigateToHome: () => void;
 }
 
-const SplashScreen: React.FC<SplashScreenProps> = ({ navigateToHome }) => {
+const SplashScreen: React.FC = () => {
   const [selectedSplash, setSelectedSplash] = useState(null);
   const [showLoginBox, setShowLoginBox] = useState(false);
   const [showSignUp, setShowSignUp] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const windowWidth = Dimensions.get('window').width;
   const windowHeight = Dimensions.get('window').height;
+  const navigation = useNavigation<RootStackNavigationProp<'SplashScreen'>>();
 
   useEffect(() => {
     GoogleSignin.configure({
@@ -78,7 +82,7 @@ const loginWithGoogle = async (): Promise<{ idToken: string } | null> => {
       } else if (error.message === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
         Alert.alert('Google Play 서비스가 필요합니다.');
       } else {
-        Alert.alert('로그인 실패: ', error.message);
+        Alert.alert('로그인 실패. 다시 시도해주세요.');
       }
     } else {
       Alert.alert('알 수 없는 오류가 발생했습니다.');
@@ -86,14 +90,18 @@ const loginWithGoogle = async (): Promise<{ idToken: string } | null> => {
     return null;
   }
 };
+const handleLogin = () => {
+  navigation.navigate('Tabs'); // 로그인 성공 시 Tabs 화면으로 이동
+};
 
-  const handleGoogleLogin = async () => {
-    const result = await loginWithGoogle();
-    if (result) {
-      console.log(result.idToken);  // ID 토큰을 콘솔에 출력합니다.
-      navigateToHome(); // 로그인 성공 시 홈으로 이동
-    }
-  };
+const handleGoogleLogin = async () => {
+  const result = await loginWithGoogle();
+  if (result) {
+    console.log(result.idToken);  // ID 토큰을 콘솔에 출력합니다.
+    navigation.navigate('Tabs'); // 로그인 성공 시 Tabs 화면으로 이동
+  }
+};
+
   const platformFontSize = (size: number) => {
     return Platform.OS === 'android' ? size - 2 : size;
   };
@@ -137,7 +145,7 @@ const loginWithGoogle = async (): Promise<{ idToken: string } | null> => {
           </Text>
           <Text style={[styles.content, { fontSize: platformFontSize(16) }]}>회원 서비스 이용을 위해 로그인 해주세요.</Text>
 
-          <TextInput style={[styles.input, { fontSize: platformFontSize(20) }]} placeholder="Email" />
+          <TextInput style={[styles.input, { fontSize: platformFontSize(20) }]} placeholder="Email" placeholderTextColor="#7A7C7E"/>
           <Svg height="2" width="75%">
             <Line
               x1="0"
@@ -149,7 +157,7 @@ const loginWithGoogle = async (): Promise<{ idToken: string } | null> => {
             />
           </Svg>
 
-          <TextInput style={[styles.input, { fontSize: platformFontSize(20) }]} placeholder="Password" secureTextEntry />
+          <TextInput style={[styles.input, { fontSize: platformFontSize(20) }]} placeholder="Password" placeholderTextColor="#7A7C7E" secureTextEntry />
           <Svg height="2" width="75%">
             <Line
               x1="0"
@@ -161,7 +169,7 @@ const loginWithGoogle = async (): Promise<{ idToken: string } | null> => {
             />
           </Svg>
 
-          <TouchableOpacity style={[styles.signIn, { width: platformButtonSize(210), height: platformButtonSize(50) }]} onPress={navigateToHome}>
+          <TouchableOpacity style={[styles.signIn, { width: platformButtonSize(210), height: platformButtonSize(50) }]} onPress={handleLogin}>
             <Text style={[styles.signInText, { fontSize: platformFontSize(20) }]}>로그인</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={handleGoogleLogin}>
@@ -194,7 +202,7 @@ const loginWithGoogle = async (): Promise<{ idToken: string } | null> => {
           <Text style={[styles.content, { fontSize: platformFontSize(16) }]}>이용해보실 수 있습니다.</Text>
 
           <View style={[styles.signUpContainer, { marginTop: platformSpacing(45) }]}>
-            <TextInput style={[styles.signUpInput, { fontSize: platformFontSize(17) }]} placeholder="이름" />
+            <TextInput style={[styles.signUpInput, { fontSize: platformFontSize(17) }]} placeholder="Nickname" placeholderTextColor="#7A7C7E" />
             <Svg height="2" width="100%">
               <Line
                 x1="0"
@@ -208,7 +216,7 @@ const loginWithGoogle = async (): Promise<{ idToken: string } | null> => {
           </View>
 
           <View style={[styles.emailContainer, { marginTop: platformSpacing(27) }]}>
-            <TextInput style={[styles.emailInput, { fontSize: platformFontSize(17) }]} placeholder="이메일" />
+            <TextInput style={[styles.emailInput, { fontSize: platformFontSize(17) }]} placeholder="Email" placeholderTextColor="#7A7C7E"/>
             <TouchableOpacity style={[styles.authButton, { width: platformButtonSize(85), height: platformButtonSize(30) }]}>
               <Text style={[styles.auth, { fontSize: platformFontSize(12) }]}>인증번호 받기</Text>
             </TouchableOpacity>
@@ -226,7 +234,7 @@ const loginWithGoogle = async (): Promise<{ idToken: string } | null> => {
           </Svg>
 
           <View style={[styles.emailContainer, { marginTop: platformSpacing(27) }]}>
-            <TextInput style={[styles.emailInput, { fontSize: platformFontSize(17) }]} placeholder="이메일 인증번호" />
+            <TextInput style={[styles.emailInput, { fontSize: platformFontSize(17) }]} placeholder="Authentication Code(6 numbers)" placeholderTextColor="#7A7C7E"/>
             <TouchableOpacity style={[styles.authenticationButton, { width: platformButtonSize(60), height: platformButtonSize(30) }]}>
               <Text style={[styles.auth, { fontSize: platformFontSize(12) }]}>확인</Text>
             </TouchableOpacity>
@@ -244,7 +252,7 @@ const loginWithGoogle = async (): Promise<{ idToken: string } | null> => {
           </Svg>
 
           <View style={[styles.passwordContainer, { marginTop: platformSpacing(27) }]}>
-            <TextInput style={[styles.passwordInput, { fontSize: platformFontSize(17) }]} placeholder="비밀번호" secureTextEntry />
+            <TextInput style={[styles.passwordInput, { fontSize: platformFontSize(17) }]} placeholder="Password" placeholderTextColor="#7A7C7E" secureTextEntry />
             <Svg height="2" width="100%">
               <Line
                 x1="0"
@@ -312,21 +320,20 @@ const styles = StyleSheet.create({
     paddingTop: 30,
   },
   title: {
-    fontFamily: 'SB Aggro M',
-    color: '#707070',
+    fontFamily: 'fonts/SBAggroM',
+    color: 'black',
     fontWeight: '300',
     textAlign: 'center',
   },
   titleBlue: {
-    fontFamily: 'SB Aggro M',
+    fontFamily: 'fonts/SBAggroM',
     color: '#0047A0',
     fontWeight: '500',
     textAlign: 'center',
   },
   content: {
-    fontFamily: 'SB Aggro L',
-    color: '#707070',
-    fontWeight: '300',
+    fontFamily: 'fonts/SBAggroL',
+    color: 'black',
     textAlign: 'center',
     marginTop: 10,
   },
@@ -334,8 +341,7 @@ const styles = StyleSheet.create({
     width: '75%',
     height: 50,
     marginTop: 30,
-    fontFamily: 'SB Aggro L',
-    fontWeight: '300',
+    fontFamily: 'fonts/SBAggroL',
     color: '#0047A0',
   },
   signIn: {
@@ -346,7 +352,7 @@ const styles = StyleSheet.create({
     marginTop: 36,
   },
   signInText: {
-    fontFamily: 'SB Aggro L',
+    fontFamily: 'fonts/SBAggroL',
     color: 'white',
   },
   googleLogin:{
@@ -356,12 +362,12 @@ const styles = StyleSheet.create({
   signUp: {
     marginTop: 18,
     alignItems: 'center',
-    fontFamily: 'SB Aggro L',
+    fontFamily: 'fonts/SBAggroL',
   },
   signUpText: {
     color: '#0047A0',
     fontWeight: '300',
-    fontFamily: 'SB Aggro M',
+    fontFamily: 'fonts/SBAggroM',
   },
   signUpContainer: {
     width: '80%',
@@ -372,8 +378,7 @@ const styles = StyleSheet.create({
   signUpInput: {
     width: '100%',
     height: 50,
-    fontFamily: 'SB Aggro L',
-    fontWeight: '300',
+    fontFamily: 'fonts/SBAggroL',
   },
   emailContainer: {
     width: '80%',
@@ -385,9 +390,8 @@ const styles = StyleSheet.create({
   emailInput: {
     width: '60%',
     height: 50,
-    fontFamily: 'SB Aggro L',
-    fontWeight: '300',
-    color: '#0047A0',
+    fontFamily: 'SBAggroL',
+    color: 'black',
   },
   authButton: {
     backgroundColor: '#0047A0',
@@ -397,7 +401,7 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   auth: {
-    fontFamily: 'AggroL',
+    fontFamily: 'SBAggroL',
     color: 'white',
     fontWeight: '300',
   },
@@ -417,7 +421,7 @@ const styles = StyleSheet.create({
   passwordInput: {
     width: '100%',
     height: 50,
-    fontFamily: 'SB Aggro L',
+    fontFamily: 'fonts/SBAggroL',
     fontWeight: '300',
     color: '#0047A0',
   },
