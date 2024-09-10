@@ -1,18 +1,49 @@
-import React from 'react';
-import { ScrollView, StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
-import Svg, { Line } from 'react-native-svg';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, StyleSheet, Text, View, TouchableOpacity, Image, Switch } from 'react-native';
 import { useLanguage } from '../../components/LanguageProvider';
+import { translateText } from '../../utils/Translation';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { RootTabParamList } from '../../components/BottomTabNavigator';
 
 const LanguageScreen: React.FC = () => {
   const navigation = useNavigation<NavigationProp<RootTabParamList>>();
-  const { setLanguage } = useLanguage(); // 언어 설정 업데이트 함수
+  const { language: globalLanguage, setLanguage } = useLanguage();
 
-  const handleLanguageChange = (newLang: string) => {
-    console.log('Changing language to:', newLang); // 언어 변경 로그
-    setLanguage(newLang); // 언어 설정 업데이트
-    navigation.navigate('MyPage', { language: newLang }); // MyPage 화면으로 이동하면서 언어 파라미터 전달
+  // 토글 상태 관리를 위한 state
+  const [selectedLanguage, setSelectedLanguage] = useState<string>(globalLanguage);
+
+  const [info, setInfo] = useState<string>('동시에 선택할 수 없어요.');
+
+  useEffect(() => {
+    const translateMenuTexts = async () => {
+      try {
+        const translatedInfo = await translateText('동시에 선택할 수 없어요.', globalLanguage);
+        setInfo(translatedInfo);
+
+      } catch (error) {
+        console.error('Translation Error:', error);
+      }
+    };
+
+    translateMenuTexts();
+  }, [globalLanguage]);
+
+  const handleLanguageToggle = (newLang: string) => {
+    setSelectedLanguage(newLang);
+    setLanguage(newLang);
+    navigation.navigate('MyPage', { language: newLang }); 
+  };
+
+  const renderLanguageOption = (language: string, label: string) => {
+    return (
+      <View style={styles.optionContainer}>
+        <Text style={styles.menu}>{label}</Text>
+        <Switch
+          onValueChange={() => handleLanguageToggle(language)}
+          value={selectedLanguage === language}
+        />
+      </View>
+    );
   };
 
   return (
@@ -20,244 +51,26 @@ const LanguageScreen: React.FC = () => {
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <View style={styles.container}>
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Image source={require('@/assets/images/back-button.png')} />
+            <Image source={require('../../assets/images/back-button.png')} />
           </TouchableOpacity>
 
           <View style={styles.redLine}></View>
+          <Text style={styles.info}>{info}</Text>
+
           <View style={styles.menuContainer}>
-            <TouchableOpacity onPress={() => handleLanguageChange('en')}>
-              <Text style={styles.menu}>English</Text>
-            </TouchableOpacity>
-
-            <View style={styles.dottedLineContainer}>
-              <Svg height="2" width="75%">
-                <Line
-                  x1="0"
-                  y1="1"
-                  x2="100%"
-                  y2="1"
-                  stroke="black"
-                  strokeWidth="2"
-                  strokeDasharray="5,2" // 점선 스타일
-                />
-              </Svg>
-            </View>
-
-            <TouchableOpacity onPress={() => handleLanguageChange('ja')}>
-              <Text style={styles.menu}>日本語</Text>
-            </TouchableOpacity>
-
-            <View style={styles.dottedLineContainer}>
-              <Svg height="2" width="75%">
-                <Line
-                  x1="0"
-                  y1="1"
-                  x2="100%"
-                  y2="1"
-                  stroke="black"
-                  strokeWidth="2"
-                  strokeDasharray="5,2" // 점선 스타일
-                />
-              </Svg>
-            </View>
-
-            <TouchableOpacity onPress={() => handleLanguageChange('zh-CN')}>
-              <Text style={styles.menu}>汉语(简体)</Text>
-            </TouchableOpacity>
-
-            <View style={styles.dottedLineContainer}>
-              <Svg height="2" width="75%">
-                <Line
-                  x1="0"
-                  y1="1"
-                  x2="100%"
-                  y2="1"
-                  stroke="black"
-                  strokeWidth="2"
-                  strokeDasharray="5,2" // 점선 스타일
-                />
-              </Svg>
-            </View>
-
-            <TouchableOpacity onPress={() => handleLanguageChange('zh-TW')}>
-              <Text style={styles.menu}>漢語(繁體)</Text>
-            </TouchableOpacity>
-
-            <View style={styles.dottedLineContainer}>
-              <Svg height="2" width="75%">
-                <Line
-                  x1="0"
-                  y1="1"
-                  x2="100%"
-                  y2="1"
-                  stroke="black"
-                  strokeWidth="2"
-                  strokeDasharray="5,2" // 점선 스타일
-                />
-              </Svg>
-            </View>
-
-            <TouchableOpacity onPress={() => handleLanguageChange('vi')}>
-              <Text style={styles.menu}>tiếng Việt</Text>
-            </TouchableOpacity>
-
-            <View style={styles.dottedLineContainer}>
-              <Svg height="2" width="75%">
-                <Line
-                  x1="0"
-                  y1="1"
-                  x2="100%"
-                  y2="1"
-                  stroke="black"
-                  strokeWidth="2"
-                  strokeDasharray="5,2" // 점선 스타일
-                />
-              </Svg>
-            </View>
-
-            <TouchableOpacity onPress={() => handleLanguageChange('th')}>
-              <Text style={styles.menu}>ภาษาไทย</Text>
-            </TouchableOpacity>
-
-            <View style={styles.dottedLineContainer}>
-              <Svg height="2" width="75%">
-                <Line
-                  x1="0"
-                  y1="1"
-                  x2="100%"
-                  y2="1"
-                  stroke="black"
-                  strokeWidth="2"
-                  strokeDasharray="5,2" // 점선 스타일
-                />
-              </Svg>
-            </View>
-
-            <TouchableOpacity onPress={() => handleLanguageChange('id')}>
-              <Text style={styles.menu}>Bahasa Indonésia</Text>
-            </TouchableOpacity>
-
-            <View style={styles.dottedLineContainer}>
-              <Svg height="2" width="75%">
-                <Line
-                  x1="0"
-                  y1="1"
-                  x2="100%"
-                  y2="1"
-                  stroke="black"
-                  strokeWidth="2"
-                  strokeDasharray="5,2" // 점선 스타일
-                />
-              </Svg>
-            </View>
-
-            <TouchableOpacity onPress={() => handleLanguageChange('fr')}>
-              <Text style={styles.menu}>la langue française</Text>
-            </TouchableOpacity>
-
-            <View style={styles.dottedLineContainer}>
-              <Svg height="2" width="75%">
-                <Line
-                  x1="0"
-                  y1="1"
-                  x2="100%"
-                  y2="1"
-                  stroke="black"
-                  strokeWidth="2"
-                  strokeDasharray="5,2" // 점선 스타일
-                />
-              </Svg>
-            </View>
-            
-            <TouchableOpacity onPress={() => handleLanguageChange('es')}>
-              <Text style={styles.menu}>castellano</Text>
-            </TouchableOpacity>
-
-            <View style={styles.dottedLineContainer}>
-              <Svg height="2" width="75%">
-                <Line
-                  x1="0"
-                  y1="1"
-                  x2="100%"
-                  y2="1"
-                  stroke="black"
-                  strokeWidth="2"
-                  strokeDasharray="5,2" // 점선 스타일
-                />
-              </Svg>
-            </View>
-
-            <TouchableOpacity onPress={() => handleLanguageChange('ru')}>
-              <Text style={styles.menu}>Русский</Text>
-            </TouchableOpacity>
-
-            <View style={styles.dottedLineContainer}>
-              <Svg height="2" width="75%">
-                <Line
-                  x1="0"
-                  y1="1"
-                  x2="100%"
-                  y2="1"
-                  stroke="black"
-                  strokeWidth="2"
-                  strokeDasharray="5,2" // 점선 스타일
-                />
-              </Svg>
-            </View>
-
-            <TouchableOpacity onPress={() => handleLanguageChange('de')}>
-              <Text style={styles.menu}>Deutsch</Text>
-            </TouchableOpacity>
-
-            <View style={styles.dottedLineContainer}>
-              <Svg height="2" width="75%">
-                <Line
-                  x1="0"
-                  y1="1"
-                  x2="100%"
-                  y2="1"
-                  stroke="black"
-                  strokeWidth="2"
-                  strokeDasharray="5,2" // 점선 스타일
-                />
-              </Svg>
-            </View>
-
-            <TouchableOpacity onPress={() => handleLanguageChange('it')}>
-              <Text style={styles.menu}>la lingua italiana</Text>
-            </TouchableOpacity>
-
-            <View style={styles.dottedLineContainer}>
-              <Svg height="2" width="75%">
-                <Line
-                  x1="0"
-                  y1="1"
-                  x2="100%"
-                  y2="1"
-                  stroke="black"
-                  strokeWidth="2"
-                  strokeDasharray="5,2" // 점선 스타일
-                />
-              </Svg>
-            </View>
-
-            <TouchableOpacity onPress={() => handleLanguageChange('ko')}>
-              <Text style={styles.menu}>한국어</Text>
-            </TouchableOpacity>
-
-            <View style={styles.dottedLineContainer}>
-              <Svg height="2" width="75%">
-                <Line
-                  x1="0"
-                  y1="1"
-                  x2="100%"
-                  y2="1"
-                  stroke="black"
-                  strokeWidth="2"
-                  strokeDasharray="5,2" // 점선 스타일
-                />
-              </Svg>
-            </View>
+            {renderLanguageOption('en', 'English')}
+            {renderLanguageOption('ja', '日本語')}
+            {renderLanguageOption('zh-CN', '汉语(简体)')}
+            {renderLanguageOption('zh-TW', '漢語(繁體)')}
+            {renderLanguageOption('vi', 'tiếng Việt')}
+            {renderLanguageOption('th', 'ภาษาไทย')}
+            {renderLanguageOption('id', 'Bahasa Indonésia')}
+            {renderLanguageOption('fr', 'la langue française')}
+            {renderLanguageOption('es', 'castellano')}
+            {renderLanguageOption('ru', 'Русский')}
+            {renderLanguageOption('de', 'Deutsch')}
+            {renderLanguageOption('it', 'la lingua italiana')}
+            {renderLanguageOption('ko', '한국어')}
 
             <View style={styles.blueLine}></View>
           </View>
@@ -283,7 +96,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#CD2E3A',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-end', 
+    justifyContent: 'flex-end',
+  },
+  info:{
+    fontSize: 18,
+    marginTop: 10,
+    marginLeft: 30,
   },
   menuContainer: {
     flex: 1,
@@ -291,23 +109,22 @@ const styles = StyleSheet.create({
   menu: {
     fontSize: 20,
     fontFamily: 'AggroL',
-    marginLeft: 50,
   },
-  dottedLineContainer: {
-    width: '100%',
-    marginTop: 10,
+  optionContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 50,
+    marginVertical: 15,
+    marginHorizontal: 50,
   },
   blueLine: {
-    marginTop: 20,
+    marginTop: 30,
     height: 25,
     width: '100%',
     backgroundColor: '#0047A0',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-end', 
+    justifyContent: 'flex-end',
   },
 });
 

@@ -8,7 +8,7 @@ def node_require(script)
 end
 
 # Define iOS platform and CocoaPods settings
-platform :ios, '14.0'
+platform :ios, '15.0'
 install! 'cocoapods', :deterministic_uuids => false
 
 # Include React Native and other native module scripts
@@ -29,6 +29,34 @@ $static_framework = [
   'Permission-LocationWhenInUse',
   'Permission-Notifications',
 ]
+
+$static_library = [
+  'React',
+  'Google-Maps-iOS-Utils',
+  'GoogleMaps',
+  'react-native-google-maps',
+  'react-native-maps',
+  'React-hermes'
+]
+
+# Pre-install actions
+pre_install do |installer|
+  Pod::Installer::Xcode::TargetValidator.send(:define_method, :verify_no_static_framework_transitive_dependencies) {}
+  installer.pod_targets.each do |pod|
+    bt = pod.send(:build_type)
+    if $static_library.include?(pod.name)
+      puts "Overriding the build_type to static_library from static_framework for #{pod.name}"
+      def pod.build_type;
+        Pod::BuildType.static_library
+      end
+    end
+  end
+  installer.pod_targets.each do |pod|
+    bt = pod.send(:build_type)
+    puts "#{pod.name} (#{bt})"
+    puts "  linkage: #{bt.send(:linkage)} packaging: #{bt.send(:packaging)}"
+  end
+end
 
 # Define the main target for the app
 target 'tourmate_frontend' do
@@ -56,8 +84,9 @@ target 'tourmate_frontend' do
   # React Native Maps dependencies
   rn_maps_path = '../node_modules/react-native-maps'
   pod 'react-native-maps', :path => rn_maps_path
-  pod 'GoogleMaps', '~> 7.4.0'
+  pod 'GoogleMaps', '~> 7.3'
   pod 'Google-Maps-iOS-Utils', '~> 4.2.2'
+  pod 'GoogleSignIn', '~> 7.1'
 
   # Post-install actions
   post_install do |installer|

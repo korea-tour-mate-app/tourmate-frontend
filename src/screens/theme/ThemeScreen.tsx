@@ -119,8 +119,9 @@ function ThemeScreen() {
     <GestureHandlerRootView style={styles.container}>
       {location && (
         <MapView
-          provider={PROVIDER_GOOGLE} // 구글 지도를 강제 사용
+          provider={PROVIDER_GOOGLE} 
           style={styles.map}
+          region={location}
           initialRegion={location}
           showsUserLocation={true}
         >
