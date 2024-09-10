@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FlatList, Image, StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { FlatList, Image, StyleSheet, Text, View, TouchableOpacity, AnimatableStringValue } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/navigationTypes';
@@ -15,6 +15,13 @@ interface Theme {
   image?: any;
 }
 
+interface Texts {
+  [key: string]: {
+    label: string;
+    subLabel?: string;
+  };
+}
+
 type Themes = {
   [key: string]: Theme;
 };
@@ -25,7 +32,7 @@ type Props = {
   route: ThemeScreenRouteProp;
 };
 
-const RecommendScreen: React.FC<Props> = ({ route }) => {
+const RecommendScreen = () => {
   const navigation = useNavigation<RootStackNavigationProp<'RecommendScreen'>>();
   const { language: globalLanguage } = useLanguage();
 
@@ -165,6 +172,33 @@ const RecommendScreen: React.FC<Props> = ({ route }) => {
     },
   });
 
+ 
+  // 한글 라벨을 담는 Text 인터페이스
+  const textData: Texts = {
+    kpop: { label: 'K-POP' },
+    palace: { label: '궁궐' },
+    templeStay: { label: '템플스테이' },
+    leisure: { label: '레저스포츠' },
+    hotel: { label: '호캉스' },
+    hiking: { label: '등산코스' },
+    theme: { label: '테마시설' },
+    community: { label: '문화시설' },
+    handcraft: { label: '공방여행' },
+    shopping: { label: '쇼핑' },
+    camping: { label: '캠핑' },
+    entertainment: { label: '유흥/오락' },
+    spa: { label: '온천/스파' },
+    education: { label: '교육/체험', subLabel: '참여하기' },
+    drama: { label: '드라마 촬영지' },
+    religion: { label: '종교/성지 순례' },
+    wellness: { label: '웰니스' },
+    sns: { label: 'SNS 인생샷' },
+    pet: { label: '반려동물 동반' },
+    influencer: { label: '인플루언서', subLabel: '따라하기' },
+    environment: { label: '친환경 여행', subLabel: '(플로깅 여행)' },
+  };
+  
+
   useEffect(() => {
     const translateTexts = async () => {
       try {
@@ -172,9 +206,9 @@ const RecommendScreen: React.FC<Props> = ({ route }) => {
         const translatedThemes = await Promise.all(
           keys.map(async (key) => {
             const theme = themes[key];
-            const translatedLabel = globalLanguage === 'ko' ? theme.label : await translateText(theme.label, globalLanguage);
-            const translatedSubLabel = globalLanguage === 'ko' && theme.subLabel
-              ? theme.subLabel
+            const translatedLabel = globalLanguage === 'ko' ? textData[key].label : await translateText(theme.label, globalLanguage);
+            const translatedSubLabel = globalLanguage === 'ko' && textData[key].subLabel
+              ? textData[key].subLabel
               : theme.subLabel
               ? await translateText(theme.subLabel, globalLanguage)
               : undefined;

@@ -75,6 +75,10 @@ const MyPageScreen = () => {
     navigation.navigate('LanguageScreen');
   };
 
+  const handleLogout = () => {
+    navigation.navigate("SplashScreen");
+  }
+
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
       <View style={styles.container}>
@@ -158,7 +162,7 @@ const MyPageScreen = () => {
                   />
                 </Svg>
               </View>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={handleLogout}>
                 <Text style={styles.menu}>{logoutText}</Text>
               </TouchableOpacity>
               <View style={styles.dottedLineContainer}>
