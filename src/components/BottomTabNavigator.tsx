@@ -2,7 +2,7 @@ import React from 'react';
 import { Image, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import ThemeScreen from '../screens/theme/ThemeScreen';
-import RecommendScreen from '../screens/recommend/RecommendScreen';
+import RecommendScreen from '../screens/recommend/ThemeScreen';
 import MyPageScreen from '../screens/mypage/MypageScreen';
 
 export type RootTabParamList = {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import BottomTabNavigator from '../../components/BottomTabNavigator';
-import RecommendScreen from '../recommend/RecommendScreen';
+import ThemeScreen from '../recommend/ThemeScreen';
 import DayScreen from '../recommend/DayScreen';
 import WithWhoScreen from '../recommend/WithWhoScreen';
 import BudgetScreen from '../recommend/BudgetScreen';
@@ -29,8 +29,8 @@ function AppNavigator() {
         options={{ headerShown: false }} 
       />
       <Stack.Screen 
-        name="RecommendScreen" 
-        component={RecommendScreen} 
+        name="ThemeScreen" 
+        component={ThemeScreen} 
         options={{ headerShown: false }} 
       />
       <Stack.Screen 
