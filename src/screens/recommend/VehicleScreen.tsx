@@ -1,46 +1,71 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Image, Alert } from 'react-native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { RootStackParamList } from '../navigation/navigationTypes';
-import { useLanguage } from '../../components/LanguageProvider';
-import { translateText } from '../../utils/Translation';
+import React, {useState, useEffect} from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Image,
+  Alert,
+} from 'react-native';
+import {StackNavigationProp} from '@react-navigation/stack';
+import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
+import {RootStackParamList} from '../navigation/navigationTypes';
+import {useLanguage} from '../../components/LanguageProvider';
+import {translateText} from '../../utils/Translation';
 
-type VehicleScreenNavigationProp = StackNavigationProp<RootStackParamList, 'VehicleScreen'>;
+type VehicleScreenNavigationProp = StackNavigationProp<
+  RootStackParamList,
+  'VehicleScreen'
+>;
 type VehicleScreenRouteProp = RouteProp<RootStackParamList, 'VehicleScreen'>;
 
 const VehicleScreen: React.FC = () => {
   const navigation = useNavigation<VehicleScreenNavigationProp>();
   const route = useRoute<VehicleScreenRouteProp>();
-  const { totalDays, startDate, endDate } = route.params;
+  const {totalDays, startDate, endDate} = route.params;
 
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
   // 번역된 텍스트 상태
-  const [questionText, setQuestionText] = useState<string>('여행 예산에 대해 알려주세요!');
-  const [info, setInfo] = useState<string>('여행 시 이용하실 이동수단을 선택해주세요.');
+  const [questionText, setQuestionText] =
+    useState<string>('여행 예산에 대해 알려주세요!');
+  const [info, setInfo] = useState<string>(
+    '여행 시 이용하실 이동수단을 선택해주세요.',
+  );
   const [valueOption1, setValueOption1] = useState<string>('대중교통');
   const [valueOption2, setValueOption2] = useState<string>('자가용');
   const [next, setNext] = useState<string>('여행경로 추천받기');
 
-  const { language: globalLanguage } = useLanguage();
+  const {language: globalLanguage} = useLanguage();
 
   useEffect(() => {
     const translateTexts = async () => {
       try {
-        const translatedQuestion = await translateText('이동수단을 선택해주세요!', globalLanguage);
+        const translatedQuestion = await translateText(
+          '이동수단을 선택해주세요!',
+          globalLanguage,
+        );
         setQuestionText(translatedQuestion);
 
-        const translatedInfo = await translateText('여행 시 이용하실 이동수단을 선택해주세요.', globalLanguage);
+        const translatedInfo = await translateText(
+          '여행 시 이용하실 이동수단을 선택해주세요.',
+          globalLanguage,
+        );
         setInfo(translatedInfo);
 
-        const translatedOption1 = await translateText('대중교통', globalLanguage);
+        const translatedOption1 = await translateText(
+          '대중교통',
+          globalLanguage,
+        );
         setValueOption1(translatedOption1);
 
         const translatedOption2 = await translateText('자가용', globalLanguage);
         setValueOption2(translatedOption2);
-        
-        const translatedNext = await translateText('여행경로 추천받기', globalLanguage);
+
+        const translatedNext = await translateText(
+          '여행경로 추천받기',
+          globalLanguage,
+        );
         setNext(translatedNext);
       } catch (error) {
         console.error('Translation Error:', error);
@@ -70,9 +95,9 @@ const VehicleScreen: React.FC = () => {
 
   const handleNext = () => {
     if (selectedOption) {
-      console.log("totalDays는? " + totalDays);
-      console.log("startDate는? " + startDate);
-      console.log("endDate는? " + endDate);
+      console.log('totalDays는? ' + totalDays);
+      console.log('startDate는? ' + startDate);
+      console.log('endDate는? ' + endDate);
 
       // navigation.navigate('RoutePage', { totalDays, startDate, endDate });
     } else {
@@ -82,17 +107,22 @@ const VehicleScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Image source={require('../../assets/images/back-button.png')} style={styles.backButton} />
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => navigation.goBack()}>
+        <Image
+          source={require('../../assets/images/back-button.png')}
+          style={styles.backButton}
+        />
       </TouchableOpacity>
       <Text style={styles.question}>Q5.</Text>
       <Text style={styles.question}>{questionText}</Text>
 
       <View style={styles.rectangleContainer}>
-          <View style={styles.rectangle}>
-            <Text style={styles.info}>{info}</Text>
-          </View>
+        <View style={styles.rectangle}>
+          <Text style={styles.info}>{info}</Text>
         </View>
+      </View>
 
       <View style={styles.cardContainer}>
         <TouchableOpacity
@@ -100,13 +130,18 @@ const VehicleScreen: React.FC = () => {
             styles.card,
             selectedOption === valueOption1 && styles.selectedCard,
           ]}
-          onPress={() => handleSelect(valueOption1)}
-        >
-          <Image source={require('../../assets/images/themeIcon/bus.png')} style={[styles.icon, { width: 80, height: 80 }]} />
-          <Text style={[
-            styles.label,
-            selectedOption === valueOption1 && styles.selectedLabel,
-          ]}>{valueOption1}</Text>
+          onPress={() => handleSelect(valueOption1)}>
+          <Image
+            source={require('../../assets/images/themeIcon/bus.png')}
+            style={[styles.icon, {width: 80, height: 80}]}
+          />
+          <Text
+            style={[
+              styles.label,
+              selectedOption === valueOption1 && styles.selectedLabel,
+            ]}>
+            {valueOption1}
+          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -114,32 +149,33 @@ const VehicleScreen: React.FC = () => {
             styles.card,
             selectedOption === valueOption2 && styles.selectedCard,
           ]}
-          onPress={() => handleSelect(valueOption2)}
-        >
-          <Image source={require('../../assets/images/themeIcon/car.png')} style={[styles.icon, { width: 80, height: 80 }]} />
-          <Text style={[
-            styles.label,
-            selectedOption === valueOption2 && styles.selectedLabel,
-          ]}>{valueOption2}</Text>
+          onPress={() => handleSelect(valueOption2)}>
+          <Image
+            source={require('../../assets/images/themeIcon/car.png')}
+            style={[styles.icon, {width: 80, height: 80}]}
+          />
+          <Text
+            style={[
+              styles.label,
+              selectedOption === valueOption2 && styles.selectedLabel,
+            ]}>
+            {valueOption2}
+          </Text>
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.caption}>*사진출처 Microsoft Fluent Emoji – Color</Text>
+      <Text style={styles.caption}>
+        *사진출처 Microsoft Fluent Emoji – Color
+      </Text>
 
       <TouchableOpacity
         style={[
           styles.nextButton,
-          { backgroundColor: selectedOption ? '#0047A0' : '#D3D3D3' }
+          {backgroundColor: selectedOption ? '#0047A0' : '#D3D3D3'},
         ]}
         onPress={handleNext}
-        disabled={!selectedOption} 
-      >
-        <Text style={[
-          styles.nextText,
-          { color: 'white' } 
-        ]}>
-          {next}
-        </Text>
+        disabled={!selectedOption}>
+        <Text style={[styles.nextText, {color: 'white'}]}>{next}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -161,7 +197,7 @@ const styles = StyleSheet.create({
     fontFamily: 'AggroM',
     fontSize: 24,
   },
-    info: {
+  info: {
     fontFamily: 'AggroL',
     fontSize: 18,
     marginTop: 20,
@@ -173,12 +209,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 20,
   },
-  rectangleContainer:{
+  rectangleContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 20,
   },
-  rectangle:{
+  rectangle: {
     width: '90%',
     height: 65,
     borderRadius: 20,
