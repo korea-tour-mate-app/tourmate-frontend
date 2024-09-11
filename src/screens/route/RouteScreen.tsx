@@ -41,6 +41,20 @@ const RouteScreen = () => {
     }, 1000);
   };
 
+  const handleZoomIn = () => {
+    mapRef.current?.getCamera().then((camera) => {
+      camera.zoom += 1; // 줌 인
+      mapRef.current?.animateCamera(camera);
+    });
+  };
+
+  const handleZoomOut = () => {
+    mapRef.current?.getCamera().then((camera) => {
+      camera.zoom -= 1; // 줌 아웃
+      mapRef.current?.animateCamera(camera);
+    });
+  };
+
   const renderDayView = (dayKey: string) => (
     <ScrollView contentContainerStyle={styles.dayContainer}>
       {(data[dayKey as keyof typeof data] as DayData[]).map((item, index) => (
@@ -77,7 +91,18 @@ const RouteScreen = () => {
           latitudeDelta: 0.0922,
           longitudeDelta: 0.0421,
         }}
+        showsUserLocation={true}
       />
+
+      {/* 확대/축소 버튼 */}
+      <View style={styles.zoomButtonsContainer}>
+        <TouchableOpacity style={styles.zoomButton} onPress={handleZoomIn}>
+          <Text style={styles.zoomButtonText}>+</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.zoomButton} onPress={handleZoomOut}>
+          <Text style={styles.zoomButtonText}>-</Text>
+        </TouchableOpacity>
+      </View>
 
       <BottomSheet ref={bottomSheetRef} index={1} snapPoints={['10%', '50%', '85%']}>
         <View style={styles.bottomSheetHeader}>
@@ -160,6 +185,27 @@ const styles = StyleSheet.create({
   },
   locationDetails: {
     flex: 1,
+  },
+  zoomButtonsContainer: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    alignItems: 'center',
+  },
+  zoomButton: {
+    backgroundColor: 'white',
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 10,
+    elevation: 5, // 안드로이드 그림자 효과
+    shadowColor: 'black', // iOS 그림자 효과
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    shadowOffset: { height: 1, width: 1 },
+  },
+  zoomButtonText: {
+    fontSize: 20,
+    fontWeight: 'bold',
   },
 });
 
