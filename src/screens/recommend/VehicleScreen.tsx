@@ -1,28 +1,20 @@
-import React, {useState, useEffect} from 'react';
-import {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-  Image,
-  Alert,
-} from 'react-native';
-import {StackNavigationProp} from '@react-navigation/stack';
-import {useNavigation, useRoute, RouteProp} from '@react-navigation/native';
-import {RootStackParamList} from '../navigation/navigationTypes';
-import {useLanguage} from '../../components/LanguageProvider';
-import {translateText} from '../../utils/Translation';
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, Image, Alert } from 'react-native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { RootStackParamList } from '../navigation/navigationTypes';
+import { useLanguage } from '../../components/LanguageProvider';
+import { translateText } from '../../utils/Translation';
+import { useSelection } from '../../components/SelectionContext';
 
-type VehicleScreenNavigationProp = StackNavigationProp<
-  RootStackParamList,
-  'VehicleScreen'
->;
+type VehicleScreenNavigationProp = StackNavigationProp<RootStackParamList, 'VehicleScreen'>;
 type VehicleScreenRouteProp = RouteProp<RootStackParamList, 'VehicleScreen'>;
 
 const VehicleScreen: React.FC = () => {
   const navigation = useNavigation<VehicleScreenNavigationProp>();
   const route = useRoute<VehicleScreenRouteProp>();
-  const {totalDays, startDate, endDate} = route.params;
+
+  const { selectedVehicle, setSelectedVehicle } = useSelection();  // 상태와 setter 함수 사용
 
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
@@ -75,7 +67,11 @@ const VehicleScreen: React.FC = () => {
     translateTexts();
   }, [globalLanguage]);
 
-  const handleSelect = (option: string) => {
+  const handleSelect = (index: number, option: string) => {
+    // 선택된 인덱스를 setSelectedBudget에 저장
+    setSelectedVehicle(index);
+
+    // 선택된 인덱스 업데이트
     setSelectedOption(prevOption => (prevOption === option ? null : option));
 
     if (selectedOption === option) {
@@ -94,12 +90,9 @@ const VehicleScreen: React.FC = () => {
   };
 
   const handleNext = () => {
+    console.log('selectedVehicle:', selectedVehicle);
     if (selectedOption) {
-      console.log('totalDays는? ' + totalDays);
-      console.log('startDate는? ' + startDate);
-      console.log('endDate는? ' + endDate);
-
-      // navigation.navigate('RoutePage', { totalDays, startDate, endDate });
+      navigation.navigate('RouteScreen');
     } else {
       Alert.alert('오류', '이동수단을 선택해주세요.');
     }
@@ -130,18 +123,13 @@ const VehicleScreen: React.FC = () => {
             styles.card,
             selectedOption === valueOption1 && styles.selectedCard,
           ]}
-          onPress={() => handleSelect(valueOption1)}>
-          <Image
-            source={require('../../assets/images/themeIcon/bus.png')}
-            style={[styles.icon, {width: 80, height: 80}]}
-          />
-          <Text
-            style={[
-              styles.label,
-              selectedOption === valueOption1 && styles.selectedLabel,
-            ]}>
-            {valueOption1}
-          </Text>
+          onPress={() => handleSelect(0, valueOption1)}
+        >
+          <Image source={require('../../assets/images/themeIcon/bus.png')} style={[styles.icon, { width: 80, height: 80 }]} />
+          <Text style={[
+            styles.label,
+            selectedOption === valueOption1 && styles.selectedLabel,
+          ]}>{valueOption1}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -149,18 +137,13 @@ const VehicleScreen: React.FC = () => {
             styles.card,
             selectedOption === valueOption2 && styles.selectedCard,
           ]}
-          onPress={() => handleSelect(valueOption2)}>
-          <Image
-            source={require('../../assets/images/themeIcon/car.png')}
-            style={[styles.icon, {width: 80, height: 80}]}
-          />
-          <Text
-            style={[
-              styles.label,
-              selectedOption === valueOption2 && styles.selectedLabel,
-            ]}>
-            {valueOption2}
-          </Text>
+          onPress={() => handleSelect(1, valueOption2)}
+        >
+          <Image source={require('../../assets/images/themeIcon/car.png')} style={[styles.icon, { width: 80, height: 80 }]} />
+          <Text style={[
+            styles.label,
+            selectedOption === valueOption2 && styles.selectedLabel,
+          ]}>{valueOption2}</Text>
         </TouchableOpacity>
       </View>
 

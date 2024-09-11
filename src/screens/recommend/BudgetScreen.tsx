@@ -5,6 +5,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/navigationTypes';
 import { useLanguage } from '../../components/LanguageProvider';
 import { translateText } from '../../utils/Translation';
+import { useSelection } from '../../components/SelectionContext';
 
 type BudgetScreenNavigationProp = StackNavigationProp<RootStackParamList, 'BudgetScreen'>;
 type BudgetScreenRouteProp = RouteProp<RootStackParamList, 'BudgetScreen'>;
@@ -12,7 +13,7 @@ type BudgetScreenRouteProp = RouteProp<RootStackParamList, 'BudgetScreen'>;
 const BudgetScreen: React.FC = () => {
   const navigation = useNavigation<BudgetScreenNavigationProp>();
   const route = useRoute<BudgetScreenRouteProp>();
-  const { totalDays, startDate, endDate } = route.params;
+  const { selectedBudget, setSelectedBudget } = useSelection();  // 상태와 setter 함수 사용
 
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
@@ -54,17 +55,18 @@ const BudgetScreen: React.FC = () => {
     translateTexts();
   }, [globalLanguage]);
 
-  const handleSelect = (option: string) => {
+  const handleSelect = (index: number, option: string) => {
+    // 선택된 인덱스를 setSelectedBudget에 저장
+    setSelectedBudget(index);
+
+    // 선택된 인덱스 업데이트
     setSelectedOption(prevOption => (prevOption === option ? null : option));
   };
 
   const handleNext = () => {
+    console.log('selectedBudget:', selectedBudget);
     if (selectedOption) {
-      console.log("totalDays는? " + totalDays);
-      console.log("startDate는? " + startDate);
-      console.log("endDate는? " + endDate);
-
-      navigation.navigate('VehicleScreen', { totalDays, startDate, endDate });
+      navigation.navigate('VehicleScreen');
     } else {
       Alert.alert('오류', '여행 예산을 선택해주세요.');
     }
@@ -84,7 +86,7 @@ const BudgetScreen: React.FC = () => {
             styles.card,
             selectedOption === valueOption1 && styles.selectedCard,
           ]}
-          onPress={() => handleSelect(valueOption1)}
+          onPress={() => handleSelect(0, valueOption1)}
         >
           <Image source={require('../../assets/images/themeIcon/lowrange_travel.png')} style={[styles.icon, { width: 40, height: 40 }]} />
           <Text style={[
@@ -98,7 +100,7 @@ const BudgetScreen: React.FC = () => {
             styles.card,
             selectedOption === valueOption2 && styles.selectedCard,
           ]}
-          onPress={() => handleSelect(valueOption2)}
+          onPress={() => handleSelect(1, valueOption2)}
         >
           <Image source={require('../../assets/images/themeIcon/lowrange_travel.png')} style={[styles.icon, { width: 60, height: 60 }]} />
           <Text style={[
@@ -112,7 +114,7 @@ const BudgetScreen: React.FC = () => {
             styles.card,
             selectedOption === valueOption3 && styles.selectedCard,
           ]}
-          onPress={() => handleSelect(valueOption3)}
+          onPress={() => handleSelect(2, valueOption3)}
         >
           <Image source={require('../../assets/images/themeIcon/premium_travel.png')} style={[styles.icon, { width: 40, height: 40 }]} />
           <Text style={[
@@ -126,7 +128,7 @@ const BudgetScreen: React.FC = () => {
             styles.card,
             selectedOption === valueOption4 && styles.selectedCard,
           ]}
-          onPress={() => handleSelect(valueOption4)}
+          onPress={() => handleSelect(3, valueOption4)}
         >
           <Image source={require('../../assets/images/themeIcon/premium_travel.png')} style={[styles.icon, { width: 60, height: 60 }]} />
           <Text style={[
