@@ -70,6 +70,7 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
   };
 
   const handleNext = () => {
+    console.log('selectedWithWho:', selectedWithWho);
     if (selectedOption) {
       navigation.navigate('BudgetScreen');
     } else {

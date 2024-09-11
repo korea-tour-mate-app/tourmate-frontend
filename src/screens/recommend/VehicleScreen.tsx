@@ -74,6 +74,7 @@ const VehicleScreen: React.FC = () => {
   };
 
   const handleNext = () => {
+    console.log('selectedVehicle:', selectedVehicle);
     if (selectedOption) {
       navigation.navigate('RouteScreen');
     } else {

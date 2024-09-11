@@ -64,6 +64,7 @@ const BudgetScreen: React.FC = () => {
   };
 
   const handleNext = () => {
+    console.log('selectedBudget:', selectedBudget);
     if (selectedOption) {
       navigation.navigate('VehicleScreen');
     } else {

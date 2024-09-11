@@ -188,8 +188,8 @@ const DayScreen = () => {
       const newSelectedDay = [formattedStartDate, formattedEndDate, totalDays];
       setSelectedDay(newSelectedDay);
       
-      console.log('selectedDay:', selectedDay);
-      
+      console.log('newSelectedDay:', newSelectedDay);
+
       // 다음 화면으로 이동
       navigation.navigate('WithWhoScreen');
     }
