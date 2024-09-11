@@ -37,7 +37,8 @@ type Props = {
 const ThemeScreen = () => {
   const navigation = useNavigation<RootStackNavigationProp<'ThemeScreen'>>();
   const { language: globalLanguage } = useLanguage();
-  const { selectedThemes, setSelectedThemes } = useSelection();
+  // const { selectedThemes, setSelectedThemes } = useSelection();  // 상태와 setter 함수 사용
+  const [selectedThemes, setSelectedThemes] = useState<number[]>([]);
 
   const [question, setQuestion] = useState<string>('서울에서 어떤 여행 테마를 원하나요?');
   const [content, setContent] = useState<string>('원하는 테마를 모두 골라주세요.');
@@ -234,7 +235,7 @@ const ThemeScreen = () => {
     };
 
     translateTexts();
-  }, [globalLanguage]);
+  }, [globalLanguage, selectedThemes]);
 
   const handlePress = (key: keyof Themes) => {
     setThemes((prevThemes) => ({
@@ -245,10 +246,28 @@ const ThemeScreen = () => {
         textColor: prevThemes[key].textColor === '#000000' ? '#ffffff' : '#000000',
       },
     }));
+    // 선택된 테마를 selectedThemes에 추가 또는 제거
+    setSelectedThemes((prevSelectedThemes) => {
+      const themeIndex = Object.keys(themes).indexOf(key as string);
+
+      if (prevSelectedThemes.includes(themeIndex)) {
+        // 이미 선택된 테마인 경우 제거
+        return prevSelectedThemes.filter((theme) => theme !== themeIndex);
+      } else {
+        // 선택되지 않은 테마인 경우 추가
+        return [...prevSelectedThemes, themeIndex];
+      }
+    });
   };
 
   const handleNext = () => {
-    navigation.navigate('DayScreen');
+      // 선택된 테마가 있는지 확인 후 이동
+      console.log('selectedThemes:', selectedThemes);
+      if (selectedThemes.length > 0) {
+        navigation.navigate('DayScreen');
+      } else {
+        console.log('선택된 테마가 없습니다.');
+      }
   };
 
   const renderItem = ({ item }: { item: { key: string; theme: Theme } }) => {
