@@ -24,7 +24,7 @@ interface SelectionContextProps {
 
 // 기본값을 설정하여 undefined 없이 SelectionContext 생성
 const defaultSelectionContext: SelectionContextProps = {
-  selectedThemes: [0, 1],  // 초기값 0, 1
+  selectedThemes: [0, 1, 2, 3],  // 초기값 0, 1, 2, 3
   setSelectedThemes: () => {},
   selectedDay: ["24.10.1", "24.10.2", 3],  // 초기값 설정
   setSelectedDay: () => {},

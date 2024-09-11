@@ -37,8 +37,8 @@ type Props = {
 const ThemeScreen = () => {
   const navigation = useNavigation<RootStackNavigationProp<'ThemeScreen'>>();
   const { language: globalLanguage } = useLanguage();
-  // const { selectedThemes, setSelectedThemes } = useSelection();  // 상태와 setter 함수 사용
-  const [selectedThemes, setSelectedThemes] = useState<number[]>([]);
+  const { selectedThemes, setSelectedThemes } = useSelection();  // 상태와 setter 함수 사용
+  // const [selectedThemes, setSelectedThemes] = useState<number[]>([]);
 
   const [question, setQuestion] = useState<string>('서울에서 어떤 여행 테마를 원하나요?');
   const [content, setContent] = useState<string>('원하는 테마를 모두 골라주세요.');
@@ -235,9 +235,10 @@ const ThemeScreen = () => {
     };
 
     translateTexts();
-  }, [globalLanguage, selectedThemes]);
+  }, [globalLanguage]);
 
   const handlePress = (key: keyof Themes) => {
+    const themeIndex = Object.keys(themes).indexOf(key as string); // key의 인덱스 가져오기
     setThemes((prevThemes) => ({
       ...prevThemes,
       [key]: {
@@ -246,9 +247,10 @@ const ThemeScreen = () => {
         textColor: prevThemes[key].textColor === '#000000' ? '#ffffff' : '#000000',
       },
     }));
+    
     // 선택된 테마를 selectedThemes에 추가 또는 제거
-    setSelectedThemes((prevSelectedThemes) => {
-      const themeIndex = Object.keys(themes).indexOf(key as string);
+    setSelectedThemes((prevSelectedThemes : number[]) => {
+      const themeIndex = Object.keys(themes).indexOf(key);
 
       if (prevSelectedThemes.includes(themeIndex)) {
         // 이미 선택된 테마인 경우 제거
@@ -262,8 +264,8 @@ const ThemeScreen = () => {
 
   const handleNext = () => {
       // 선택된 테마가 있는지 확인 후 이동
-      console.log('selectedThemes:', selectedThemes);
       if (selectedThemes.length > 0) {
+        console.log('selectedThemes:', selectedThemes);
         navigation.navigate('DayScreen');
       } else {
         console.log('선택된 테마가 없습니다.');
