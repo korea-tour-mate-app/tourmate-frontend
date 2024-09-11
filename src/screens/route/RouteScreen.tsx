@@ -1,8 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { StyleSheet, View, Text, Image, TouchableOpacity, ScrollView } from 'react-native';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import MapView, { Marker, Polyline, Callout } from 'react-native-maps';
+import { useSelection } from '../../components/SelectionContext';
 
 interface DayData {
   id: number;
@@ -20,6 +21,23 @@ const RouteScreen = () => {
   const [selectedLocation, setSelectedLocation] = useState({ latitude: 37.54523875839218, longitude: 126.977613738705 });
   const bottomSheetRef = useRef<BottomSheet>(null);
   const mapRef = useRef<MapView>(null);
+
+  // SelectionContext에서 값 가져오기
+  const {
+    selectedThemes,
+    selectedDay: contextSelectedDay,
+    selectedWithWho,
+    selectedBudget,
+    selectedVehicle
+  } = useSelection();
+
+  useEffect(() => {
+    console.log('Selected Themes:', selectedThemes);
+    console.log('Selected Day:', contextSelectedDay);
+    console.log('Selected WithWho:', selectedWithWho);
+    console.log('Selected Budget:', selectedBudget);
+    console.log('Selected Vehicle:', selectedVehicle);
+  }, [selectedThemes, contextSelectedDay, selectedWithWho, selectedBudget, selectedVehicle]);
 
   const data: DaysData = {
     '1일차': [
