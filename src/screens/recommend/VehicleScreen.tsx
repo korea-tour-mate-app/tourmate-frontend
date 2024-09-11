@@ -73,8 +73,7 @@ const VehicleScreen: React.FC = () => {
       console.log("totalDays는? " + totalDays);
       console.log("startDate는? " + startDate);
       console.log("endDate는? " + endDate);
-
-      // navigation.navigate('RoutePage', { totalDays, startDate, endDate });
+      navigation.navigate('RouteScreen', { totalDays, startDate, endDate });
     } else {
       Alert.alert('오류', '이동수단을 선택해주세요.');
     }
