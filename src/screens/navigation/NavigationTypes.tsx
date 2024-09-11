@@ -8,6 +8,7 @@ export type RootStackParamList = {
   DayScreen: undefined;
   WithWhoScreen: { totalDays: number; startDate: string; endDate: string };
   BudgetScreen: { totalDays: number; startDate: string; endDate: string };
+  RouteScreen: { totalDays: number; startDate: string; endDate: string };
   MyPageScreen: { language?: string };
   PasswordChangeScreen: undefined;
   LanguageScreen: undefined;

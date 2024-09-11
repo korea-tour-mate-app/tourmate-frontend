@@ -5,6 +5,7 @@ import RecommendScreen from '../recommend/RecommendScreen';
 import DayScreen from '../recommend/DayScreen';
 import WithWhoScreen from '../recommend/WithWhoScreen';
 import BudgetScreen from '../recommend/BudgetScreen';
+import RouteScreen from '../route/RouteScreen';
 import MypageScreen from '../mypage/MypageScreen';  
 import PasswordChange from '../mypage/PasswordChangeScreen';
 import LanguageScreen from '../mypage/LanguageScreen';
@@ -45,6 +46,11 @@ function AppNavigator() {
       <Stack.Screen 
         name="BudgetScreen" 
         component={BudgetScreen} 
+        options={{ headerShown: false }} 
+      />
+      <Stack.Screen 
+        name="RouteScreen" 
+        component={RouteScreen} 
         options={{ headerShown: false }} 
       />
       <Stack.Screen 
