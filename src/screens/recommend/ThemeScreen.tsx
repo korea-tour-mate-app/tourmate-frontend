@@ -6,6 +6,8 @@ import { RootStackParamList } from '../navigation/navigationTypes';
 import { RootStackNavigationProp } from '../navigation/navigationTypes';
 import { useLanguage } from '../../components/LanguageProvider';
 import { translateText } from '../../utils/Translation';
+import { useSelection } from '../../components/SelectionContext';
+
 
 interface Theme {
   label: string;
@@ -26,15 +28,16 @@ type Themes = {
   [key: string]: Theme;
 };
 
-type ThemeScreenRouteProp = RouteProp<RootStackParamList, 'RecommendScreen'>;
+type ThemeScreenRouteProp = RouteProp<RootStackParamList, 'ThemeScreen'>;
 
 type Props = {
   route: ThemeScreenRouteProp;
 };
 
-const RecommendScreen = () => {
-  const navigation = useNavigation<RootStackNavigationProp<'RecommendScreen'>>();
+const ThemeScreen = () => {
+  const navigation = useNavigation<RootStackNavigationProp<'ThemeScreen'>>();
   const { language: globalLanguage } = useLanguage();
+  const { selectedThemes, setSelectedThemes } = useSelection();
 
   const [question, setQuestion] = useState<string>('서울에서 어떤 여행 테마를 원하나요?');
   const [content, setContent] = useState<string>('원하는 테마를 모두 골라주세요.');
@@ -364,4 +367,4 @@ const styles = StyleSheet.create({
   }
 });
 
-export default RecommendScreen;
+export default ThemeScreen;

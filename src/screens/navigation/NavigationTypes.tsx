@@ -5,12 +5,12 @@ export type RootStackParamList = {
   SplashScreen: undefined;
   HomeScreen: undefined;
   Tabs: undefined;
-  RecommendScreen: undefined;
+  ThemeScreen: undefined;
   DayScreen: undefined;
-  WithWhoScreen: { totalDays: number; startDate: string; endDate: string };
-  BudgetScreen: { totalDays: number; startDate: string; endDate: string };
-  RouteScreen: { totalDays: number; startDate: string; endDate: string };
-  VehicleScreen: { totalDays: number; startDate: string; endDate: string };
+  WithWhoScreen: undefined;
+  BudgetScreen: undefined;
+  VehicleScreen: undefined;
+  RouteScreen: undefined;
   MyPageScreen: { language?: string };
   PasswordChangeScreen: undefined;
   LanguageScreen: undefined;
