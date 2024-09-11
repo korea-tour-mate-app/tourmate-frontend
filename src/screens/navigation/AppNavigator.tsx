@@ -1,6 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import HomeScreen from '../HomeScreen';
+import BottomTabNavigator from '../../components/BottomTabNavigator';
 import RecommendScreen from '../recommend/RecommendScreen';
 import DayScreen from '../recommend/DayScreen';
 import WithWhoScreen from '../recommend/WithWhoScreen';
@@ -11,21 +11,21 @@ import PasswordChange from '../mypage/PasswordChangeScreen';
 import LanguageScreen from '../mypage/LanguageScreen';
 import SplashScreen from '../SplashScreen';
 import { RootStackParamList } from './navigationTypes'; 
+import VehicleScreen from '../recommend/VehicleScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function AppNavigator() {
   return (
     <Stack.Navigator initialRouteName="SplashScreen">
-      <Stack.Screen 
+    <Stack.Screen 
         name="SplashScreen" 
+        component={SplashScreen}
         options={{ headerShown: false }}
-      >
-        {props => <SplashScreen {...props} navigateToHome={() => props.navigation.navigate('HomeScreen')} />}
-      </Stack.Screen>
+      />
       <Stack.Screen 
-        name="HomeScreen" 
-        component={HomeScreen} 
+        name="Tabs" 
+        component={BottomTabNavigator} 
         options={{ headerShown: false }} 
       />
       <Stack.Screen 
@@ -47,7 +47,12 @@ function AppNavigator() {
         name="BudgetScreen" 
         component={BudgetScreen} 
         options={{ headerShown: false }} 
-      />
+      />      
+      <Stack.Screen 
+      name="VehicleScreen" 
+      component={VehicleScreen} 
+      options={{ headerShown: false }} 
+    />
       <Stack.Screen 
         name="RouteScreen" 
         component={RouteScreen} 
@@ -68,7 +73,6 @@ function AppNavigator() {
         component={LanguageScreen} 
         options={{ headerShown: false }} 
       />
-
     </Stack.Navigator>
   );
 }

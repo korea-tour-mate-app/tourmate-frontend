@@ -4,7 +4,7 @@ import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { check, request, PERMISSIONS, RESULTS } from 'react-native-permissions'; // 위치 권한 확인을 위해 추가
+import { request, PERMISSIONS, RESULTS } from 'react-native-permissions'; 
 
 // 화면 높이 가져오기
 const { height: screenHeight } = Dimensions.get('window');
@@ -20,6 +20,7 @@ interface LocationType {
 interface Place {
   id: number;
   name: string;
+  tag: string;
   description: string;
   address: string;
   homepage: string;
@@ -34,6 +35,9 @@ interface Place {
 function ThemeScreen() {
   const [location, setLocation] = useState<LocationType | undefined>();
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [visitedFilterActive, setVisitedFilterActive] = useState(false);
+  const [likesFilterActive, setLikesFilterActive] = useState(false);
+  const [baggageFilterActive, setBaggageFilterActive] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<Place | null>(null);
   const [isVisitedActive, setIsVisitedActive] = useState(false);
   const [isLikesActive, setIsLikesActive] = useState(false);
@@ -43,9 +47,9 @@ function ThemeScreen() {
 
   // 더미 장소 데이터
   const places: Place[] = [
-    { id: 1, name: '경복궁', description: '서울의 대표 고궁', address: '서울시 종로구', homepage: 'www.royal.khs.go.kr/', contact: '02-3700-3900', hour: '10:00 ~ 20:00', coordinate: { latitude: 37.5796, longitude: 126.9794 } },
-    { id: 2, name: '명동', description: '서울의 쇼핑 거리', address: '서울시 어딘가', homepage: 'www.whdfh.go.kr', contact: '02-3750-2345', hour: '08:00 ~ 20:00', coordinate: { latitude: 37.5636, longitude: 126.9858 } },
-    { id: 3, name: '남산타워', description: '서울의 랜드마크', address: '서울시에 있겠지 용산구 그 어딘가 산 속에', homepage: 'www.all.all/', contact: '02-1000-3920', hour: '10:00 ~ 17:00', coordinate: { latitude: 37.5512, longitude: 126.9882 } },
+    { id: 1, name: '경복궁', tag: '고궁', description: '서울의 대표 고궁', address: '서울시 종로구', homepage: 'www.royal.khs.go.kr/', contact: '02-3700-3900', hour: '10:00 ~ 20:00', coordinate: { latitude: 37.5796, longitude: 126.9794 } },
+    { id: 2, name: '명동', tag: '문화시설', description: '서울의 쇼핑 거리', address: '서울시 어딘가', homepage: 'www.whdfh.go.kr', contact: '02-3750-2345', hour: '08:00 ~ 20:00', coordinate: { latitude: 37.5636, longitude: 126.9858 } },
+    { id: 3, name: '남산타워', tag: '문화시설', description: '서울의 랜드마크', address: '서울시에 있겠지 용산구 그 어딘가 산 속에', homepage: 'www.all.all/', contact: '02-1000-3920', hour: '10:00 ~ 17:00', coordinate: { latitude: 37.5512, longitude: 126.9882 } },
   ];
 
   useEffect(() => {
@@ -93,20 +97,13 @@ function ThemeScreen() {
     bottomSheetRef.current?.snapToIndex(0); 
   };
 
-  // 방문 버튼 클릭 처리
   const handleVisitedPress = () => {
     setIsVisitedActive(prevState => !prevState); 
   };
 
-  // 좋아요 버튼 클릭 처리
   const handleLikesPress = () => {
     setIsLikesActive(prevState => !prevState); 
   };
-
-  const handleCloseBottomSheet = useCallback(() => {
-    setSelectedPlace(null);
-    bottomSheetRef.current?.close();
-  }, []);
 
   const handleBottomSheetChange = useCallback((index: number) => {
     setBottomSheetIndex(index);
@@ -165,14 +162,28 @@ function ThemeScreen() {
       </View>
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.buttonVisited} onPress={handleVisitedPress}>
+      <TouchableOpacity 
+          style={[styles.buttonVisited, visitedFilterActive && { backgroundColor: '#e0e0e0' }]} 
+          onPress={() => setVisitedFilterActive(prevState => !prevState)}
+        >
           <Text style={styles.buttonText}>Visited</Text>
           <Image source={require('../../assets/images/map/visited-active.png')} style={styles.buttonVisitedIcon}/>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.buttonLikes} onPress={handleLikesPress}>
+        <TouchableOpacity 
+          style={[styles.buttonLikes, likesFilterActive && { backgroundColor: '#e0e0e0' }]} 
+          onPress={() => setLikesFilterActive(prevState => !prevState)}
+        >
           <Text style={styles.buttonText}>Likes</Text>
           <Image source={require('../../assets/images/map/likes-active.png')} style={styles.buttonLikesIcon}/> 
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={[styles.buttonLikes, baggageFilterActive && { backgroundColor: '#e0e0e0' }]} 
+          onPress={() => setBaggageFilterActive(prevState => !prevState)}
+        >
+          <Text style={styles.buttonText}>Baggage</Text>
+          <Image source={require('../../assets/images/map/baggage-button.png')} style={styles.buttonLikesIcon}/> 
         </TouchableOpacity>
       </View>
 
@@ -295,7 +306,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   markerPlace: {
-    fontFamily: 'AggroL',
+    fontFamily: 'SBAggroL',
     fontSize: 18,
   },
   themeMarker: {
@@ -332,7 +343,7 @@ const styles = StyleSheet.create({
   },
   activeFilterText: {
     color: '#0047A0',
-    fontFamily: 'AggroM',
+    fontFamily: 'SBAggroM',
     fontSize: 16,
   },
   buttonContainer: {
@@ -373,7 +384,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 16,
-    fontFamily: 'AggroL',
+    fontFamily: 'SBAggroL',
   },
   bottomSheetContainer: {
     flex: 1,
@@ -396,12 +407,12 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   bottomSheetTitleCollapsed: {
-    fontFamily: 'AggroM',
+    fontFamily: 'SBAggroM',
     fontSize: 24,
     marginLeft: 10,
   },
   bottomSheetTitleExpand: {
-    fontFamily: 'AggroL',
+    fontFamily: 'SBAggroL',
     fontSize: 30,
   },
   bottomSheetButtonContainer: {
@@ -431,7 +442,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   bottomSheetAddress: {
-    fontFamily: 'AggroL',
+    fontFamily: 'SBAggroL',
     fontSize: 16,
     color: 'black',
   },
@@ -455,7 +466,7 @@ const styles = StyleSheet.create({
     marginTop: 30,
   },
   bottomSheetDescription: {
-    fontFamily: 'AggroL',
+    fontFamily: 'SBAggroL',
     fontSize: 16,
     color: 'black',
     marginTop: 10,
@@ -465,36 +476,36 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   bottomSheetListAddressTitle: {
-    fontFamily: 'AggroM',
+    fontFamily: 'SBAggroM',
     fontSize: 20,
   },
   bottomSheetListAddress: {
-    fontFamily: 'AggroL',
+    fontFamily: 'SBAggroL',
     fontSize: 20,
     marginTop: 20,
   },
   bottomSheetListHomepageTitle: {
-    fontFamily: 'AggroM',
+    fontFamily: 'SBAggroM',
     fontSize: 20,
     marginTop: 20,
   },
   bottomSheetListHomepage: {
-    fontFamily: 'AggroL',
+    fontFamily: 'SBAggroL',
     fontSize: 20,
     marginTop: 20,
   },
   bottomSheetListContactTitle: {
-    fontFamily: 'AggroM',
+    fontFamily: 'SBAggroM',
     fontSize: 20,
     marginTop: 20,
   },
   bottomSheetListContact: {
-    fontFamily: 'AggroL',
+    fontFamily: 'SBAggroL',
     fontSize: 20,
     marginTop: 20,
   },
   bottomSheetListHourTitle: {
-    fontFamily: 'AggroM',
+    fontFamily: 'SBAggroM',
     fontSize: 20,
     marginTop: 20,
   },

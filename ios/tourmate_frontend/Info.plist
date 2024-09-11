@@ -60,9 +60,9 @@
 	<string></string>
 	<key>UIAppFonts</key>
 	<array>
-		<string>Fonts/SB Aggro B.ttf</string>
-		<string>Fonts/SB Aggro L.ttf</string>
-		<string>Fonts/SB Aggro M.ttf</string>
+		<string>fonts/SB Aggro B.ttf</string>
+		<string>fonts/SB Aggro L.ttf</string>
+		<string>fonts/SB Aggro M.ttf</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
