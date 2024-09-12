@@ -21,7 +21,12 @@ interface RouteOptResponseDto {
   totalDistance: string;
   totalTime: string;
   totalFare: string;
-  visitPlaces: string;
+  visitPlaces: {
+    order: string;
+    name: string;
+    latitude: number;
+    longitude: number;
+  }[];
   paths: {
     coordinates: number[][];
     name: string;
@@ -31,15 +36,11 @@ interface RouteOptResponseDto {
 const RouteScreen = () => {
   const [selectedDay, setSelectedDay] = useState("1일차");
   const [selectedLocation, setSelectedLocation] = useState({ latitude: 37.54523875839218, longitude: 126.977613738705 });
-  const [routeInfo, setRouteInfo] = useState({
-    totalDistance: '',
-    totalTime: '',
-    totalFare: '',
-    visitPlaces: '',
-  });
-  const [mapPaths, setMapPaths] = useState<RouteOptResponseDto['paths']>([]); // paths 상태 정의
+  const [routeInfoByDay, setRouteInfoByDay] = useState<{ [day: string]: Omit<RouteOptResponseDto, 'paths'> }>({}); // 날짜별 경로 정보를 저장할 상태
+  const [mapPathsByDay, setMapPathsByDay] = useState<{ [day: string]: RouteOptResponseDto['paths'] }>({}); // 날짜별 경로
   const bottomSheetRef = useRef<BottomSheet>(null);
   const mapRef = useRef<MapView>(null);
+
 
   // SelectionContext에서 값 가져오기
   const {
@@ -66,10 +67,13 @@ const RouteScreen = () => {
   useEffect(() => {
     const fetchRouteDataForEachDay = async () => {
       try {
+        const newRouteInfoByDay: { [day: string]: Omit<RouteOptResponseDto, 'paths'> } = {};
+        const newMapPathsByDay: { [day: string]: RouteOptResponseDto['paths'] } = {};
+
         // 각 날짜에 대해 API 호출
         for (let i = 0; i < dayCount; i++) {
           const requestBody = {
-            startName: "숭례문",  // 실제 값에 맞게 수정 필요 (ex. data['1일차'][i])
+            startName: "숭례문",  // 실제 값에 맞게 수정 필요 (ex. modelData[i]['startName'])
             startX: "126.975208",
             startY: "37.561004",
             startTime: "202408251200",
@@ -87,14 +91,16 @@ const RouteScreen = () => {
           console.log(`Day ${i + 1} route data:`, response.data);
           const { totalDistance, totalTime, totalFare, visitPlaces, paths } = response.data;
 
-          // [0]을 제거하고 ,로 구분된 장소 이름 배열로 변환
-          const cleanVisitPlaces = visitPlaces
-            .split(', ')
-            .map((place:string) => place.replace(/\[\d\]\s*/, ''));  // [0]을 제거
+          // 날짜별로 저장
+          const dayKey = `${i + 1}일차`;
 
+          // 상태 업데이트를 위한 새로운 객체 생성
+          newRouteInfoByDay[dayKey] = { totalDistance, totalTime, totalFare, visitPlaces };
+          newMapPathsByDay[dayKey] = paths;
 
-          setRouteInfo({ totalDistance, totalTime, totalFare, visitPlaces : cleanVisitPlaces  }); // 경로 기초 정보 저장
-          setMapPaths(paths);  // paths 저장
+          // 최종적으로 상태 업데이트
+          setRouteInfoByDay(newRouteInfoByDay); // 경로 기초 정보 저장
+          setMapPathsByDay(newMapPathsByDay);  // paths 저장
         }
       } catch (error) {
         console.error('Error fetching route data:', error);
@@ -183,14 +189,31 @@ const RouteScreen = () => {
             )}
           </View>
           <View style={styles.locationDetails}>
-            <Text style={styles.itemTitle} onPress={() => handleLocationPress(selectedLocation.latitude, selectedLocation.longitude)}>
-              {place}
+            <Text style={styles.itemTitle} onPress={() => handleLocationPress(place.latitude, place.longitude)}>
+              {place.name}
             </Text>
           </View>
         </View>
       ))}
     </ScrollView>
   );
+
+  const renderMarkers = () => {
+    if (!Array.isArray(routeInfo.visitPlaces)) return null;
+
+    // 마커 렌더링
+    return routeInfo.visitPlaces.map((place, index) => (
+      <Marker
+        // key={index}
+        coordinate={{
+          latitude: place.latitude, // 위도
+          longitude: place.longitude, // 경도
+        }}
+        title={place.viaPointName} // 장소 이름
+        description={`${place.order + 1}번째 방문 장소`} // 방문 순서
+        />
+    ));
+  };
 
   return (
     <GestureHandlerRootView style={styles.container}>
@@ -206,6 +229,7 @@ const RouteScreen = () => {
         showsUserLocation={true}
       >
         {renderRoute(mapPaths)}  {/* 경로 그리기 */}
+        {renderMarkers()}       {/* 마커 렌더링 */}
       </MapView>
       {/* 확대/축소 버튼 */}
       <View style={styles.zoomButtonsContainer}>
