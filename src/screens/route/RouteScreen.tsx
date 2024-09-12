@@ -37,6 +37,7 @@ const RouteScreen = () => {
   const [mapPathsByDay, setMapPathsByDay] = useState<{ [day: string]: RouteOptResponseDto['paths'] }>({});
   const bottomSheetRef = useRef<BottomSheet>(null);
   const mapRef = useRef<MapView>(null);
+  const [toggleState, setToggleState] = useState<{ [key: number]: boolean }>({});
 
   // SelectionContext에서 값 가져오기
   const {
@@ -1143,6 +1144,13 @@ const RouteScreen = () => {
     };
   }, []); // useEffect 의존성 배열 추가
 
+  // 토글 상태 변경 함수
+  const toggleItem = (index: number) => {
+    setToggleState((prevState) => ({
+      ...prevState,
+      [index]: !prevState[index], // 기존 상태를 반전시킴
+    }));
+  };
   const handleLocationPress = (latitude: number, longitude: number) => {
     if (mapRef.current) { // ref가 있을 때만 실행
       mapRef.current.animateToRegion({
@@ -1283,8 +1291,10 @@ const RouteScreen = () => {
               longitude,
             }))}
             
-            strokeColor="#000000"  // 경로 색상
+            strokeColor="#EB6060"  // 경로 색상
             strokeWidth={4}  // 경로 두께
+            // lineDashPattern={[100, 10]} // 점선 패턴 (대시 길이 10, 간격 5)
+            // lineCap="round" // 끝부분을 둥글게 처리
             />
           ))}
       </MapView>
@@ -1298,63 +1308,87 @@ const RouteScreen = () => {
         </TouchableOpacity>
       </View>
       <BottomSheet ref={bottomSheetRef} index={1} snapPoints={['10%', '50%', '90%']}>
-      <View style={styles.bottomSheetHeader}>
-        {Array.from({ length: dayCount }).map((_, index) => (
-          <TouchableOpacity
-            key={index}
-            onPress={() => setSelectedDayIndex(index)}
-            style={[styles.dayButton, selectedDayIndex === index && styles.selectedDayButton]}
-          >
-            <Text style={selectedDayIndex === index ? styles.selectedDayText : styles.dayButtonText}>
-              {`Day ${index + 1}`}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+        {/* Day1, Day2, Day3 버튼을 상단에 추가 */}
+        <View style={styles.dayButtonsContainer}>
+          {Array.from({ length: dayCount }).map((_, index) => (
+            <TouchableOpacity
+              key={index}
+              onPress={() => setSelectedDayIndex(index)}
+              style={[styles.dayButton, selectedDayIndex === index && styles.selectedDayButton]}
+            >
+              <Text style={selectedDayIndex === index ? styles.selectedDayText : styles.dayButtonText}>
+                {`Day ${index + 1}`}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
-      {/* 여기에 추가: 장소 리스트와 동그라미 마커 */}
-      <View style={styles.timelineContainer}>
-        {routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.visitPlaces?.map((place, index) => (
-          <View key={index} style={styles.timelineItem}>
-            {/* 동그라미 마커 */}
-            <Image
-              source={getMarkerImage(selectedDayIndex, index)}
-              style={styles.markerImage}
-            />
+        {/* 장소 리스트와 동그라미 마커 */}
+        <View style={styles.timelineContainer}>
+          {routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.visitPlaces?.map((place, index) => (
+            
+            <View key={index} style={styles.timelineItem}>
+                {/* 동그라미 마커 */}
+                <View style={styles.markerContainer}>
+                  <Image
+                    source={getMarkerImage(selectedDayIndex, index)}
+                    style={styles.markerImage}
+                  />
+                </View>
 
-            {/* 교통수단 아이콘 (버튼처럼 동작하게) */}
-            {index < routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.visitPlaces?.length - 1 && (
-              <TouchableOpacity onPress={() => handleTransportationClick(index)}>
-                <Image
-                  source={selectedVehicle === 0
-                    ? require('../../assets/images/route/timeline-bus.png')
-                    : require('../../assets/images/route/timeline-car.png')}
-                  style={styles.transportIcon}
-                />
-              </TouchableOpacity>
-            )}
+                {/* 마커 사이에 세로줄과 교통수단 아이콘 & 텍스트 & 토글 */}
+                {index < routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.visitPlaces?.length - 1 && (
+                  <View style={styles.lineAndTransportContainer}>
 
-            {/* 장소명 크게 표시 및 클릭 시 지도 이동 */}
-            <View style={styles.placeInfo}>
-              <TouchableOpacity onPress={() => handleLocationPress(place.latitude, place.longitude)}>
-                <Text style={styles.placeName}>{place.name}</Text>
-              </TouchableOpacity>
+                      {/* 세로줄 */}
+                      <View style={styles.verticalLine} />
+
+                      {/* 교통수단 아이콘과 텍스트, 토글 버튼 */}
+                      <TouchableOpacity onPress={() => toggleItem(index)} style={styles.transportToggleContainer}>
+                        <View style={styles.transportContent}>
+                          {/* 교통수단 아이콘 */}
+                          <Image
+                            source={selectedVehicle === 0
+                              ? require('../../assets/images/route/timeline-bus.png')
+                              : require('../../assets/images/route/timeline-car.png')}
+                            style={styles.transportIcon}
+                          />
+                        
+                          {/* 교통수단 밑에 텍스트 (예: 16분) */}
+                          <Text style={styles.transportTimeText}>16분</Text>
+
+                          {/* 토글 버튼 (아이콘 옆에 표시) */}
+                          <Text style={styles.toggleButtonText}>
+                            {toggleState[index] ? 'v 경로 닫기' : '> 경로 보기'}
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    </View>
+                )}
+              {/* 토글된 상태에 따라 빈 공간 추가 */}
+              {toggleState[index] && (
+                <View style={styles.emptySpace}>
+                  <Text>빈 공간입니다.</Text> {/* 임의의 빈 공간 텍스트 */}
+                </View>
+              )}
             </View>
-          </View>
-        ))}
-      </View>
+          ))}
+        </View>
 
-      {/* 선택된 날짜를 우측 하단에 표시 */}
-      <View style={{ position: 'absolute', bottom: 650, right: 50 }}>
-        {typeof contextSelectedDay[0] === 'string' && (
-          <Text>{getCalculatedDate(contextSelectedDay[0] as string, selectedDayIndex)}</Text>
-        )}
-      </View>
-    </BottomSheet>
+        {/* 선택된 날짜를 우측 하단에 표시 */}
+        <View style={{ position: 'absolute', bottom: 650, right: 50 }}>
+          {typeof contextSelectedDay[0] === 'string' && (
+            <Text>{getCalculatedDate(contextSelectedDay[0] as string, selectedDayIndex)}</Text>
+          )}
+        </View>
+      </BottomSheet>
+
+
+
+
     </GestureHandlerRootView>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -1393,21 +1427,75 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 5,
   },
-  timeline: {
+  timelineContainer: {
+    flexDirection: 'column',
+    padding: 10,
+  },
+  timelineItem: {
+    flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 20,
+  },
+  markerAndLineContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  markerContainer: {
+    width: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  markerImage: {
+    width: 40,
+    height: 40,
+  },
+  lineAndTransportContainer: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    marginLeft: 10,
+  },
+  transportLineContainer: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    marginLeft: 10,
+  },
+  verticalLine: {
+    position: 'absolute', // 절대 위치로 설정
+    top: 17,  // 부모 요소의 상단에 맞춤
+    left: -35,  // 원하는 위치로 설정
+    width: 2,
+    height: '100%',  // 세로선의 길이를 부모 요소에 맞춤
+    backgroundColor: '#B5B5B5',
+    zIndex: -1, // 항상 뒤로 가게 설정
+  },
+  transportToggleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 5,
+  },
+  transportContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  transportIcon: {
+    width: 24,
+    height: 24,
     marginRight: 10,
   },
-  timelineText: {
-    fontSize: 12,
-    color: '#666',
+  transportTimeText: {
+    fontSize: 14,
+    marginRight: 5,
   },
-  timelineIcon: {
-    width: 12,
-    height: 12,
-    marginVertical: 5,
+  toggleButtonText: {
+    fontSize: 14,
+    color: '#333',
   },
-  locationDetails: {
-    flex: 1,
+  emptySpace: {
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
   },
   zoomButtonsContainer: {
     position: 'absolute',
@@ -1430,24 +1518,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
   },
-  timelineContainer: {
-    flexDirection: 'column',
-    padding: 10,
-  },
-  timelineItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  markerImage: {
-    width: 40,
-    height: 40,
-  },
-  transportIcon: {
-    width: 30,
-    height: 30,
-    marginHorizontal: 10,
-  },
   placeInfo: {
     flex: 1,
     justifyContent: 'center',
@@ -1457,6 +1527,17 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
   },
+  dayButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    padding: 10,
+  },
+  verticalLineAndIconContainer: {
+    alignItems: 'center', // 세로 정렬
+    flexDirection: 'column', // 세로로 정렬
+    justifyContent: 'center', // 중앙에 맞춤
+  },
 });
+
 
 export default RouteScreen;
