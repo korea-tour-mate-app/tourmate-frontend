@@ -1172,44 +1172,42 @@ const RouteScreen = () => {
     }
   };
 
-  const renderDayView = (dayKey: string) => {
-    const routeInfo = routeInfoByDay[dayKey];
-    if (!routeInfo) return null;
-
-    return (
-      <ScrollView contentContainerStyle={styles.dayContainer}>
-        {Array.isArray(routeInfo.visitPlaces) && routeInfo.visitPlaces.map((place, index) => (
-          <View key={index} style={styles.itemContainer}>
-            <View style={styles.timeline}>
-              <Text style={styles.timelineText}>{index + 1}</Text>
-              {index < routeInfo.visitPlaces.length - 1 && (
-                <>
-                  <Image
-                    source={selectedVehicle === 0
-                      ? require('../../assets/images/route/timeline-bus.png')
-                      : require('../../assets/images/route/timeline-car.png')}
-                    style={styles.timelineIcon}
-                  />
-                </>
-              )}
-            </View>
-            <View style={styles.locationDetails}>
-              <Text style={styles.itemTitle} onPress={() => handleLocationPress(place.latitude, place.longitude)}>
-                {place.name}
-              </Text>
-            </View>
-          </View>
-        ))}
-      </ScrollView>
-    );
-  };
-
   // 날짜 계산 함수
   const getCalculatedDate = (baseDate: string, index: number): string => {
     // baseDate는 "24.10.1" 형식이므로, 이를 분리해서 계산
     const [year, month, day] = baseDate.split('.').map(Number);  // 숫자로 변환
     const newDay = day + index;  // index만큼 더한 날짜
     return `${year}.${month}.${newDay}`;  // 새로운 날짜 반환
+  };
+
+  const getMarkerImage = (selectedDayIndex: number, index: number) => {
+    switch (selectedDayIndex) {
+      case 0: // Day 1
+        if (index === 0) return require('../../assets/images/route/marker/1_r.png');
+        if (index === 1) return require('../../assets/images/route/marker/2_r.png');
+        if (index === 2) return require('../../assets/images/route/marker/3_r.png');
+        if (index === 3) return require('../../assets/images/route/marker/4_r.png');
+        if (index === 4) return require('../../assets/images/route/marker/5_r.png');
+        if (index === 5) return require('../../assets/images/route/marker/6_r.png');
+        break;
+      case 1: // Day 2
+        if (index === 0) return require('../../assets/images/route/marker/1_o.png');
+        if (index === 1) return require('../../assets/images/route/marker/2_o.png');
+        if (index === 2) return require('../../assets/images/route/marker/3_o.png');
+        if (index === 3) return require('../../assets/images/route/marker/4_o.png');
+        if (index === 4) return require('../../assets/images/route/marker/5_o.png');
+        if (index === 5) return require('../../assets/images/route/marker/6_r.png');
+        break;
+      case 2: // Day 3
+      default:
+        if (index === 0) return require('../../assets/images/route/marker/1_y.png');
+        if (index === 1) return require('../../assets/images/route/marker/2_y.png');
+        if (index === 2) return require('../../assets/images/route/marker/3_y.png');
+        if (index === 3) return require('../../assets/images/route/marker/4_y.png');
+        if (index === 4) return require('../../assets/images/route/marker/5_y.png');
+        if (index === 5) return require('../../assets/images/route/marker/6_r.png');
+        break;
+    }
   };
 
   return (
@@ -1299,30 +1297,60 @@ const RouteScreen = () => {
           <Text style={styles.zoomButtonText}>-</Text>
         </TouchableOpacity>
       </View>
-
       <BottomSheet ref={bottomSheetRef} index={1} snapPoints={['10%', '50%', '90%']}>
-        <View style={styles.bottomSheetHeader}>
-          {Array.from({ length: dayCount }).map((_, index) => (
-            <TouchableOpacity
-              key={index}
-              onPress={() => setSelectedDayIndex(index)}
-              style={[styles.dayButton, selectedDayIndex === index && styles.selectedDayButton]}
-            >
-              <Text style={selectedDayIndex === index ? styles.selectedDayText : styles.dayButtonText}>
-                {`Day ${index + 1}`}  
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-          {renderDayView(`Day ${selectedDayIndex + 1}`)}
+      <View style={styles.bottomSheetHeader}>
+        {Array.from({ length: dayCount }).map((_, index) => (
+          <TouchableOpacity
+            key={index}
+            onPress={() => setSelectedDayIndex(index)}
+            style={[styles.dayButton, selectedDayIndex === index && styles.selectedDayButton]}
+          >
+            <Text style={selectedDayIndex === index ? styles.selectedDayText : styles.dayButtonText}>
+              {`Day ${index + 1}`}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
 
-          {/* 선택된 날짜를 우측 하단에 표시 */}
-          <View style={{ position: 'absolute', bottom: 650, right: 50 }}>
-            {typeof contextSelectedDay[0] === 'string' && (
-              <Text>{getCalculatedDate(contextSelectedDay[0] as string, selectedDayIndex)}</Text>
+      {/* 여기에 추가: 장소 리스트와 동그라미 마커 */}
+      <View style={styles.timelineContainer}>
+        {routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.visitPlaces?.map((place, index) => (
+          <View key={index} style={styles.timelineItem}>
+            {/* 동그라미 마커 */}
+            <Image
+              source={getMarkerImage(selectedDayIndex, index)}
+              style={styles.markerImage}
+            />
+
+            {/* 교통수단 아이콘 (버튼처럼 동작하게) */}
+            {index < routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.visitPlaces?.length - 1 && (
+              <TouchableOpacity onPress={() => handleTransportationClick(index)}>
+                <Image
+                  source={selectedVehicle === 0
+                    ? require('../../assets/images/route/timeline-bus.png')
+                    : require('../../assets/images/route/timeline-car.png')}
+                  style={styles.transportIcon}
+                />
+              </TouchableOpacity>
             )}
+
+            {/* 장소명 크게 표시 및 클릭 시 지도 이동 */}
+            <View style={styles.placeInfo}>
+              <TouchableOpacity onPress={() => handleLocationPress(place.latitude, place.longitude)}>
+                <Text style={styles.placeName}>{place.name}</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-      </BottomSheet>
+        ))}
+      </View>
+
+      {/* 선택된 날짜를 우측 하단에 표시 */}
+      <View style={{ position: 'absolute', bottom: 650, right: 50 }}>
+        {typeof contextSelectedDay[0] === 'string' && (
+          <Text>{getCalculatedDate(contextSelectedDay[0] as string, selectedDayIndex)}</Text>
+        )}
+      </View>
+    </BottomSheet>
     </GestureHandlerRootView>
   );
 };
@@ -1401,6 +1429,33 @@ const styles = StyleSheet.create({
   zoomButtonText: {
     fontSize: 20,
     fontWeight: 'bold',
+  },
+  timelineContainer: {
+    flexDirection: 'column',
+    padding: 10,
+  },
+  timelineItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  markerImage: {
+    width: 40,
+    height: 40,
+  },
+  transportIcon: {
+    width: 30,
+    height: 30,
+    marginHorizontal: 10,
+  },
+  placeInfo: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  placeName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
   },
 });
 
