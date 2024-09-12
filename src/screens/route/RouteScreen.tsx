@@ -1178,12 +1178,6 @@ const RouteScreen = () => {
 
     return (
       <ScrollView contentContainerStyle={styles.dayContainer}>
-        <View style={styles.routeInfoContainer}>
-          <Text>총 거리: {routeInfo.totalDistance} m</Text>
-          <Text>총 시간: {routeInfo.totalTime} 초</Text>
-          <Text>총 요금: {routeInfo.totalFare} 원</Text>
-        </View>
-
         {Array.isArray(routeInfo.visitPlaces) && routeInfo.visitPlaces.map((place, index) => (
           <View key={index} style={styles.itemContainer}>
             <View style={styles.timeline}>
@@ -1208,6 +1202,14 @@ const RouteScreen = () => {
         ))}
       </ScrollView>
     );
+  };
+
+  // 날짜 계산 함수
+  const getCalculatedDate = (baseDate: string, index: number): string => {
+    // baseDate는 "24.10.1" 형식이므로, 이를 분리해서 계산
+    const [year, month, day] = baseDate.split('.').map(Number);  // 숫자로 변환
+    const newDay = day + index;  // index만큼 더한 날짜
+    return `${year}.${month}.${newDay}`;  // 새로운 날짜 반환
   };
 
   return (
@@ -1313,6 +1315,13 @@ const RouteScreen = () => {
           ))}
         </View>
           {renderDayView(`Day ${selectedDayIndex + 1}`)}
+
+          {/* 선택된 날짜를 우측 하단에 표시 */}
+          <View style={{ position: 'absolute', bottom: 650, right: 50 }}>
+            {typeof contextSelectedDay[0] === 'string' && (
+              <Text>{getCalculatedDate(contextSelectedDay[0] as string, selectedDayIndex)}</Text>
+            )}
+          </View>
       </BottomSheet>
     </GestureHandlerRootView>
   );
@@ -1392,11 +1401,6 @@ const styles = StyleSheet.create({
   zoomButtonText: {
     fontSize: 20,
     fontWeight: 'bold',
-  },
-  routeInfoContainer: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
   },
 });
 
