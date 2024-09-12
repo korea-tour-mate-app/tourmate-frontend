@@ -324,6 +324,7 @@ const styles = StyleSheet.create({
     color: 'black',
     fontWeight: '300',
     textAlign: 'center',
+    marginTop: 15,
   },
   titleBlue: {
     fontFamily: 'fonts/SBAggroM',
@@ -368,6 +369,7 @@ const styles = StyleSheet.create({
     color: '#0047A0',
     fontWeight: '300',
     fontFamily: 'fonts/SBAggroM',
+    marginTop: 70
   },
   signUpContainer: {
     width: '80%',
