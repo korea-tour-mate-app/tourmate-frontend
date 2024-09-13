@@ -60,11 +60,6 @@ function AppNavigator() {
         options={{ headerShown: false }} 
       />      
       <Stack.Screen 
-      name="VehicleScreen" 
-      component={VehicleScreen} 
-      options={{ headerShown: false }} 
-      />
-      <Stack.Screen 
         name="RouteScreen" 
         component={RouteScreen} 
         options={{ headerShown: false }} 

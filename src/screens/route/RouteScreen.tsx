@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { StyleSheet, View, Text, Image, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { StyleSheet, View, Text, Image, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import BottomSheet from '@gorhom/bottom-sheet';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useNavigation, RouteProp } from '@react-navigation/native';
@@ -8,6 +8,7 @@ import MapView, { Marker, Polyline, Callout } from 'react-native-maps';
 import { useSelection } from '../../components/SelectionContext';
 import { RootStackParamList } from '../navigation/navigationTypes';
 import axios from 'axios';
+import { ScrollView } from 'react-native-gesture-handler';
 
 type RouteScreenNavigationProp = StackNavigationProp<RootStackParamList, 'RouteScreen'>;
 type RouteScreenRouteProp = RouteProp<RootStackParamList, 'RouteScreen'>;
@@ -4548,18 +4549,25 @@ const RouteScreen = () => {
       <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
         <Image source={require('../../assets/images/back_button3.png')} style={styles.backButtonImage} />
       </TouchableOpacity>
-      <BottomSheet ref={bottomSheetRef} index={2} snapPoints={['10%', '25%', '50%', '93%']}>
+      <BottomSheet ref={bottomSheetRef} index={2} snapPoints={['10%', '25%', '50%', '90%']}>
         {/* Day1, Day2, Day3 버튼을 상단에 추가 */}
-        <View style={styles.dayButtonsContainer}>
-          {Array.from({ length: dayCount }).map((_, index) => (
-            <TouchableOpacity
-              key={index}
-              onPress={() => setSelectedDayIndex(index)}
-              style={[styles.dayButton, selectedDayIndex === index && styles.selectedDayButton]}
-            >
-              <Text style={selectedDayIndex === index ? styles.selectedDayText : styles.dayButtonText}>
-                {`Day ${index + 1}`}
-              </Text>
+        <ScrollView contentContainerStyle={styles.bottomSheetContent}>
+          <View style={styles.dayButtonsContainer}>
+            {Array.from({ length: dayCount }).map((_, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => {
+                  setSelectedDayIndex(index); // 선택한 날짜 인덱스 업데이트
+                  const firstPlace = routeInfoByDay[`Day ${index + 1}`]?.visitPlaces?.[0]; // 첫 번째 장소 가져오기
+                  if (firstPlace) {
+                    handlePlaceClick(firstPlace.latitude, firstPlace.longitude); // 지도 중심 이동
+                  }
+                }}
+                style={[styles.dayButton, selectedDayIndex === index && styles.selectedDayButton]}
+              >
+                <Text style={selectedDayIndex === index ? styles.selectedDayText : styles.dayButtonText}>
+                  {`Day ${index + 1}`}
+                </Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -4609,6 +4617,12 @@ const RouteScreen = () => {
                             {toggleState[`${selectedDayIndex}-${index}`] ? 'v 경로 닫기' : '> 경로 보기'}
                           </Text>
                         </View>
+                        {/* toggleState가 true일 때만 추가 텍스트 표시 */}
+                        {toggleState[`${selectedDayIndex}-${index}`] && (
+                          <View style={styles.additionalTextContainer}>
+                              <Text style={styles.additionalText}>여기에 추가로 보여질 텍스트</Text>
+                          </View>
+                        )}
                       </TouchableOpacity>
                       {/* 토글된 상태에 따라 빈 공간 추가 */}
                     </View>
@@ -4618,18 +4632,15 @@ const RouteScreen = () => {
         </View>
 
         {/* 선택된 날짜를 우측 하단에 표시 */}
-        <View style={{ position: 'absolute', bottom: 665, right: 50 }}>
+        <View style={{ position: 'absolute', bottom: 650, right: 50 }}>
           {typeof contextSelectedDay[0] === 'string' && (
             <Text style={{ color: '#000000', fontFamily: 'SBAggroM', fontSize: 12}}>
               {getCalculatedDate(contextSelectedDay[0] as string, selectedDayIndex)}
             </Text>
           )}
-        </View>
+        </View>            
+      </ScrollView>
       </BottomSheet>
-
-
-
-
     </GestureHandlerRootView>
   );
 };
@@ -4676,7 +4687,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     position: 'relative', // 자식들의 위치를 상대적으로 설정
-    marginBottom: 90, // 각 timelineItem 간의 간격 추가
+    marginBottom: 130, // 각 timelineItem 간의 간격 추가
   },
   markerAndLineContainer: {
     flexDirection: 'row',
@@ -4698,7 +4709,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 115, // 고정 높이 설정
+    height: 150, // 고정 높이 설정
   },
   verticalLine: {
     position: 'absolute', // 절대 위치로 설정
@@ -4710,11 +4721,11 @@ const styles = StyleSheet.create({
     zIndex: -2, // 항상 뒤로 가게 설정
   },
   transportToggleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'column', // 텍스트와 추가 텍스트가 세로로 나열되도록 설정
+    alignItems: 'flex-start', // 텍스트가 왼쪽 정렬되도록 설정
   },
   transportContent: {
-    flexDirection: 'row',
+    flexDirection: 'row', // 아이콘과 기본 텍스트는 가로로 나열
     alignItems: 'center',
   },
   transportIcon: {
@@ -4795,6 +4806,21 @@ const styles = StyleSheet.create({
   backButtonImage: {
     width: 30,
     height: 30,
+  },
+  additionalText: {
+    fontSize: 14,
+    color: '#333',
+    fontFamily: 'SBAggroM',
+  },
+  additionalTextContainer: {
+    marginTop: 5, // 기본 텍스트와 추가 텍스트 사이의 간격
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 10,
+  },
+  bottomSheetContent: {
+    padding: 10,
   },
 });
 
