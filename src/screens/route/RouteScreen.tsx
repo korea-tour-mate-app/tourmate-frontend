@@ -4531,7 +4531,7 @@ const RouteScreen = () => {
             }))}
             
             strokeColor="#0047A0"  // 경로 색상
-            strokeWidth={3}  // 경로 두께
+            strokeWidth={4}  // 경로 두께
             // lineDashPattern={[100, 10]} // 점선 패턴 (대시 길이 10, 간격 5)
             // lineCap="round" // 끝부분을 둥글게 처리
             />
@@ -4632,7 +4632,7 @@ const RouteScreen = () => {
         </View>
 
         {/* 선택된 날짜를 우측 하단에 표시 */}
-        <View style={{ position: 'absolute', bottom: 650, right: 50 }}>
+        <View style={{ position: 'absolute', top: 85, right: 50 }}>
           {typeof contextSelectedDay[0] === 'string' && (
             <Text style={{ color: '#000000', fontFamily: 'SBAggroM', fontSize: 12}}>
               {getCalculatedDate(contextSelectedDay[0] as string, selectedDayIndex)}
