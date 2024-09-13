@@ -24,9 +24,9 @@ interface SelectionContextProps {
 
 // 기본값을 설정하여 undefined 없이 SelectionContext 생성
 const defaultSelectionContext: SelectionContextProps = {
-  selectedThemes: [0, 1, 2, 3],  // 초기값 0, 1, 2, 3
+  selectedThemes: [],  // 초기값 0, 1, 2, 3, 4
   setSelectedThemes: () => {},
-  selectedDay: ["24.10.1", "24.10.2", 3],  // 초기값 설정
+  selectedDay: ["24.10.1", "24.10.2", 2],  // 초기값 설정
   setSelectedDay: () => {},
   selectedWithWho: 0,
   setSelectedWithWho: () => {},
@@ -39,7 +39,7 @@ const defaultSelectionContext: SelectionContextProps = {
 export const SelectionContext = createContext<SelectionContextProps>(defaultSelectionContext);
 
 export const SelectionProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [selectedThemes, setSelectedThemes] = useState<number[]>([0, 1]);  // 초기값 0, 1
+  const [selectedThemes, setSelectedThemes] = useState<number[]>([]);  // 초기값 0, 1
   const [selectedDay, setSelectedDay] = useState<Array<string | number>>(["24.10.1", "24.10.2", 3]);  // 초기값 설정
 
   const [selectedWithWho, setSelectedWithWho] = useState<number>(0);
