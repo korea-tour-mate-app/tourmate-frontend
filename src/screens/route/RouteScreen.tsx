@@ -37,7 +37,7 @@ const RouteScreen = () => {
   const [mapPathsByDay, setMapPathsByDay] = useState<{ [day: string]: RouteOptResponseDto['paths'] }>({});
   const bottomSheetRef = useRef<BottomSheet>(null);
   const mapRef = useRef<MapView>(null);
-  const [toggleState, setToggleState] = useState<{ [key: number]: boolean }>({});
+  const [toggleState, setToggleState] = useState<{ [key: string]: boolean }>({});
 
   // SelectionContext에서 값 가져오기
   const {
@@ -1145,10 +1145,11 @@ const RouteScreen = () => {
   }, []); // useEffect 의존성 배열 추가
 
   // 토글 상태 변경 함수
-  const toggleItem = (index: number) => {
+  const toggleItem = (dayIndex: number, placeIndex: number) => {
+    const toggleKey = `${dayIndex}-${placeIndex}`;
     setToggleState((prevState) => ({
       ...prevState,
-      [index]: !prevState[index], // 기존 상태를 반전시킴
+      [toggleKey]: !prevState[toggleKey],
     }));
   };
   const handleLocationPress = (latitude: number, longitude: number) => {
@@ -1235,12 +1236,13 @@ const RouteScreen = () => {
         ref={mapRef}
         style={StyleSheet.absoluteFillObject}
         initialRegion={{
-          latitude: 37.561004, // 초기 지도 위치
+          latitude: 37.562004, // 초기 지도 위치
           longitude: 126.975208,
-          latitudeDelta: 0.1,
-          longitudeDelta: 0.1,
+          latitudeDelta: 0.04,
+          longitudeDelta: 0.04,
         }}
         showsUserLocation={true}
+        showsMyLocationButton={false} // 현재 위치 버튼을 숨김
       >
 
         {/* 장소 마커 찍기 */}
@@ -1302,8 +1304,8 @@ const RouteScreen = () => {
               longitude,
             }))}
             
-            strokeColor="#EB6060"  // 경로 색상
-            strokeWidth={4}  // 경로 두께
+            strokeColor="#0047A0"  // 경로 색상
+            strokeWidth={3}  // 경로 두께
             // lineDashPattern={[100, 10]} // 점선 패턴 (대시 길이 10, 간격 5)
             // lineCap="round" // 끝부분을 둥글게 처리
             />
@@ -1318,7 +1320,7 @@ const RouteScreen = () => {
           <Text style={styles.zoomButtonText}>-</Text>
         </TouchableOpacity>
       </View>
-      <BottomSheet ref={bottomSheetRef} index={1} snapPoints={['10%', '50%', '90%']}>
+      <BottomSheet ref={bottomSheetRef} index={2} snapPoints={['10%', '25%', '50%', '93%']}>
         {/* Day1, Day2, Day3 버튼을 상단에 추가 */}
         <View style={styles.dayButtonsContainer}>
           {Array.from({ length: dayCount }).map((_, index) => (
@@ -1362,7 +1364,7 @@ const RouteScreen = () => {
                       <View style={styles.verticalLine} />
 
                       {/* 교통수단 아이콘과 텍스트, 토글 버튼 */}
-                      <TouchableOpacity onPress={() => toggleItem(index)} style={styles.transportToggleContainer}>
+                      <TouchableOpacity onPress={() => toggleItem(selectedDayIndex, index)} style={styles.transportToggleContainer}>
                         <View style={styles.transportContent}>
                           {/* 교통수단 아이콘 */}
                           <Image
@@ -1374,27 +1376,21 @@ const RouteScreen = () => {
                         
                           {/* 교통수단 밑에 텍스트 (예: 16분) */}
                           <Text style={styles.transportTimeText}>16분</Text>
-
                           {/* 토글 버튼 (아이콘 옆에 표시) */}
                           <Text style={styles.toggleButtonText}>
-                            {toggleState[index] ? 'v 경로 닫기' : '> 경로 보기'}
+                            {toggleState[`${selectedDayIndex}-${index}`] ? 'v 경로 닫기' : '> 경로 보기'}
                           </Text>
                         </View>
                       </TouchableOpacity>
+                      {/* 토글된 상태에 따라 빈 공간 추가 */}
                     </View>
                 )}
-              {/* 토글된 상태에 따라 빈 공간 추가 */}
-              {toggleState[index] && (
-                <View style={styles.emptySpace}>
-                  <Text>빈 공간입니다.</Text> {/* 임의의 빈 공간 텍스트 */}
-                </View>
-              )}
             </View>
           ))}
         </View>
 
         {/* 선택된 날짜를 우측 하단에 표시 */}
-        <View style={{ position: 'absolute', bottom: 650, right: 50 }}>
+        <View style={{ position: 'absolute', bottom: 665, right: 50 }}>
           {typeof contextSelectedDay[0] === 'string' && (
             <Text style={{ color: '#000000', fontFamily: 'SBAggroM', fontSize: 12}}>
               {getCalculatedDate(contextSelectedDay[0] as string, selectedDayIndex)}
@@ -1494,8 +1490,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   transportIcon: {
-    width: 28,
-    height: 28,
+    width: 30,
+    height: 30,
     marginRight: 10,
   },
   transportTimeText: {
@@ -1525,7 +1521,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     padding: 10,
     borderRadius: 5,
-    marginBottom: 10,
+    marginTop: 10,
     elevation: 5,
     shadowColor: 'black',
     shadowOpacity: 0.2,
