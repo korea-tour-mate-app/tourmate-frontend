@@ -9,6 +9,7 @@ export type RootStackParamList = {
   DayScreen: undefined;
   WithWhoScreen: undefined;
   BudgetScreen: undefined;
+  RecommendScreen: undefined;
   VehicleScreen: undefined;
   RouteScreen: undefined;
   MyPageScreen: { language?: string };
