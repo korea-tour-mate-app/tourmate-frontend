@@ -1,14 +1,22 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { StyleSheet, View, Text, Image, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, Image, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import BottomSheet from '@gorhom/bottom-sheet';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { useNavigation, RouteProp } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import MapView, { Marker, Polyline, Callout } from 'react-native-maps';
 import { useSelection } from '../../components/SelectionContext';
+import { RootStackParamList } from '../navigation/navigationTypes';
+import axios from 'axios';
+import { ScrollView } from 'react-native-gesture-handler';
+
+type RouteScreenNavigationProp = StackNavigationProp<RootStackParamList, 'RouteScreen'>;
+type RouteScreenRouteProp = RouteProp<RootStackParamList, 'RouteScreen'>;
 
 interface DayData {
   id: number;
   title: string;
-  img: any; 
+  img: any;
   travelTime?: string;
 }
 
@@ -59,6 +67,13 @@ interface Itinerary {
 }
 
 const RouteScreen = () => {
+  const navigation = useNavigation<RouteScreenNavigationProp>();
+
+  // const [selectedDay, setSelectedDay] = useState("1일차");
+  const [selectedDayIndex, setSelectedDayIndex] = useState(0); // 현재 선택된 일차 (0일차부터 시작)
+  const [selectedLocation, setSelectedLocation] = useState({ latitude: 40.54523875839218, longitude: 126.977613738705 });
+  const [routeInfoByDay, setRouteInfoByDay] = useState<{ [day: string]: Omit<RouteOptResponseDto, 'paths'> }>({});
+  const [mapPathsByDay, setMapPathsByDay] = useState<{ [day: string]: RouteOptResponseDto['paths'] }>({});
   const navigation = useNavigation<RouteScreenNavigationProp>();
 
   // const [selectedDay, setSelectedDay] = useState("1일차");
@@ -4385,20 +4400,23 @@ const RouteScreen = () => {
     }
   };
   const handleLocationPress = (latitude: number, longitude: number) => {
-    setSelectedLocation({ latitude, longitude });
-    mapRef.current?.animateToRegion({
-      latitude,
-      longitude,
-      latitudeDelta: 0.01,
-      longitudeDelta: 0.01,
-    }, 1000);
+    if (mapRef.current) { // ref가 있을 때만 실행
+      mapRef.current.animateToRegion({
+        latitude,
+        longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      }, 1000);
+    }
   };
 
   const handleZoomIn = () => {
-    mapRef.current?.getCamera().then((camera) => {
-      camera.zoom += 1; // 줌 인
-      mapRef.current?.animateCamera(camera);
-    });
+    if (mapRef.current) { // ref가 있을 때만 실행
+      mapRef.current?.getCamera().then((camera) => {
+        camera.zoom += 1; // 줌 인
+        mapRef.current?.animateCamera(camera);
+      });
+    }
   };
 
   const handleZoomOut = () => {
@@ -4543,15 +4561,82 @@ const RouteScreen = () => {
         ref={mapRef}
         style={StyleSheet.absoluteFillObject}
         initialRegion={{
-          latitude: selectedLocation.latitude,
-          longitude: selectedLocation.longitude,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
+          latitude: 37.562004, // 초기 지도 위치
+          longitude: 126.975208,
+          latitudeDelta: 0.04,
+          longitudeDelta: 0.04,
         }}
         showsUserLocation={true}
-      />
+        showsMyLocationButton={false} // 현재 위치 버튼을 숨김
+      >
 
-      {/* 확대/축소 버튼 */}
+        {/* 장소 마커 찍기 */}
+        {routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.visitPlaces?.map((place, index) => {
+          // 장소 번호와 현재 일수에 따라 미리 로드된 이미지 경로 설정
+          let markerImage;
+          
+          switch (selectedDayIndex) {
+            case 0: // Day 1
+              if (index === 0) markerImage = require('../../assets/images/route/marker/1_r.png');
+              else if (index === 1) markerImage = require('../../assets/images/route/marker/2_r.png');
+              else if (index === 2) markerImage = require('../../assets/images/route/marker/3_r.png');
+              else if (index === 3) markerImage = require('../../assets/images/route/marker/4_r.png');
+              else if (index === 4) markerImage = require('../../assets/images/route/marker/5_r.png');
+              else if (index === 5) markerImage = require('../../assets/images/route/marker/6_r.png');
+              break;
+            case 1: // Day 2
+              if (index === 0) markerImage = require('../../assets/images/route/marker/1_o.png');
+              else if (index === 1) markerImage = require('../../assets/images/route/marker/2_o.png');
+              else if (index === 2) markerImage = require('../../assets/images/route/marker/3_o.png');
+              else if (index === 3) markerImage = require('../../assets/images/route/marker/4_o.png');
+              else if (index === 4) markerImage = require('../../assets/images/route/marker/5_o.png');
+              else if (index === 5) markerImage = require('../../assets/images/route/marker/6_r.png');
+              break;
+            case 2: // Day 3
+            default:
+              if (index === 0) markerImage = require('../../assets/images/route/marker/1_y.png');
+              else if (index === 1) markerImage = require('../../assets/images/route/marker/2_y.png');
+              else if (index === 2) markerImage = require('../../assets/images/route/marker/3_y.png');
+              else if (index === 3) markerImage = require('../../assets/images/route/marker/4_y.png');
+              else if (index === 4) markerImage = require('../../assets/images/route/marker/5_y.png');
+              else if (index === 5) markerImage = require('../../assets/images/route/marker/6_r.png');
+              break;
+          }
+          
+          return (
+            <Marker
+              key={index}
+              coordinate={{
+                latitude: parseFloat(place.latitude.toString()) || 0,
+                longitude: parseFloat(place.longitude.toString()) || 0
+              }}
+              title={`${index + 1}. ${place.name}`} // 순서와 장소명 함께 표시
+              image={markerImage} // 마커 이미지 설정
+            >
+              <Callout>
+                <Text>{place.name || "Unnamed Place"}</Text>
+              </Callout>
+            </Marker>
+          );
+        })}
+
+        {/* 경로 그리기 */}
+        {mapPathsByDay[`Day ${selectedDayIndex + 1}`]?.map((path, index) => (
+          <Polyline
+            key={index}
+            coordinates={path.coordinates.map(([latitude, longitude]) => ({
+              latitude,
+              longitude,
+            }))}
+            
+            strokeColor="#0047A0"  // 경로 색상
+            strokeWidth={4}  // 경로 두께
+            // lineDashPattern={[100, 10]} // 점선 패턴 (대시 길이 10, 간격 5)
+            // lineCap="round" // 끝부분을 둥글게 처리
+            />
+          ))}
+      </MapView>
+
       <View style={styles.zoomButtonsContainer}>
         <TouchableOpacity style={styles.zoomButton} onPress={handleZoomIn}>
           <Text style={styles.zoomButtonText}>+</Text>
@@ -4560,6 +4645,31 @@ const RouteScreen = () => {
           <Text style={styles.zoomButtonText}>-</Text>
         </TouchableOpacity>
       </View>
+      <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
+        <Image source={require('../../assets/images/back_button3.png')} style={styles.backButtonImage} />
+      </TouchableOpacity>
+      <BottomSheet ref={bottomSheetRef} index={2} snapPoints={['10%', '25%', '50%', '90%']}>
+        {/* Day1, Day2, Day3 버튼을 상단에 추가 */}
+        <ScrollView contentContainerStyle={styles.bottomSheetContent}>
+          <View style={styles.dayButtonsContainer}>
+            {Array.from({ length: dayCount }).map((_, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => {
+                  setSelectedDayIndex(index); // 선택한 날짜 인덱스 업데이트
+                  const firstPlace = routeInfoByDay[`Day ${index + 1}`]?.visitPlaces?.[0]; // 첫 번째 장소 가져오기
+                  if (firstPlace) {
+                    handlePlaceClick(firstPlace.latitude, firstPlace.longitude); // 지도 중심 이동
+                  }
+                }}
+                style={[styles.dayButton, selectedDayIndex === index && styles.selectedDayButton]}
+              >
+                <Text style={selectedDayIndex === index ? styles.selectedDayText : styles.dayButtonText}>
+                  {`Day ${index + 1}`}
+                </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
         {/* 장소 리스트와 동그라미 마커 */}
         <View style={styles.timelineContainer}>
@@ -4635,12 +4745,20 @@ const RouteScreen = () => {
             </View>
           ))}
         </View>
-        {renderDayView(selectedDay)}
+
+        {/* 선택된 날짜를 우측 하단에 표시 */}
+        <View style={{ position: 'absolute', top: 85, right: 50 }}>
+          {typeof contextSelectedDay[0] === 'string' && (
+            <Text style={{ color: '#000000', fontFamily: 'SBAggroM', fontSize: 12}}>
+              {getCalculatedDate(contextSelectedDay[0] as string, selectedDayIndex)}
+            </Text>
+          )}
+        </View>            
+      </ScrollView>
       </BottomSheet>
     </GestureHandlerRootView>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -4658,6 +4776,7 @@ const styles = StyleSheet.create({
   dayButtonText: {
     fontSize: 16,
     color: '#333',
+    fontFamily: 'SBAggroM'
   },
   selectedDayButton: {
     backgroundColor: '#0047A0',
@@ -4665,6 +4784,7 @@ const styles = StyleSheet.create({
   selectedDayText: {
     fontSize: 16,
     color: '#fff',
+    fontFamily: 'SBAggroM'
   },
   dayContainer: {
     padding: 10,
@@ -4674,11 +4794,19 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     alignItems: 'center',
   },
-  itemImage: {
-    width: 60,
-    height: 60,
-    marginLeft: 10,
-    borderRadius: 10,
+  timelineContainer: {
+    flexDirection: 'column',
+    padding: 10,
+  },
+  timelineItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    position: 'relative', // 자식들의 위치를 상대적으로 설정
+    marginBottom: 130, // 각 timelineItem 간의 간격 추가
+  },
+  markerAndLineContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   itemTitle: {
     fontSize: 16,
@@ -4691,19 +4819,28 @@ const styles = StyleSheet.create({
   },
   timeline: {
     alignItems: 'center',
+  },
+  transportIcon: {
+    width: 32,
+    height: 32,
     marginRight: 10,
   },
-  timelineText: {
-    fontSize: 12,
-    color: '#666',
+  transportTimeText: {
+    fontSize: 16,
+    marginRight: 5,
+    color: '#000000',
+    fontFamily: 'SBAggroM'
   },
-  timelineIcon: {
-    width: 12,
-    height: 12,
-    marginVertical: 5,
+  toggleButtonText: {
+    fontSize: 16,
+    color: '#000000',
+    fontFamily: 'SBAggroM'
   },
-  locationDetails: {
-    flex: 1,
+  emptySpace: {
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
   },
   zoomButtonsContainer: {
     position: 'absolute',
@@ -4715,9 +4852,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     padding: 10,
     borderRadius: 5,
-    marginBottom: 10,
-    elevation: 5, // 안드로이드 그림자 효과
-    shadowColor: 'black', // iOS 그림자 효과
+    marginTop: 10,
+    elevation: 5,
+    shadowColor: 'black',
     shadowOpacity: 0.2,
     shadowRadius: 5,
     shadowOffset: { height: 1, width: 1 },
@@ -4725,7 +4862,59 @@ const styles = StyleSheet.create({
   zoomButtonText: {
     fontSize: 20,
     fontWeight: 'bold',
+    fontFamily: 'SBAggroM'
+  },
+  placeInfo: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  dayButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    padding: 10,
+  },
+  verticalLineAndIconContainer: {
+    alignItems: 'center', // 세로 정렬
+    flexDirection: 'column', // 세로로 정렬
+    justifyContent: 'center', // 중앙에 맞춤
+  },
+  markerAndPlaceContainer: {
+    flexDirection: 'row', // 마커와 장소명을 나란히 배치
+    alignItems: 'center',
+  },
+  placeNameText: {
+    marginLeft: 10, // 마커와 장소명 사이의 간격
+    fontSize: 16, // 원하는 크기로 텍스트 설정
+    fontFamily: 'SBAggroM', // 사용하려는 폰트 적용
+    color: '#000000', // 텍스트 색상
+  },
+  backButton: {
+    position: 'absolute',
+    top: 30,
+    left: 20,
+    zIndex: 999,  
+    margin: 10
+  },
+  backButtonImage: {
+    width: 30,
+    height: 30,
+  },
+  additionalText: {
+    fontSize: 14,
+    color: '#333',
+    fontFamily: 'SBAggroM',
+  },
+  additionalTextContainer: {
+    marginTop: 5, // 기본 텍스트와 추가 텍스트 사이의 간격
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 10,
+  },
+  bottomSheetContent: {
+    padding: 10,
   },
 });
+
 
 export default RouteScreen;

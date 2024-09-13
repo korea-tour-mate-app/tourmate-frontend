@@ -1,7 +1,8 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import BottomTabNavigator from '../../components/BottomTabNavigator';
-import ThemeScreen from '../recommend/ThemeScreen';
+import RecommendScreen from '../recommend/RecommendScreen';
+import ThemeScreen from '../theme/ThemeScreen';
 import DayScreen from '../recommend/DayScreen';
 import WithWhoScreen from '../recommend/WithWhoScreen';
 import BudgetScreen from '../recommend/BudgetScreen';
@@ -34,6 +35,16 @@ function AppNavigator() {
         options={{ headerShown: false }} 
       />
       <Stack.Screen 
+        name="RecommendScreen" 
+        component={RecommendScreen} 
+        options={{ headerShown: false }} 
+      />
+      <Stack.Screen 
+        name="VehicleScreen" 
+        component={VehicleScreen} 
+        options={{ headerShown: false }} 
+      />
+      <Stack.Screen 
         name="DayScreen" 
         component={DayScreen} 
         options={{ headerShown: false }}  
@@ -48,11 +59,6 @@ function AppNavigator() {
         component={BudgetScreen} 
         options={{ headerShown: false }} 
       />      
-      <Stack.Screen 
-      name="VehicleScreen" 
-      component={VehicleScreen} 
-      options={{ headerShown: false }} 
-    />
       <Stack.Screen 
         name="RouteScreen" 
         component={RouteScreen} 
