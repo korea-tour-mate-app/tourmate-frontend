@@ -1217,6 +1217,17 @@ const RouteScreen = () => {
         break;
     }
   };
+  // 장소 클릭 시 지도의 중심을 이동하는 함수
+  const handlePlaceClick = (latitude: number, longitude: number): void => {
+    if (mapRef.current) {
+      mapRef.current.animateToRegion({
+        latitude: latitude,
+        longitude: longitude,
+        latitudeDelta: 0.01, // 줌 정도 설정
+        longitudeDelta: 0.01,
+      }, 1000); // 1초 동안 애니메이션
+    }
+  };
 
   return (
     <GestureHandlerRootView style={styles.container}>
@@ -1224,8 +1235,8 @@ const RouteScreen = () => {
         ref={mapRef}
         style={StyleSheet.absoluteFillObject}
         initialRegion={{
-          latitude: selectedLocation.latitude,
-          longitude: selectedLocation.longitude,
+          latitude: 37.561004, // 초기 지도 위치
+          longitude: 126.975208,
           latitudeDelta: 0.1,
           longitudeDelta: 0.1,
         }}
@@ -1328,14 +1339,21 @@ const RouteScreen = () => {
           {routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.visitPlaces?.map((place, index) => (
             
             <View key={index} style={styles.timelineItem}>
-                {/* 동그라미 마커 */}
-                <View style={styles.markerContainer}>
-                  <Image
-                    source={getMarkerImage(selectedDayIndex, index)}
-                    style={styles.markerImage}
-                  />
-                </View>
-
+                {/* 동그라미 마커와 장소명 같이 배치 */}
+                <TouchableOpacity 
+                  onPress={() => handlePlaceClick(place.latitude, place.longitude)} 
+                  style={styles.markerAndPlaceContainer}
+                >
+                  {/* 동그라미 마커 */}
+                  <View style={styles.markerContainer}>
+                    <Image
+                      source={getMarkerImage(selectedDayIndex, index)}
+                      style={styles.markerImage}
+                    />
+                  </View>
+                  {/* 장소명 */}
+                  <Text style={styles.placeNameText}>{place.name}</Text>
+                </TouchableOpacity>
                 {/* 마커 사이에 세로줄과 교통수단 아이콘 & 텍스트 & 토글 */}
                 {index < routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.visitPlaces?.length - 1 && (
                   <View style={styles.lineAndTransportContainer}>
@@ -1378,7 +1396,9 @@ const RouteScreen = () => {
         {/* 선택된 날짜를 우측 하단에 표시 */}
         <View style={{ position: 'absolute', bottom: 650, right: 50 }}>
           {typeof contextSelectedDay[0] === 'string' && (
-            <Text>{getCalculatedDate(contextSelectedDay[0] as string, selectedDayIndex)}</Text>
+            <Text style={{ color: '#000000', fontFamily: 'SBAggroM', fontSize: 12}}>
+              {getCalculatedDate(contextSelectedDay[0] as string, selectedDayIndex)}
+            </Text>
           )}
         </View>
       </BottomSheet>
@@ -1406,6 +1426,7 @@ const styles = StyleSheet.create({
   dayButtonText: {
     fontSize: 16,
     color: '#333',
+    fontFamily: 'SBAggroM'
   },
   selectedDayButton: {
     backgroundColor: '#0047A0',
@@ -1413,6 +1434,7 @@ const styles = StyleSheet.create({
   selectedDayText: {
     fontSize: 16,
     color: '#fff',
+    fontFamily: 'SBAggroM'
   },
   dayContainer: {
     padding: 10,
@@ -1422,11 +1444,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     alignItems: 'center',
   },
-  itemTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 5,
-  },
   timelineContainer: {
     flexDirection: 'column',
     padding: 10,
@@ -1434,7 +1451,8 @@ const styles = StyleSheet.create({
   timelineItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    position: 'relative', // 자식들의 위치를 상대적으로 설정
+    marginBottom: 90, // 각 timelineItem 간의 간격 추가
   },
   markerAndLineContainer: {
     flexDirection: 'row',
@@ -1450,46 +1468,46 @@ const styles = StyleSheet.create({
     height: 40,
   },
   lineAndTransportContainer: {
+    position: 'absolute', // 부모의 위치를 기준으로 절대 위치
+    top: '50%', // 두 markerContainer의 중간 지점에 위치
+    left: 55, // 원하는 가로 위치
     flexDirection: 'column',
     alignItems: 'center',
-    marginLeft: 10,
-  },
-  transportLineContainer: {
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    marginLeft: 10,
+    justifyContent: 'center',
+    height: 115, // 고정 높이 설정
   },
   verticalLine: {
     position: 'absolute', // 절대 위치로 설정
     top: 17,  // 부모 요소의 상단에 맞춤
-    left: -35,  // 원하는 위치로 설정
-    width: 2,
+    left: -31.5,  // 원하는 위치로 설정
+    width: 4,
     height: '100%',  // 세로선의 길이를 부모 요소에 맞춤
     backgroundColor: '#B5B5B5',
-    zIndex: -1, // 항상 뒤로 가게 설정
+    zIndex: -2, // 항상 뒤로 가게 설정
   },
   transportToggleContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 5,
   },
   transportContent: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   transportIcon: {
-    width: 24,
-    height: 24,
+    width: 28,
+    height: 28,
     marginRight: 10,
   },
   transportTimeText: {
-    fontSize: 14,
+    fontSize: 16,
     marginRight: 5,
+    color: '#000000',
+    fontFamily: 'SBAggroM'
   },
   toggleButtonText: {
-    fontSize: 14,
-    color: '#333',
+    fontSize: 16,
+    color: '#000000',
+    fontFamily: 'SBAggroM'
   },
   emptySpace: {
     height: 50,
@@ -1517,15 +1535,11 @@ const styles = StyleSheet.create({
   zoomButtonText: {
     fontSize: 20,
     fontWeight: 'bold',
+    fontFamily: 'SBAggroM'
   },
   placeInfo: {
     flex: 1,
     justifyContent: 'center',
-  },
-  placeName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
   },
   dayButtonsContainer: {
     flexDirection: 'row',
@@ -1536,6 +1550,16 @@ const styles = StyleSheet.create({
     alignItems: 'center', // 세로 정렬
     flexDirection: 'column', // 세로로 정렬
     justifyContent: 'center', // 중앙에 맞춤
+  },
+  markerAndPlaceContainer: {
+    flexDirection: 'row', // 마커와 장소명을 나란히 배치
+    alignItems: 'center',
+  },
+  placeNameText: {
+    marginLeft: 10, // 마커와 장소명 사이의 간격
+    fontSize: 16, // 원하는 크기로 텍스트 설정
+    fontFamily: 'SBAggroM', // 사용하려는 폰트 적용
+    color: '#000000', // 텍스트 색상
   },
 });
 
