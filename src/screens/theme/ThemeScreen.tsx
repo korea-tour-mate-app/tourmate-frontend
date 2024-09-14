@@ -34,6 +34,7 @@ interface Place {
 
 function ThemeScreen() {
   const [location, setLocation] = useState<LocationType | undefined>();
+  const [initialLocationSet, setInitialLocationSet] = useState(false);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [visitedFilterActive, setVisitedFilterActive] = useState(false);
   const [likesFilterActive, setLikesFilterActive] = useState(false);
@@ -47,10 +48,15 @@ function ThemeScreen() {
 
   // 더미 장소 데이터
   const places: Place[] = [
-    { id: 1, name: '경복궁', tag: '고궁', description: '서울의 대표 고궁', address: '서울시 종로구', homepage: 'www.royal.khs.go.kr/', contact: '02-3700-3900', hour: '10:00 ~ 20:00', coordinate: { latitude: 37.5796, longitude: 126.9794 } },
-    { id: 2, name: '명동', tag: '문화시설', description: '서울의 쇼핑 거리', address: '서울시 어딘가', homepage: 'www.whdfh.go.kr', contact: '02-3750-2345', hour: '08:00 ~ 20:00', coordinate: { latitude: 37.5636, longitude: 126.9858 } },
-    { id: 3, name: '남산타워', tag: '문화시설', description: '서울의 랜드마크', address: '서울시에 있겠지 용산구 그 어딘가 산 속에', homepage: 'www.all.all/', contact: '02-1000-3920', hour: '10:00 ~ 17:00', coordinate: { latitude: 37.5512, longitude: 126.9882 } },
+    { id: 1, name: '월드케이팝센터', tag: 'K-POP', description: '케이팝 문화와 관련된 다양한 경험을 제공하는 공간', address: '서울특별시 중구 장충단로 72 (장충동2가, 한국자유총연맹)', homepage: 'https://w-kpop.com/', contact:'02-2232-7399', hour: '09:00 ~ 20:00', coordinate: { latitude: 37.5580, longitude: 127.0065 } },
+    { id: 2, name: 'HEMA studio', tag: 'K-POP', description: '전문적인 케이팝 녹음 스튜디오', address: '서울특별시 강남구 학동로3길 27 (논현동, 메리디엠타워) 지하1층', homepage: 'https://hemastudio.com/', contact:'070-7504-1415', hour: '10:00 ~ 22:00', coordinate: { latitude: 37.5149, longitude: 127.0318 } },
+    { id: 3, name: '광야@서울', tag: 'K-POP', description: '케이팝 팬들을 위한 체험형 공간', address: '서울특별시 성동구 왕십리로 83-21 (성수동1가, 아크로 서울포레스트) B1F', homepage: 'https://www.instagram.com/kwangya_seoul/?igshid=MzRlODBiNWFlZA%3D%3D/', contact:'02-6233-6729', hour: '10:30 ~ 20:00', coordinate: { latitude: 37.5446, longitude: 127.0435 } },
+    { id: 4, name: 'REAL K-POP DANCE', tag: 'K-POP', description: '케이팝 댄스를 배울 수 있는 공간', address: '서울특별시 마포구 동교로 19길 48', homepage: 'https://www.realkpopdance.co', contact:'010-3445-2737', hour: '10:00 ~ 21:00', coordinate: { latitude: 37.5586, longitude: 126.9254 } },
+    { id: 5, name: '한류스타 거리', tag: 'K-POP', description: '한류 스타들을 기념하는 거리', address: '서울특별시 강남구 압구정동 517', homepage: '', contact:'', hour: '24시간 영업', coordinate: { latitude: 37.5281, longitude: 127.0285 } },
+    { id: 6, name: '이스타아카데미', tag: 'K-POP', description: '케이팝 관련 교육을 제공하는 아카데미', address: '서울특별시 양천구 오목로 321-1 (목동, 서경빌딩)', homepage: 'https://www.instagram.com/estar_academy/?hl=en', contact:'', hour: '11:00 ~ 22:00', coordinate: { latitude: 37.5260, longitude: 126.8720 } },
+    { id: 7, name: '라인프렌즈 홍대 플래그십스토어', tag: 'K-POP', description: '라인 캐릭터 상품을 구매할 수 있는 플래그십 스토어', address: '서울특별시 마포구 양화로 141', homepage: 'https://brand.naver.com/linefriends', contact:'02-322-9631', hour: '11:00 ~ 22:00', coordinate: { latitude: 37.5565, longitude: 126.9236 } },
   ];
+  
 
   useEffect(() => {
     const getLocation = async () => {
@@ -75,6 +81,7 @@ function ThemeScreen() {
             latitudeDelta: 0.0922,
             longitudeDelta: 0.0421,
           });
+          setInitialLocationSet(true);
         },
         (error) => {
           console.error(error);
@@ -88,8 +95,14 @@ function ThemeScreen() {
     getLocation();
   }, []);
 
+
+  const [filteredPlaces, setFilteredPlaces] = useState(places);
+
   const handleFilterPress = (filter: string) => {
-    setActiveFilter(prev => prev === filter ? null : filter);
+    setActiveFilter(filter);
+    setFilteredPlaces(
+      filter === '모두' ? places : places.filter(place => place.tag === filter)
+    );
   };
 
   const handleMarkerPress = (place: Place) => {
@@ -112,21 +125,22 @@ function ThemeScreen() {
     }
   }, []);
 
+  
   return (
     <GestureHandlerRootView style={styles.container}>
       {location && (
         <MapView
-          provider={PROVIDER_GOOGLE} 
+          provider={PROVIDER_GOOGLE}
           style={styles.map}
-          region={location}
-          initialRegion={location}
+          region={initialLocationSet ? location : undefined}
           showsUserLocation={true}
         >
-          {places.map((place) => (
+          {filteredPlaces.map((place) => (
             <Marker
               key={place.id}
               coordinate={place.coordinate}
               onPress={() => handleMarkerPress(place)}
+              
             >
               <View style={styles.markerContainer}>
                 <Image source={require('../../assets/images/map/theme-marker.png')} style={styles.themeMarker}/>
@@ -149,7 +163,7 @@ function ThemeScreen() {
           contentContainerStyle={styles.filterScrollView}
           showsHorizontalScrollIndicator={false}
         >
-          {['K-pop', '고궁', '템플스테이', '식도락', '레저스포츠', '등산코스', '테마시설', '문화시설', '호캉스', '카페', '공방'].map(filter => (
+          {['모두', 'K-POP', '고궁', '템플스테이', '식도락', '레저스포츠', '등산코스', '테마시설', '문화시설', '호캉스', '카페', '공방'].map(filter => (
             <TouchableOpacity
               key={filter}
               style={[styles.filterButton, activeFilter === filter && styles.activeFilterButton]}
@@ -162,7 +176,7 @@ function ThemeScreen() {
       </View>
 
       <View style={styles.buttonContainer}>
-      <TouchableOpacity 
+        <TouchableOpacity 
           style={[styles.buttonVisited, visitedFilterActive && { backgroundColor: '#e0e0e0' }]} 
           onPress={() => setVisitedFilterActive(prevState => !prevState)}
         >
@@ -235,61 +249,62 @@ function ThemeScreen() {
                 </View>
               </>
             )}
-{bottomSheetIndex === 1 && (
-  <ScrollView>
-    <View style={styles.bottomSheetTitleContainerExpand}>
-      <Text style={styles.bottomSheetTitleExpand}>{selectedPlace.name}</Text>
-      <View style={styles.bottomSheetButtonContainer}>
-        <TouchableOpacity
-          style={[styles.bottomSheetButton, isVisitedActive && { backgroundColor: '#e0e0e0' }]}
-          onPress={handleVisitedPress}
-        >
-          <Image
-            source={
-              isVisitedActive
-                ? require('../../assets/images/map/visited-active.png')
-                : require('../../assets/images/map/visited-inactive.png')
-            }
-            style={styles.bottomSheetVisitedButton}
-          />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.bottomSheetButton, isLikesActive && { backgroundColor: '#e0e0e0' }]}
-          onPress={handleLikesPress}
-        >
-          <Image
-            source={
-              isLikesActive
-                ? require('../../assets/images/map/likes-active.png')
-                : require('../../assets/images/map/likes-inactive.png')
-            }
-            style={styles.bottomSheetLikesButton}
-          />
-        </TouchableOpacity>
-      </View>
-    </View>
-    <View style={styles.bottomSheetAddressContainerExpand}>
-      <Text style={styles.bottomSheetAddress}>{selectedPlace.address}</Text>
-    </View>
-    <Image source={require('../../assets/images/map/example-image.png')} style={styles.bottomSheetImageContainerExpand}/>
-    <View style={styles.bottomSheetListContainer}>
-      <Text style={styles.bottomSheetListAddressTitle}>주소</Text>
-      <Text style={styles.bottomSheetListAddress}>{selectedPlace.address}</Text>
-      <Text style={styles.bottomSheetListHomepageTitle}>홈페이지</Text>
-      <Text style={styles.bottomSheetListHomepage}>{selectedPlace.homepage}</Text>
-      <Text style={styles.bottomSheetListContactTitle}>연락처</Text>
-      <Text style={styles.bottomSheetListContact}>{selectedPlace.contact}</Text>
-      <Text style={styles.bottomSheetListHourTitle}>이용시간</Text>
-      <Text style={styles.bottomSheetListHour}>{selectedPlace.hour}</Text>
-    </View>
-  </ScrollView>
-)}
+            {bottomSheetIndex === 1 && (
+              <ScrollView>
+                <View style={styles.bottomSheetTitleContainerExpand}>
+                  <Text style={styles.bottomSheetTitleExpand}>{selectedPlace.name}</Text>
+                  <View style={styles.bottomSheetButtonContainer}>
+                    <TouchableOpacity
+                      style={[styles.bottomSheetButton, isVisitedActive && { backgroundColor: '#e0e0e0' }]}
+                      onPress={handleVisitedPress}
+                    >
+                      <Image
+                        source={
+                          isVisitedActive
+                            ? require('../../assets/images/map/visited-active.png')
+                            : require('../../assets/images/map/visited-inactive.png')
+                        }
+                        style={styles.bottomSheetVisitedButton}
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.bottomSheetButton, isLikesActive && { backgroundColor: '#e0e0e0' }]}
+                      onPress={handleLikesPress}
+                    >
+                      <Image
+                        source={
+                          isLikesActive
+                            ? require('../../assets/images/map/likes-active.png')
+                            : require('../../assets/images/map/likes-inactive.png')
+                        }
+                        style={styles.bottomSheetLikesButton}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+                <View style={styles.bottomSheetAddressContainerExpand}>
+                  <Text style={styles.bottomSheetAddress}>{selectedPlace.address}</Text>
+                </View>
+                <Image source={require('../../assets/images/map/example-image.png')} style={styles.bottomSheetImageContainerExpand}/>
+                <View style={styles.bottomSheetListContainer}>
+                  <Text style={styles.bottomSheetListAddressTitle}>주소</Text>
+                  <Text style={styles.bottomSheetListAddress}>{selectedPlace.address}</Text>
+                  <Text style={styles.bottomSheetListHomepageTitle}>홈페이지</Text>
+                  <Text style={styles.bottomSheetListHomepage}>{selectedPlace.homepage}</Text>
+                  <Text style={styles.bottomSheetListContactTitle}>연락처</Text>
+                  <Text style={styles.bottomSheetListContact}>{selectedPlace.contact}</Text>
+                  <Text style={styles.bottomSheetListHourTitle}>이용시간</Text>
+                  <Text style={styles.bottomSheetListHour}>{selectedPlace.hour}</Text>
+                </View>
+              </ScrollView>
+            )}
           </View>
         )}
       </BottomSheet>
     </GestureHandlerRootView>
   );
-}
+};
+
 
 const styles = StyleSheet.create({
   container: {

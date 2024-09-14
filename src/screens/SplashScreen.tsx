@@ -286,13 +286,13 @@ const SplashScreen: React.FC = () => {
             {opacity: fadeAnim},
           ]}>
           <Text style={[styles.title, {fontSize: platformFontSize(25)}]}>
-            당신의 서울여행 동반자,
+            Your travel friend in Seoul,
           </Text>
           <Text style={[styles.titleBlue, {fontSize: platformFontSize(25)}]}>
-            TOURMATE<Text style={styles.title}>입니다.</Text>
+            TOURMATE.
           </Text>
           <Text style={[styles.content, {fontSize: platformFontSize(16)}]}>
-            회원 서비스 이용을 위해 로그인 해주세요.
+            Please log in to use our member services.
           </Text>
 
           <TextInput
@@ -335,7 +335,7 @@ const SplashScreen: React.FC = () => {
             ]}
             onPress={handleLogin}>
             <Text style={[styles.signInText, {fontSize: platformFontSize(20)}]}>
-              로그인
+              Login
             </Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={handleGoogleLogin}>
@@ -357,14 +357,14 @@ const SplashScreen: React.FC = () => {
               setShowLoginBox(false);
             }}>
             <Text style={[styles.signUpText, {fontSize: platformFontSize(15)}]}>
-              회원이 아니신가요?
+              Don't you have an account?
             </Text>
           </TouchableOpacity>
-          <Svg height="2" width="50%">
+          <Svg height="2" width="70%">
             <Line
               x1="0"
               y1="1"
-              x2={windowWidth * 0.5}
+              x2={windowWidth * 0.8}
               y2="1"
               stroke="#0047A0"
               strokeWidth="1.5"
@@ -376,17 +376,17 @@ const SplashScreen: React.FC = () => {
       {showSignUp && (
         <View style={[styles.signUpBox, platformSignUpBoxSize()]}>
           <Text style={[styles.title, {fontSize: platformFontSize(25)}]}>
-            처음이신가요?
+            Is this your first time?
           </Text>
           <Text style={[styles.content, {fontSize: platformFontSize(16)}]}>
-            TOURMATE는 회원 가입 후에
+            TOURMATE is available
           </Text>
           <Text style={[styles.content, {fontSize: platformFontSize(16)}]}>
-            이용해보실 수 있습니다.
+           after signing up for membership.
           </Text>
 
           <View
-            style={[styles.signUpContainer, {marginTop: platformSpacing(45)}]}>
+            style={[styles.signUpContainer, {marginTop: platformSpacing(30)}]}>
             <TextInput
               style={[styles.signUpInput, {fontSize: platformFontSize(17)}]}
               placeholder="Nickname"
@@ -406,8 +406,10 @@ const SplashScreen: React.FC = () => {
             </Svg>
           </View>
 
+          <Text style={{marginTop: platformSpacing(10)}}>Please put your email address</Text>
+          <Text>and get a code for authentication !</Text>
           <View
-            style={[styles.emailContainer, {marginTop: platformSpacing(27)}]}>
+            style={[styles.emailContainer, {marginTop: platformSpacing(10)}]}>
             <TextInput
               style={[styles.emailInput, {fontSize: platformFontSize(17)}]}
               placeholder="Email"
@@ -418,12 +420,12 @@ const SplashScreen: React.FC = () => {
             <TouchableOpacity
               style={[
                 styles.authButton,
-                {width: platformButtonSize(85), height: platformButtonSize(30)},
+                {width: platformButtonSize(60), height: platformButtonSize(30)},
               ]}
               onPress={handleVerifyEmail} // 버튼 클릭 시 이메일 전송 함수 호출
             >
               <Text style={[styles.auth, {fontSize: platformFontSize(12)}]}>
-                인증번호 받기
+                Send
               </Text>
             </TouchableOpacity>
           </View>
@@ -443,7 +445,7 @@ const SplashScreen: React.FC = () => {
             style={[styles.emailContainer, {marginTop: platformSpacing(27)}]}>
             <TextInput
               style={[styles.emailInput, {fontSize: platformFontSize(17)}]}
-              placeholder="Code(6 Characters)"
+              placeholder="Code (6 Characters)"
               placeholderTextColor="#7A7C7E"
               value={code}
               onChangeText={setCode} // 코드 상태 업데이트
@@ -456,7 +458,7 @@ const SplashScreen: React.FC = () => {
               onPress={handleVerifyCode} // 버튼 클릭 시 코드 검증 함수 호출
             >
               <Text style={[styles.auth, {fontSize: platformFontSize(12)}]}>
-                확인
+                Check
               </Text>
             </TouchableOpacity>
           </View>
@@ -472,17 +474,17 @@ const SplashScreen: React.FC = () => {
             />
           </Svg>
           <Text style={styles.verified}>
-            {isVerified ? '인증 완료!' : '인증을 완료해주세요'}
+            {isVerified ? 'Authenticated!' : 'Please complete the verification.'}
           </Text>
 
           <View
             style={[
               styles.passwordContainer,
-              {marginTop: platformSpacing(27)},
+              {marginTop: platformSpacing(10)},
             ]}>
             <TextInput
               style={[styles.passwordInput, {fontSize: platformFontSize(17)}]}
-              placeholder="Password(At least 6 characters)"
+              placeholder="Password (At least 6 characters)"
               value={password}
               placeholderTextColor="#7A7C7E"
               secureTextEntry
@@ -511,7 +513,7 @@ const SplashScreen: React.FC = () => {
             ]}
             onPress={handleSignUp}>
             <Text style={[styles.signInText, {fontSize: platformFontSize(20)}]}>
-              가입하기
+              Sign Up
             </Text>
           </TouchableOpacity>
 
@@ -522,14 +524,14 @@ const SplashScreen: React.FC = () => {
               setShowLoginBox(true);
             }}>
             <Text style={[styles.signUpText, {fontSize: platformFontSize(15)}]}>
-              이미 회원이신가요?
+            Do you already have an account?
             </Text>
           </TouchableOpacity>
-          <Svg height="2" width="50%">
+          <Svg height="2" width="70%">
             <Line
               x1="0"
               y1="1"
-              x2={windowWidth * 0.5}
+              x2={windowWidth * 0.8}
               y2="1"
               stroke="#0047A0"
               strokeWidth="1.5"
@@ -592,7 +594,6 @@ const styles = StyleSheet.create({
     height: 50,
     marginTop: 30,
     fontFamily: 'fonts/SBAggroL',
-    color: '#0047A0',
   },
   signIn: {
     backgroundColor: '#0047A0',
