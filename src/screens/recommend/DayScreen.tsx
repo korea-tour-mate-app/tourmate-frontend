@@ -6,13 +6,14 @@ import { useNavigation } from '@react-navigation/native';
 import { RootStackNavigationProp } from '../navigation/navigationTypes';
 import { useLanguage } from '../../components/LanguageProvider';
 import { translateText } from '../../utils/Translation'; 
+import { useSelection } from '../../components/SelectionContext';
 
 type DayScreenNavigationProp = RootStackNavigationProp<'DayScreen'>;
 
 const DayScreen = () => {
   const navigation = useNavigation<DayScreenNavigationProp>();
   const { language: globalLanguage } = useLanguage();
-
+  const { selectedDay, setSelectedDay } = useSelection();  // 상태와 setter 함수 사용
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
 
@@ -179,7 +180,18 @@ const DayScreen = () => {
       const end = new Date(endDate);
       const totalDays = Math.floor((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1; // 총 일수 계산
 
-      navigation.navigate('WithWhoScreen', { totalDays, startDate, endDate });
+      // 날짜를 '24.10.1' 포맷으로 변환
+      const formattedStartDate = `${start.getFullYear().toString().slice(-2)}.${start.getMonth() + 1}.${start.getDate()}`;
+      const formattedEndDate = `${end.getFullYear().toString().slice(-2)}.${end.getMonth() + 1}.${end.getDate()}`;
+
+      // 선택된 날짜를 SelectionContext에 저장
+      const newSelectedDay = [formattedStartDate, formattedEndDate, totalDays];
+      setSelectedDay(newSelectedDay);
+      
+      console.log('newSelectedDay:', newSelectedDay);
+
+      // 다음 화면으로 이동
+      navigation.navigate('WithWhoScreen');
     }
   };
 

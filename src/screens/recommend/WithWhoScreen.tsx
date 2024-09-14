@@ -4,6 +4,7 @@ import { useNavigation, RouteProp } from '@react-navigation/native';
 import { RootStackParamList, RootStackNavigationProp } from '../navigation/navigationTypes';
 import { useLanguage } from '../../components/LanguageProvider';
 import { translateText } from '../../utils/Translation';
+import { useSelection } from '../../components/SelectionContext';
 
 type WithWhoScreenNavigationProp = RootStackNavigationProp<'WithWhoScreen'>;
 type WithWhoScreenRouteProp = RouteProp<RootStackParamList, 'WithWhoScreen'>;
@@ -13,9 +14,9 @@ interface WithWhoScreenProps {
 }
 
 const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
-  const { totalDays, startDate, endDate } = route.params;
   const navigation = useNavigation<WithWhoScreenNavigationProp>();
   const { language: globalLanguage } = useLanguage();
+  const { selectedWithWho, setSelectedWithWho } = useSelection();  // 상태와 setter 함수 사용
 
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
@@ -60,16 +61,18 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
     translateTexts();
   }, [globalLanguage]);
 
-  const handleSelect = (option: string) => {
+  const handleSelect = (index: number, option: string) => {
+    // 선택된 인덱스를 selectedWithWho에 저장
+    setSelectedWithWho(index);
+
+    // 선택된 인덱스 업데이트
     setSelectedOption(prevOption => (prevOption === option ? null : option));
   };
 
   const handleNext = () => {
+    console.log('selectedWithWho:', selectedWithWho);
     if (selectedOption) {
-      console.log("totalDays는? " + totalDays);
-      console.log("startDate는? " + startDate);
-      console.log("endDate는? " + endDate);
-      navigation.navigate('BudgetScreen', { totalDays, startDate, endDate });
+      navigation.navigate('BudgetScreen');
     } else {
       Alert.alert('오류', '여행 인원을 선택해주세요.');
     }
@@ -89,7 +92,7 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
             styles.card,
             selectedOption === spouse && styles.selectedCard,
           ]}
-          onPress={() => handleSelect(spouse)}
+          onPress={() => handleSelect(0, spouse)}
         >
           <Image source={require('../../assets/images/themeIcon/who_spouse.png')} style={styles.icon} />
           <Text style={[
@@ -103,7 +106,7 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
             styles.card,
             selectedOption === family && styles.selectedCard,
           ]}
-          onPress={() => handleSelect(family)}
+          onPress={() => handleSelect(1, family)}
         >
           <Image source={require('../../assets/images/themeIcon/who_daughter.png')} style={styles.icon} />
           <Text style={[
@@ -117,7 +120,7 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
             styles.card,
             selectedOption === friend && styles.selectedCard,
           ]}
-          onPress={() => handleSelect(friend)}
+          onPress={() => handleSelect(2, friend)}
         >
           <Image source={require('../../assets/images/themeIcon/who_spouse.png')} style={styles.icon} />
           <Text style={[
@@ -131,7 +134,7 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
             styles.card,
             selectedOption === children && styles.selectedCard,
           ]}
-          onPress={() => handleSelect(children)}
+          onPress={() => handleSelect(3, children)}
         >
           <Image source={require('../../assets/images/themeIcon/who_daughter.png')} style={styles.icon} />
           <Text style={[
@@ -145,7 +148,7 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
             styles.card,
             selectedOption === lover && styles.selectedCard,
           ]}
-          onPress={() => handleSelect(lover)}
+          onPress={() => handleSelect(4, lover)}
         >
           <Image source={require('../../assets/images/themeIcon/who_spouse.png')} style={styles.icon} />
           <Text style={[
@@ -159,7 +162,7 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
             styles.card,
             selectedOption === club && styles.selectedCard,
           ]}
-          onPress={() => handleSelect(club)}
+          onPress={() => handleSelect(5, club)}
         >
           <Image source={require('../../assets/images/themeIcon/who_daughter.png')} style={styles.icon} />
           <Text style={[
