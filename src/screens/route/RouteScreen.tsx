@@ -4453,7 +4453,7 @@ const RouteScreen = () => {
   };
 
   // 개발하는 동안 편하게 사용하는 미리 로드된 대중교통 데이터셋
-  const fetchTransportData = async (dayIndex: number, placeIndex: number) => {
+  const fetchTransportData1 = async (dayIndex: number, placeIndex: number) => {
     try {
       if (transportInfo[dayIndex]?.[placeIndex]) {
         console.log(`이미 저장된 데이터: Day ${dayIndex}, Place ${placeIndex}`);
@@ -4524,7 +4524,7 @@ const RouteScreen = () => {
   };
 
   // 실제 api 호출해서 사용
-  const fetchTransportData1 = async (dayIndex: number, placeIndex: number) => {
+  const fetchTransportData = async (dayIndex: number, placeIndex: number) => {
     try {
       if (transportInfo[dayIndex]?.[placeIndex]) {
         console.log(`이미 저장된 데이터: Day ${dayIndex}, Place ${placeIndex}`);
@@ -4558,15 +4558,29 @@ const RouteScreen = () => {
         }
       );
 
-      // 응답에서 status를 먼저 확인
-      if (public_transport_response.data.result?.status !== 0) {
-        console.log("Error:", public_transport_response.data.result?.message);
-        return;  // 검색 결과가 없으면 처리 종료
-      }
-      
       console.log("대중교통 api 초기 응답", public_transport_response);
+      const status = public_transport_response.data.result?.status;
+      const errorMessage = public_transport_response.data.result?.message || "No public transport data available";
 
-      const itineraries: Itinerary[] = public_transport_response.data.metaData.plan.itineraries;
+      // 응답에서 status를 먼저 확인
+      if ([11, 12, 13, 14].includes(status) || !public_transport_response.data.metaData?.plan?.itineraries) {        
+        console.log(`T MAP 대중교통 API 에러: 코드(${status}), 메시지(${errorMessage})`);
+        const newTransportInfo: TransportInfo[] = [];
+
+        setTransportInfo((prevInfo) => {
+          const updatedInfo = [...prevInfo];
+          if (!updatedInfo[dayIndex]) {
+            updatedInfo[dayIndex] = [];
+          }
+          updatedInfo[dayIndex][placeIndex] = newTransportInfo;  // 대중교통 정보 없음 표시 (빈 객체 넣음)
+          return updatedInfo;
+        });
+        return;
+      }
+
+      console.log("대중교통 api 성공 응답 데이터", public_transport_response.data);
+      
+      const itineraries: Itinerary[] = public_transport_response.data.metaData?.plan?.itineraries || [];
   
       const newTransportInfo: TransportInfo[] = [];
   
@@ -4611,7 +4625,7 @@ const RouteScreen = () => {
       }
     } catch (error) {
       console.error('Error fetching TMap transport data:', error);
-      Alert.alert('Error', '교통 데이터를 불러오는 중 오류가 발생했습니다.');
+      // Alert.alert('Error', '교통 데이터를 불러오는 중 오류가 발생했습니다.');
     }
   };
   
@@ -4853,115 +4867,122 @@ const RouteScreen = () => {
                         {/* 토글 상태가 true일 때만 추가 정보 표시 */}
                         {toggleState[toggleKey] && transportInfo[selectedDayIndex]?.[index] && (
                           <View style={styles.expandedContent}>
-                            {/* 추가 정보들 */}
-                            {/* 첫 번째 줄 */}
-                            <Text style={styles.transportTimeText}>
-                              {`총 소요시간: ${Math.floor((transportInfo[selectedDayIndex]?.[index]?.[0]?.totalTime ?? 0) / 60)}m, 대중교통 요금: ${transportInfo[selectedDayIndex]?.[index]?.[0]?.totalFare ?? 0}원`}
-                            </Text>
+                            {/* transportInfo가 빈 배열이거나 경우도 체크 */}
+                            {Array.isArray(transportInfo[selectedDayIndex]?.[index]) && transportInfo[selectedDayIndex]?.[index].length === 0 ? (
+                              <Text style={styles.noTransportInfoText}>대중교통 정보가 없습니다.</Text>
+                            ) : (
+                              <>
+                                {/* 추가 정보들 */}
+                                {/* 첫 번째 줄 */}
+                                <Text style={styles.transportTimeText}>
+                                  {`총 소요시간: ${Math.floor((transportInfo[selectedDayIndex]?.[index]?.[0]?.totalTime ?? 0) / 60)}m, 대중교통 요금: ${transportInfo[selectedDayIndex]?.[index]?.[0]?.totalFare ?? 0}원`}
+                                </Text>
 
-                            {/* 두 번째 줄 */}
-                            <Text style={styles.transportTimeText}>
-                              {`환승 횟수: ${transportInfo[selectedDayIndex]?.[index]?.[0]?.transferCount ?? 0}번, 총 보행시간: ${Math.floor((transportInfo[selectedDayIndex]?.[index]?.[0]?.totalWalkTime ?? 0) / 60)}m`}
-                            </Text>
+                                {/* 두 번째 줄 */}
+                                <Text style={styles.transportTimeText}>
+                                  {`환승 횟수: ${transportInfo[selectedDayIndex]?.[index]?.[0]?.transferCount ?? 0}번, 총 보행시간: ${Math.floor((transportInfo[selectedDayIndex]?.[index]?.[0]?.totalWalkTime ?? 0) / 60)}m`}
+                                </Text>
 
-                            {/* 세 번째 줄 */}
-                            {/* 교통수단에 따른 캡슐 형태의 정보 표시 */}
-                            <View style={styles.capsuleGroup}>
-                              {transportInfo[selectedDayIndex]?.[index]?.map((info: TransportInfo, subIndex: number) => {
-                                const totalSectionTime = transportInfo[selectedDayIndex][index]
-                                  .reduce((sum, current) => sum + current.sectionTime, 0); // 전체 시간 합계 계산
-                                const totalCapsuleWidth = 280; // 고정된 전체 타임캡슐 너비 (px 단위)
-                                const sectionWidth = (info.sectionTime / totalSectionTime) * totalCapsuleWidth; // 각 구간의 비율에 따른 실제 너비 계산 (숫자형 값)
+                                {/* 세 번째 줄 */}
+                                {/* 교통수단에 따른 캡슐 형태의 정보 표시 */}
+                                <View style={styles.capsuleGroup}>
+                                  {transportInfo[selectedDayIndex]?.[index]?.map((info: TransportInfo, subIndex: number) => {
+                                    const totalSectionTime = transportInfo[selectedDayIndex][index]
+                                      .reduce((sum, current) => sum + current.sectionTime, 0); // 전체 시간 합계 계산
+                                    const totalCapsuleWidth = 280; // 고정된 전체 타임캡슐 너비 (px 단위)
+                                    const sectionWidth = (info.sectionTime / totalSectionTime) * totalCapsuleWidth; // 각 구간의 비율에 따른 실제 너비 계산 (숫자형 값)
 
-                                return (
-                                  <View key={subIndex} style={[styles.capsuleContainer, { width: sectionWidth }]}>
-                                    {info.mode !== 'WALK' ? (
-                                      // WALK가 아닌 경우, 캡슐 모양 표시
-                                      <View
-                                        style={[
-                                          styles.capsule,
-                                          {
-                                            width: sectionWidth,
-                                            borderRadius:20,
-                                            height: 35,
-                                            backgroundColor: info.routeColor
-                                              ? `#${info.routeColor?.replace(' ', '')}` // routeColor가 있으면 적용
-                                              : '#0A0A0A', // routeColor가 없으면 기본값 #0A0A0A
-                                          },
-                                        ]}
-                                      >
-                                        <Text
-                                          style={styles.capsuleText}
-                                        >
-                                          {`${Math.floor(info.sectionTime / 60)}m`} {/* 분으로 변환 */}
-                                        </Text>
-                                      </View>
-                                    ) : (
-                                      // WALK인 경우, 캡슐은 표시하지 않고 시간만 텍스트로 표시
-                                      <Text style={styles.walkTimeText}>
-                                        {`${Math.floor(info.sectionTime / 60)}m`}
-                                      </Text>
-                                    )}
-                                    {/* 각 교통수단의 정가운데에 route 표시 */}
-                                    {/* {info.mode !== 'WALK' && (
-                                      <Text style={styles.capsuleRouteText}>
-                                        {`BUS ${info.route}`}
-                                      </Text>
-                                    )} */}
-                                  </View>
-                                );
-                              })}
-                            </View>
-
-                            {/* 네 번째 줄 */}
-                            {/* 출발지와 도착지 정보를 반복적으로 표시 */}
-                            <View style={styles.stopsGroup}>
-                              {/* 세로선 추가 */}
-                              <View style={styles.transport_verticalLine} />
-
-                              {transportInfo[selectedDayIndex]?.[index]?.map((info: TransportInfo, subIndex: number) => {
-                                // WALK가 아닌 경우에만 출발지와 도착지를 표시
-                                if (info.mode !== 'WALK') {
-                                  return (
-                                    <View key={subIndex}>
-                                      <Text style={[styles.stopText, {marginBottom: 15, fontFamily: 'SBAggroM'}]}>{`${info.mode} ${info.route}`}</Text>
-                                      {/* 출발지 표시 */}
-                                      <View style={styles.stopContainer}>
-                                        <View style={styles.stopDotContainer}>
+                                    return (
+                                      <View key={subIndex} style={[styles.capsuleContainer, { width: sectionWidth }]}>
+                                        {info.mode !== 'WALK' ? (
+                                          // WALK가 아닌 경우, 캡슐 모양 표시
                                           <View
                                             style={[
-                                              styles.stopDot,
+                                              styles.capsule,
                                               {
-                                                backgroundColor: `#${info.routeColor?.replace('#', '') || 'B0ADAD'}`,  // BUS 또는 SUBWAY인 경우 색깔 적용, 없으면 기본값
+                                                width: sectionWidth,
+                                                borderRadius:20,
+                                                height: 35,
+                                                backgroundColor: info.routeColor
+                                                  ? `#${info.routeColor?.replace(' ', '')}` // routeColor가 있으면 적용
+                                                  : '#0A0A0A', // routeColor가 없으면 기본값 #0A0A0A
                                               },
                                             ]}
-                                          />
-                                        </View>
-                                        {/* 동그라미 옆에 route 표시 후 출발지 표시 */}
-                                        <Text style={styles.stopText}>{`${info.startLocation} 승차`}</Text>
+                                          >
+                                            <Text
+                                              style={styles.capsuleText}
+                                            >
+                                              {`${Math.floor(info.sectionTime / 60)}m`} {/* 분으로 변환 */}
+                                            </Text>
+                                          </View>
+                                        ) : (
+                                          // WALK인 경우, 캡슐은 표시하지 않고 시간만 텍스트로 표시
+                                          <Text style={styles.walkTimeText}>
+                                            {`${Math.floor(info.sectionTime / 60)}m`}
+                                          </Text>
+                                        )}
+                                        {/* 각 교통수단의 정가운데에 route 표시 */}
+                                        {/* {info.mode !== 'WALK' && (
+                                          <Text style={styles.capsuleRouteText}>
+                                            {`BUS ${info.route}`}
+                                          </Text>
+                                        )} */}
                                       </View>
+                                    );
+                                  })}
+                                </View>
 
-                                      {/* 도착지 표시 */}
-                                      <View style={styles.stopContainer}>
-                                        <View style={styles.stopDotContainer}>
-                                          <View
-                                            style={[
-                                              styles.stopDot,
-                                              {
-                                                backgroundColor: `#${info.routeColor?.replace('#', '') || 'B0ADAD'}`,  // BUS 또는 SUBWAY인 경우 색깔 적용, 없으면 기본값
-                                              },
-                                            ]}
-                                          />
+                                {/* 네 번째 줄 */}
+                                {/* 출발지와 도착지 정보를 반복적으로 표시 */}
+                                <View style={styles.stopsGroup}>
+                                  {/* 세로선 추가 */}
+                                  <View style={styles.transport_verticalLine} />
+
+                                  {transportInfo[selectedDayIndex]?.[index]?.map((info: TransportInfo, subIndex: number) => {
+                                    // WALK가 아닌 경우에만 출발지와 도착지를 표시
+                                    if (info.mode !== 'WALK') {
+                                      return (
+                                        <View key={subIndex}>
+                                          <Text style={[styles.stopText, {marginBottom: 15, fontFamily: 'SBAggroM'}]}>{`${info.mode} ${info.route}`}</Text>
+                                          {/* 출발지 표시 */}
+                                          <View style={styles.stopContainer}>
+                                            <View style={styles.stopDotContainer}>
+                                              <View
+                                                style={[
+                                                  styles.stopDot,
+                                                  {
+                                                    backgroundColor: `#${info.routeColor?.replace('#', '') || 'B0ADAD'}`,  // BUS 또는 SUBWAY인 경우 색깔 적용, 없으면 기본값
+                                                  },
+                                                ]}
+                                              />
+                                            </View>
+                                            {/* 동그라미 옆에 route 표시 후 출발지 표시 */}
+                                            <Text style={styles.stopText}>{`${info.startLocation} 승차`}</Text>
+                                          </View>
+
+                                          {/* 도착지 표시 */}
+                                          <View style={styles.stopContainer}>
+                                            <View style={styles.stopDotContainer}>
+                                              <View
+                                                style={[
+                                                  styles.stopDot,
+                                                  {
+                                                    backgroundColor: `#${info.routeColor?.replace('#', '') || 'B0ADAD'}`,  // BUS 또는 SUBWAY인 경우 색깔 적용, 없으면 기본값
+                                                  },
+                                                ]}
+                                              />
+                                            </View>
+                                            {/* 동그라미 옆에 route 표시 후 도착지 표시 */}
+                                            <Text style={styles.stopText}>{`${info.endLocation} 하차`}</Text>
+                                          </View>
                                         </View>
-                                        {/* 동그라미 옆에 route 표시 후 도착지 표시 */}
-                                        <Text style={styles.stopText}>{`${info.endLocation} 하차`}</Text>
-                                      </View>
-                                    </View>
-                                  );
-                                }
-                                return null;  // WALK일 경우 아무것도 반환하지 않음
-                              })}
-                            </View>
+                                      );
+                                    }
+                                    return null;  // WALK일 경우 아무것도 반환하지 않음
+                                  })}
+                                </View>
+                              </>
+                            )}
                           </View>
                         )}
                       </TouchableOpacity>
@@ -5284,6 +5305,13 @@ const styles = StyleSheet.create({
     flexGrow: 1,        // 자동 확장
     overflow: 'visible' // 넘치는 콘텐츠가 보이도록 설정
   },  
+  noTransportInfoText: {
+    fontSize: 16,
+    color: '#000000', 
+    textAlign: 'center',
+    fontFamily: 'SBAggroL',
+    marginTop: 10,
+  },
   // capsuleRouteText: {
   //   position: 'absolute',   // 캡슐 위에 텍스트를 배치하기 위해 절대 위치 지정
   //   top: -25,               // 캡슐 위쪽에 위치시키기 위해 top을 -20으로 조정
