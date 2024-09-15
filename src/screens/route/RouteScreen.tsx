@@ -4830,10 +4830,7 @@ const RouteScreen = () => {
                     ]}>
                       <TouchableOpacity
                         onPress={() => {
-                          toggleItem(selectedDayIndex, index);
-                          if (!toggleState[toggleKey] && !transportInfo[selectedDayIndex]?.[index]) {
-                            fetchTransportData(selectedDayIndex, index);
-                          }
+                          toggleItem(selectedDayIndex, index);                
                         }}
                         style={[
                           styles.transportToggleContainer,
