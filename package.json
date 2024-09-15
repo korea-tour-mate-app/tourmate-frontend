@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@gorhom/bottom-sheet": "^4.6.4",
+    "@react-native-async-storage/async-storage": "^2.0.0",
     "@react-native-google-signin/google-signin": "^13.0.1",
     "@react-navigation/bottom-tabs": "^6.6.1",
     "@react-navigation/native": "^6.1.18",
@@ -21,6 +22,7 @@
     "react": "^18.3.1",
     "react-native": "^0.73.0",
     "react-native-calendars": "^1.1306.0",
+    "react-native-dotenv": "^3.4.11",
     "react-native-geolocation-service": "^5.3.1",
     "react-native-gesture-handler": "^2.18.1",
     "react-native-maps": "^0.31.1",
