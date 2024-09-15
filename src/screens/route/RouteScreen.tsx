@@ -4553,6 +4553,7 @@ const RouteScreen = () => {
         {
           headers: {
             'Content-Type': 'application/json',
+            'appKey': '' // 실제 발급받은 API 키
           }
         }
       );
@@ -4865,37 +4866,44 @@ const RouteScreen = () => {
                             {/* 세 번째 줄 */}
                             {/* 교통수단에 따른 캡슐 형태의 정보 표시 */}
                             <View style={styles.capsuleGroup}>
-                            {transportInfo[selectedDayIndex]?.[index]?.map((info: TransportInfo, subIndex: number) => (
-                                <View key={subIndex} style={styles.capsuleContainer}>
-                                  <View
-                                    style={[
-                                      styles.capsule,
-                                      {
-                                        backgroundColor:
-                                          info.mode === 'WALK'
-                                            ? '#D9D9D9'  // WALK일 때는 회색
-                                            : `#${info.routeColor?.replace(' ', '#') || '#0A0A0A'}`,  // routeColor에 # 추가
-                                      },
-                                    ]}
-                                  >
-                                    <Text
-                                      style={[
-                                        styles.capsuleText,
-                                        { color: info.mode === 'WALK' ? 'black' : 'white' }  // WALK일 때는 검정, 그 외 흰색
-                                      ]}
-                                    >
-                                      {`${Math.floor(info.sectionTime / 60)}m`} {/* 분으로 변환 */}
-                                    </Text>
+                              {transportInfo[selectedDayIndex]?.[index]?.map((info: TransportInfo, subIndex: number) => {
+                                const totalSectionTime = transportInfo[selectedDayIndex][index]
+                                  .reduce((sum, current) => sum + current.sectionTime, 0); // 전체 시간 합계 계산
+                                const totalCapsuleWidth = 300; // 고정된 전체 타임캡슐 너비 (px 단위)
+                                const sectionWidth = (info.sectionTime / totalSectionTime) * totalCapsuleWidth; // 각 구간의 비율에 따른 실제 너비 계산 (숫자형 값)
+
+                                return (
+                                  <View key={subIndex} style={[styles.capsuleContainer, { width: sectionWidth }]}>
+                                    {info.mode !== 'WALK' ? (
+                                      // WALK가 아닌 경우, 캡슐 모양 표시
+                                      <View
+                                        style={[
+                                          styles.capsule,
+                                          {
+                                            width: sectionWidth,
+                                            borderRadius:20,
+                                            height: 35,
+                                            backgroundColor: info.routeColor
+                                              ? `#${info.routeColor?.replace(' ', '')}` // routeColor가 있으면 적용
+                                              : '#0A0A0A', // routeColor가 없으면 기본값 #0A0A0A
+                                          },
+                                        ]}
+                                      >
+                                        <Text
+                                          style={styles.capsuleText}
+                                        >
+                                          {`${Math.floor(info.sectionTime / 60)}m`} {/* 분으로 변환 */}
+                                        </Text>
+                                      </View>
+                                    ) : (
+                                      // WALK인 경우, 캡슐은 표시하지 않고 시간만 텍스트로 표시
+                                      <Text style={styles.walkTimeText}>
+                                        {`${Math.floor(info.sectionTime / 60)}m`}
+                                      </Text>
+                                    )}
                                   </View>
-                                  <Text style={styles.capsuleLabel}>
-                                    {info.mode === 'BUS'
-                                      ? `BUS ${info.route}`
-                                      : info.mode === 'SUBWAY'
-                                      ? `SUB ${info.route}`
-                                      : ''}  {/* WALK일 경우 아무것도 표시하지 않음 */}
-                                  </Text>
-                                </View>
-                              ))}
+                                );
+                              })}
                             </View>
 
                             {/* 네 번째 줄 */}
@@ -5176,24 +5184,35 @@ const styles = StyleSheet.create({
   },
   capsuleGroup: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    width: '90%',  // 전체 타임캡슐 그룹 너비 고정
+    height: 35,  // 고정된 높이
+    borderRadius: 20,  // 전체적으로 둥근 모서리
+    padding: 5,
+    backgroundColor: '#E5EAF0',  // 전체 캡슐의 배경색
   },
   capsuleContainer: {
+    justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 10,
+    height: 30,
   },
   capsule: {
-    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
     paddingVertical: 5,
-    paddingHorizontal: 15,
-    marginHorizontal: 5,
-    minWidth: 50,
+    borderRadius: 20,  // 네 모서리가 둥근 직사각형
+    height: '100%', // 부모 컨테이너에 맞춤
   },
   capsuleText: {
     fontSize: 14,
-    color: '#000000',
     fontWeight: 'bold',
-    fontFamily: 'SBAggroM'
+    color: '#E5EAF0',  // 기본 텍스트 색상은 흰색
+  },
+  walkTimeText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#000',  // WALK는 검정색 텍스트
   },
   capsuleLabel: {
     marginTop: 14,
