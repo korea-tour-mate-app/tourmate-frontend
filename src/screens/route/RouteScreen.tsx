@@ -4810,14 +4810,12 @@ const RouteScreen = () => {
                       </View>
                       <Text style={styles.placeNameText}>{place.name}</Text>
                     </TouchableOpacity>
-
-                    {/* 2.1 세로줄 (markerAndPlaceContainer의 외부에 배치) */}
-                    <View style={[
+                  </View>
+                  {/* 2.1 세로줄 (markerAndPlaceContainer의 외부에 배치) */}
+                  <View style={[
                       styles.verticalLine,
                       toggleState[toggleKey] && styles.expandedVerticalLine,  // 토글 상태에 따라 세로선 높이 확장
                     ]} />
-                  </View>
-
                   {/* 2.2 마커 사이에 세로줄과 교통수단 아이콘 & 텍스트 & 토글 */}
                   {index < routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.visitPlaces?.length - 1 && (
                     <View style={[
@@ -4869,7 +4867,7 @@ const RouteScreen = () => {
                               {transportInfo[selectedDayIndex]?.[index]?.map((info: TransportInfo, subIndex: number) => {
                                 const totalSectionTime = transportInfo[selectedDayIndex][index]
                                   .reduce((sum, current) => sum + current.sectionTime, 0); // 전체 시간 합계 계산
-                                const totalCapsuleWidth = 300; // 고정된 전체 타임캡슐 너비 (px 단위)
+                                const totalCapsuleWidth = 280; // 고정된 전체 타임캡슐 너비 (px 단위)
                                 const sectionWidth = (info.sectionTime / totalSectionTime) * totalCapsuleWidth; // 각 구간의 비율에 따른 실제 너비 계산 (숫자형 값)
 
                                 return (
@@ -4901,6 +4899,12 @@ const RouteScreen = () => {
                                         {`${Math.floor(info.sectionTime / 60)}m`}
                                       </Text>
                                     )}
+                                    {/* 각 교통수단의 정가운데에 route 표시 */}
+                                    {info.mode !== 'WALK' && (
+                                      <Text style={styles.capsuleRouteText}>
+                                        {`BUS ${info.route}`}
+                                      </Text>
+                                    )}
                                   </View>
                                 );
                               })}
@@ -4912,46 +4916,47 @@ const RouteScreen = () => {
                               {/* 세로선 추가 */}
                               <View style={styles.transport_verticalLine} />
 
-                              {transportInfo[selectedDayIndex]?.[index]?.map((info: TransportInfo, subIndex: number) => (
-                                // WALK가 아닌 경우에만 출발지를 표시
-                                info.mode !== 'WALK' && (
-                                  <View key={subIndex}>
-                                    {/* 출발지 표시 */}
-                                    <View style={styles.stopContainer}>
-                                      <View style={styles.stopDotContainer}>
-                                        <View
-                                          style={[
-                                            styles.stopDot,
-                                            {
-                                              backgroundColor: `#${info.routeColor?.replace('#', '') || 'B0ADAD'}`,  // BUS 또는 SUBWAY인 경우 색깔 적용, 없으면 기본값
-                                            },
-                                          ]}
-                                        />
-                                      </View>
-                                      <Text style={styles.stopText}>{`${info.startLocation}`}</Text>
-                                    </View>
-
-                                    {/* 마지막 index인 경우, 작은 원 동그라미와 "하차"를 표시 */}
-                                    {subIndex === transportInfo[selectedDayIndex][index].length - 1 && (
+                              {transportInfo[selectedDayIndex]?.[index]?.map((info: TransportInfo, subIndex: number) => {
+                                // WALK가 아닌 경우에만 출발지와 도착지를 표시
+                                if (info.mode !== 'WALK') {
+                                  return (
+                                    <View key={subIndex}>
+                                      {/* 출발지 표시 */}
                                       <View style={styles.stopContainer}>
                                         <View style={styles.stopDotContainer}>
                                           <View
                                             style={[
-                                              styles.stopDot,  // 기존 스타일 사용
+                                              styles.stopDot,
                                               {
-                                                width: 10,  // 작은 동그라미
-                                                height: 10,
-                                                backgroundColor: '#FB5852'
+                                                backgroundColor: `#${info.routeColor?.replace('#', '') || 'B0ADAD'}`,  // BUS 또는 SUBWAY인 경우 색깔 적용, 없으면 기본값
                                               },
                                             ]}
                                           />
                                         </View>
-                                        <Text style={styles.stopText}>하차</Text>
+                                        {/* 동그라미 옆에 route 표시 후 출발지 표시 */}
+                                        <Text style={styles.stopText}>{`${info.startLocation} 승차`}</Text>
                                       </View>
-                                    )}
-                                  </View>
-                                )
-                              ))}
+
+                                      {/* 도착지 표시 */}
+                                      <View style={styles.stopContainer}>
+                                        <View style={styles.stopDotContainer}>
+                                          <View
+                                            style={[
+                                              styles.stopDot,
+                                              {
+                                                backgroundColor: `#${info.routeColor?.replace('#', '') || 'B0ADAD'}`,  // BUS 또는 SUBWAY인 경우 색깔 적용, 없으면 기본값
+                                              },
+                                            ]}
+                                          />
+                                        </View>
+                                        {/* 동그라미 옆에 route 표시 후 도착지 표시 */}
+                                        <Text style={styles.stopText}>{`${info.endLocation} 하차`}</Text>
+                                      </View>
+                                    </View>
+                                  );
+                                }
+                                return null;  // WALK일 경우 아무것도 반환하지 않음
+                              })}
                             </View>
                           </View>
                         )}
@@ -5044,7 +5049,7 @@ const styles = StyleSheet.create({
   transportTimeText: {
     fontSize: 14,
     marginRight: 5,
-    marginBottom: 20,  // 두 줄 사이의 간격을 위해 추가
+    marginBottom: 9,  // 두 줄 사이의 간격을 위해 추가
     color: '#000000',
     fontFamily: 'SBAggroL',
   },
@@ -5138,10 +5143,10 @@ const styles = StyleSheet.create({
   },
   verticalLine: {
     position: 'absolute',
-    top: '70%',  // 부모 요소의 70%에 위치
+    top: '70%',  // 부모 요소의 상단부터 시작
     left: 24,    // X축에서 마커와 일치하는 위치 (필요에 따라 조정)
     width: 4,
-    height: 120,  // 기본값으로 설정된 높이
+    height: 100,  
     backgroundColor: '#B5B5B5',
     zIndex: -1,  // 마커 뒤로 배치
     transform: [{ translateY: -25 }],  // Y축에서 중앙 정렬을 위한 보정
@@ -5152,6 +5157,7 @@ const styles = StyleSheet.create({
     bottom: 0,             // 부모 요소의 높이에 맞게 확장
     left: 9,              // 동그라미의 x좌표에 맞춰서 선 위치 고정 (조정 가능)
     width: 2,              // 선의 두께
+    height: '70%', 
     backgroundColor: '#EAEBF0',  // 선의 색상
     zIndex: -1,            // 동그라미보다 뒤에 표시되도록 설정
   },
@@ -5172,9 +5178,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     overflow: 'hidden', // 넘치는 내용을 숨기기 위해 설정
   },
-  expandedTimelineItem: {
-    marginBottom: 60, // 토글이 열릴 때 간격을 더 크게
-  },
   expandedContent: {
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -5189,6 +5192,8 @@ const styles = StyleSheet.create({
     width: '90%',  // 전체 타임캡슐 그룹 너비 고정
     height: 35,  // 고정된 높이
     borderRadius: 20,  // 전체적으로 둥근 모서리
+    marginTop: 35,
+    marginBottom: 28,
     padding: 5,
     backgroundColor: '#E5EAF0',  // 전체 캡슐의 배경색
   },
@@ -5223,12 +5228,11 @@ const styles = StyleSheet.create({
   },
   stopsGroup: {
     position: 'relative',  // 자식 요소의 절대 위치를 위해 설정
-    marginTop: 20,
   },
   stopContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 20,
   },
   stopDotContainer: {
     marginRight: 10,
@@ -5254,16 +5258,35 @@ const styles = StyleSheet.create({
     zIndex: 0,                 // 마커보다 뒤에 배치
   },
   expandedLineAndTransportContainer: {
-    minHeight: 400,  // 최소 높이 설정
-    maxHeight: 1600,  // 최대 높이 설정
-    overflow: 'hidden',  // 스크롤이 안되는 영역을 넘지 않도록 설정
+    //flexGrow: 1,  // 자동 확장 대신 동적 높이 사용
+    height: 'auto',  // 컨텐츠에 따라 자동으로 높이 조절
+    maxHeight: 300, // 최대 높이를 설정하여 스크롤이 가능하게 조정
+    // minHeight: 500,  // 최소 높이 설정
+    // maxHeight: 1600,  // 최대 높이 설정
+    // overflow: 'hidden',  // 스크롤이 안되는 영역을 넘지 않도록 설정
   },
   expandedVerticalLine: {
-    height: 400, // 토글이 열렸을 때 세로선 높이 확장
+    position: 'absolute',
+    top: '10%',  // 부모 요소의 상단부터 시작
+    left: 24,    // X축에서 마커와 일치하는 위치 (필요에 따라 조정)
+    width: 4,
+    height: '100%',  // 부모 컨테이너에 맞춰 높이를 동적으로 설정
+    backgroundColor: '#B5B5B5',
+    zIndex: -1,  // 마커 뒤로 배치
+    transform: [{ translateY: -25 }],  // Y축에서 중앙 정렬을 위한 보정
   },
   expandedContainer: {
     flexGrow: 1,        // 자동 확장
     overflow: 'visible' // 넘치는 콘텐츠가 보이도록 설정
+  },  
+  capsuleRouteText: {
+    position: 'absolute',   // 캡슐 위에 텍스트를 배치하기 위해 절대 위치 지정
+    top: -25,               // 캡슐 위쪽에 위치시키기 위해 top을 -20으로 조정
+    width: '100%',          // 텍스트가 캡슐 중앙에 오도록 전체 너비 사용
+    textAlign: 'center',    // 텍스트를 중앙 정렬
+    fontSize: 12,           // 폰트 크기 설정
+    color: '#000',          // 텍스트 색상 (검정으로 지정)
+    fontFamily: 'SBAggroM', // 폰트 스타일 적용
   },  
 });
 
