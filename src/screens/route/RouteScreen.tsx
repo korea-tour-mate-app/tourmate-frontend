@@ -4524,7 +4524,7 @@ const RouteScreen = () => {
   };
 
   // 실제 api 호출해서 사용
-  const fetchTransportData2 = async (dayIndex: number, placeIndex: number) => {
+  const fetchTransportData1 = async (dayIndex: number, placeIndex: number) => {
     try {
       if (transportInfo[dayIndex]?.[placeIndex]) {
         console.log(`이미 저장된 데이터: Day ${dayIndex}, Place ${placeIndex}`);
@@ -4557,6 +4557,12 @@ const RouteScreen = () => {
           }
         }
       );
+
+      // 응답에서 status를 먼저 확인
+      if (public_transport_response.data.result?.status !== 0) {
+        console.log("Error:", public_transport_response.data.result?.message);
+        return;  // 검색 결과가 없으면 처리 종료
+      }
       
       console.log("대중교통 api 초기 응답", public_transport_response);
 
@@ -4900,11 +4906,11 @@ const RouteScreen = () => {
                                       </Text>
                                     )}
                                     {/* 각 교통수단의 정가운데에 route 표시 */}
-                                    {info.mode !== 'WALK' && (
+                                    {/* {info.mode !== 'WALK' && (
                                       <Text style={styles.capsuleRouteText}>
                                         {`BUS ${info.route}`}
                                       </Text>
-                                    )}
+                                    )} */}
                                   </View>
                                 );
                               })}
@@ -4921,6 +4927,7 @@ const RouteScreen = () => {
                                 if (info.mode !== 'WALK') {
                                   return (
                                     <View key={subIndex}>
+                                      <Text style={[styles.stopText, {marginBottom: 15, fontFamily: 'SBAggroM'}]}>{`${info.mode} ${info.route}`}</Text>
                                       {/* 출발지 표시 */}
                                       <View style={styles.stopContainer}>
                                         <View style={styles.stopDotContainer}>
@@ -5153,11 +5160,11 @@ const styles = StyleSheet.create({
   },
   transport_verticalLine: {
     position: 'absolute',
-    top: 0,
+    top: 30,
     bottom: 0,             // 부모 요소의 높이에 맞게 확장
     left: 9,              // 동그라미의 x좌표에 맞춰서 선 위치 고정 (조정 가능)
     width: 2,              // 선의 두께
-    height: '70%', 
+    height: '50%', 
     backgroundColor: '#EAEBF0',  // 선의 색상
     zIndex: -1,            // 동그라미보다 뒤에 표시되도록 설정
   },
@@ -5192,7 +5199,7 @@ const styles = StyleSheet.create({
     width: '90%',  // 전체 타임캡슐 그룹 너비 고정
     height: 35,  // 고정된 높이
     borderRadius: 20,  // 전체적으로 둥근 모서리
-    marginTop: 35,
+    marginTop: 20,
     marginBottom: 28,
     padding: 5,
     backgroundColor: '#E5EAF0',  // 전체 캡슐의 배경색
@@ -5260,6 +5267,7 @@ const styles = StyleSheet.create({
   expandedLineAndTransportContainer: {
     //flexGrow: 1,  // 자동 확장 대신 동적 높이 사용
     height: 'auto',  // 컨텐츠에 따라 자동으로 높이 조절
+    marginBottom: 10,
     maxHeight: 300, // 최대 높이를 설정하여 스크롤이 가능하게 조정
     // minHeight: 500,  // 최소 높이 설정
     // maxHeight: 1600,  // 최대 높이 설정
@@ -5279,15 +5287,15 @@ const styles = StyleSheet.create({
     flexGrow: 1,        // 자동 확장
     overflow: 'visible' // 넘치는 콘텐츠가 보이도록 설정
   },  
-  capsuleRouteText: {
-    position: 'absolute',   // 캡슐 위에 텍스트를 배치하기 위해 절대 위치 지정
-    top: -25,               // 캡슐 위쪽에 위치시키기 위해 top을 -20으로 조정
-    width: '100%',          // 텍스트가 캡슐 중앙에 오도록 전체 너비 사용
-    textAlign: 'center',    // 텍스트를 중앙 정렬
-    fontSize: 12,           // 폰트 크기 설정
-    color: '#000',          // 텍스트 색상 (검정으로 지정)
-    fontFamily: 'SBAggroM', // 폰트 스타일 적용
-  },  
+  // capsuleRouteText: {
+  //   position: 'absolute',   // 캡슐 위에 텍스트를 배치하기 위해 절대 위치 지정
+  //   top: -25,               // 캡슐 위쪽에 위치시키기 위해 top을 -20으로 조정
+  //   width: '100%',          // 텍스트가 캡슐 중앙에 오도록 전체 너비 사용
+  //   textAlign: 'center',    // 텍스트를 중앙 정렬
+  //   fontSize: 12,           // 폰트 크기 설정
+  //   color: '#000',          // 텍스트 색상 (검정으로 지정)
+  //   fontFamily: 'SBAggroM', // 폰트 스타일 적용
+  // },  
 });
 
 
