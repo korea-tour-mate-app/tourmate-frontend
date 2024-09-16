@@ -88,7 +88,6 @@ interface Itinerary {
   fare?: Fare; // fare 속성 추가
 }
 
-
 const RouteScreen = () => {
   const navigation = useNavigation<RouteScreenNavigationProp>();
 
@@ -102,6 +101,7 @@ const RouteScreen = () => {
   const mapRef = useRef<MapView>(null);
   const [toggleState, setToggleState] = useState<{ [key: string]: boolean }>({});
   const [transportInfo, setTransportInfo] = useState<TransportInfo[][][]>([]);
+
 
   const response1 = {
     "totalDistance": "8299",
@@ -4407,8 +4407,7 @@ const RouteScreen = () => {
 
   // 토글 상태 변경 함수  
   const toggleItem = (dayIndex: number, placeIndex: number) => {
-    const toggleKey = `${dayIndex}-${placeIndex}`;
-    
+    const toggleKey = `${dayIndex}-${placeIndex}`;    
     setToggleState((prevState) => {
       const newState = !prevState[toggleKey]; // 이전 상태를 기반으로 새로운 상태 계산
       
@@ -4863,7 +4862,6 @@ const RouteScreen = () => {
                             {toggleState[toggleKey] ? 'v 경로 닫기' : '> 경로 보기'}
                           </Text>
                         </View>
-
                         {/* 토글 상태가 true일 때만 추가 정보 표시 */}
                         {toggleState[toggleKey] && transportInfo[selectedDayIndex]?.[index] && (
                           <View style={styles.expandedContent}>
