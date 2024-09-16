@@ -4506,7 +4506,7 @@ const RouteScreen = () => {
   };
 
   // 개발하는 동안 편하게 사용하는 미리 로드된 대중교통 데이터셋
-  const fetchTransportData1 = async (dayIndex: number, placeIndex: number) => {
+  const fetchTransportData = async (dayIndex: number, placeIndex: number) => {
     try {
       if (transportInfo[dayIndex]?.[placeIndex]) {
         console.log(`이미 저장된 데이터: Day ${dayIndex}, Place ${placeIndex}`);
@@ -4519,166 +4519,639 @@ const RouteScreen = () => {
   
       if (!startPlace || !endPlace) return;
     
-      const newTransportInfo : TransportInfo[] = [
+      const newTransportInfo : TransportInfo[] =  [
         {
           "mode": "WALK",
           "route": "도보",
           "routeColor": "#8A8F96",
           "startLocation": {
             "name": "출발지",
-            "lon": 126.97071928,
-            "lat": 37.55496651
+            "lon": 126.99463434,
+            "lat": 37.53458875
           },
           "endLocation": {
-            "name": "서울역버스환승센터(5번승강장)(중)",
-            "lon": 126.97268888888888,
-            "lat": 37.555480555555555
+            "name": "이태원",
+            "lon": 126.99464166666667,
+            "lat": 37.53454444444444
           },
-          "sectionTime": 517,
-          "passStopList": [],
+          "sectionTime": 86,
+          "steps": [
+            {
+              "streetName": "",
+              "distance": 42,
+              "linestring": [
+                {
+                  "latitude": 37.53454,
+                  "longitude": 126.99464
+                },
+                {
+                  "latitude": 37.53452,
+                  "longitude": 126.99434
+                },
+                {
+                  "latitude": 37.53451,
+                  "longitude": 126.99417
+                }
+              ]
+            },
+            {
+              "streetName": "",
+              "distance": 24,
+              "linestring": [
+                {
+                  "latitude": 37.53451,
+                  "longitude": 126.99417
+                },
+                {
+                  "latitude": 37.5346,
+                  "longitude": 126.994156
+                },
+                {
+                  "latitude": 37.534607,
+                  "longitude": 126.99428
+                },
+                {
+                  "latitude": 37.534637,
+                  "longitude": 126.99431
+                }
+              ]
+            },
+            {
+              "streetName": "이태원로",
+              "distance": 29,
+              "linestring": [
+                {
+                  "latitude": 37.534637,
+                  "longitude": 126.99431
+                },
+                {
+                  "latitude": 37.534637,
+                  "longitude": 126.99437
+                },
+                {
+                  "latitude": 37.534637,
+                  "longitude": 126.994446
+                },
+                {
+                  "latitude": 37.534637,
+                  "longitude": 126.99449
+                },
+                {
+                  "latitude": 37.53465,
+                  "longitude": 126.99463
+                }
+              ]
+            }
+          ],
           "passShape": [],
-          "totalTime": 977,
-          "totalFare": 1500,
+          "totalTime": 713,
+          "totalFare": 1400,
           "transferCount": 0,
-          "totalDistance": 992,
-          "totalWalkTime": 773
+          "totalDistance": 2121,
+          "totalWalkTime": 477
         },
         {
-          "mode": "BUS",
-          "route": "간선:104",
-          "routeColor": "0068B7",
+          "mode": "SUBWAY",
+          "route": "수도권6호선",
+          "routeColor": "CD7C2F",
           "startLocation": {
-            "name": "서울역버스환승센터(5번승강장)(중)",
-            "lon": 126.97268888888888,
-            "lat": 37.555480555555555
+            "name": "이태원",
+            "lon": 126.99464166666667,
+            "lat": 37.53454444444444
           },
           "endLocation": {
-            "name": "남대문시장.회현역",
-            "lon": 126.97839722222223,
-            "lat": 37.55855277777778
+            "name": "삼각지",
+            "lon": 126.97394444444444,
+            "lat": 37.53561111111111
           },
-          "sectionTime": 204,
+          "sectionTime": 236,
           "passStopList": [
             {
               "index": 0,
-              "stationName": "서울역버스환승센터(5번승강장)(중)",
-              "lon": 37.555481,
-              "lat": 126.972689,
-              "stationID": "757384"
+              "stationName": "이태원",
+              "lon": 126.994642,
+              "lat": 37.534544,
+              "stationID": "110621"
             },
             {
               "index": 1,
-              "stationName": "남대문시장.회현역",
-              "lon": 37.558553,
-              "lat": 126.978397,
-              "stationID": "757593"
+              "stationName": "녹사평(용산구청)",
+              "lon": 126.986864,
+              "lat": 37.534594,
+              "stationID": "110620"
+            },
+            {
+              "index": 2,
+              "stationName": "삼각지",
+              "lon": 126.973944,
+              "lat": 37.535611,
+              "stationID": "110619"
             }
           ],
           "passShape": [
             {
-              "latitude": 37.555472,
-              "longitude": 126.972664
+              "latitude": 37.534542,
+              "longitude": 126.994642
             },
             {
-              "latitude": 37.555469,
-              "longitude": 126.972664
+              "latitude": 37.534492,
+              "longitude": 126.993856
             },
             {
-              "latitude": 37.554575,
-              "longitude": 126.97265
+              "latitude": 37.534344,
+              "longitude": 126.991808
             },
             {
-              "latitude": 37.554428,
-              "longitude": 126.9728
+              "latitude": 37.534275,
+              "longitude": 126.990661
             },
             {
-              "latitude": 37.554431,
-              "longitude": 126.972969
+              "latitude": 37.534178,
+              "longitude": 126.989108
             },
             {
-              "latitude": 37.554603,
-              "longitude": 126.972981
+              "latitude": 37.534131,
+              "longitude": 126.988533
             },
             {
-              "latitude": 37.554964,
-              "longitude": 126.973128
+              "latitude": 37.534128,
+              "longitude": 126.988489
             },
             {
-              "latitude": 37.555375,
-              "longitude": 126.9732
+              "latitude": 37.534125,
+              "longitude": 126.988447
             },
             {
-              "latitude": 37.55565,
-              "longitude": 126.973178
+              "latitude": 37.534122,
+              "longitude": 126.988403
             },
             {
-              "latitude": 37.555956,
-              "longitude": 126.973219
+              "latitude": 37.534119,
+              "longitude": 126.988358
             },
             {
-              "latitude": 37.556219,
-              "longitude": 126.973472
+              "latitude": 37.534119,
+              "longitude": 126.988317
             },
             {
-              "latitude": 37.556383,
-              "longitude": 126.973786
+              "latitude": 37.534122,
+              "longitude": 126.988272
             },
             {
-              "latitude": 37.556647,
-              "longitude": 126.974533
+              "latitude": 37.534125,
+              "longitude": 126.988231
             },
             {
-              "latitude": 37.557475,
-              "longitude": 126.9766
+              "latitude": 37.534125,
+              "longitude": 126.988186
             },
             {
-              "latitude": 37.557725,
-              "longitude": 126.977314
+              "latitude": 37.534131,
+              "longitude": 126.988142
             },
             {
-              "latitude": 37.557811,
-              "longitude": 126.977486
+              "latitude": 37.534133,
+              "longitude": 126.9881
             },
             {
-              "latitude": 37.558094,
-              "longitude": 126.977903
+              "latitude": 37.534139,
+              "longitude": 126.988056
             },
             {
-              "latitude": 37.558586,
-              "longitude": 126.978381
+              "latitude": 37.534144,
+              "longitude": 126.988014
+            },
+            {
+              "latitude": 37.534153,
+              "longitude": 126.987972
+            },
+            {
+              "latitude": 37.534161,
+              "longitude": 126.987928
+            },
+            {
+              "latitude": 37.534169,
+              "longitude": 126.987886
+            },
+            {
+              "latitude": 37.534181,
+              "longitude": 126.987844
+            },
+            {
+              "latitude": 37.534192,
+              "longitude": 126.987806
+            },
+            {
+              "latitude": 37.534203,
+              "longitude": 126.987764
+            },
+            {
+              "latitude": 37.534217,
+              "longitude": 126.987722
+            },
+            {
+              "latitude": 37.534231,
+              "longitude": 126.987683
+            },
+            {
+              "latitude": 37.534244,
+              "longitude": 126.987644
+            },
+            {
+              "latitude": 37.534583,
+              "longitude": 126.9869
+            },
+            {
+              "latitude": 37.534594,
+              "longitude": 126.986864
+            },
+            {
+              "latitude": 37.534881,
+              "longitude": 126.985964
+            },
+            {
+              "latitude": 37.534889,
+              "longitude": 126.985939
+            },
+            {
+              "latitude": 37.534894,
+              "longitude": 126.985908
+            },
+            {
+              "latitude": 37.5349,
+              "longitude": 126.985881
+            },
+            {
+              "latitude": 37.534906,
+              "longitude": 126.985853
+            },
+            {
+              "latitude": 37.534911,
+              "longitude": 126.985825
+            },
+            {
+              "latitude": 37.534917,
+              "longitude": 126.985797
+            },
+            {
+              "latitude": 37.534919,
+              "longitude": 126.985769
+            },
+            {
+              "latitude": 37.534925,
+              "longitude": 126.985742
+            },
+            {
+              "latitude": 37.534928,
+              "longitude": 126.985714
+            },
+            {
+              "latitude": 37.534931,
+              "longitude": 126.985683
+            },
+            {
+              "latitude": 37.534933,
+              "longitude": 126.985656
+            },
+            {
+              "latitude": 37.534939,
+              "longitude": 126.985628
+            },
+            {
+              "latitude": 37.534939,
+              "longitude": 126.985597
+            },
+            {
+              "latitude": 37.534942,
+              "longitude": 126.985569
+            },
+            {
+              "latitude": 37.534942,
+              "longitude": 126.985539
+            },
+            {
+              "latitude": 37.534942,
+              "longitude": 126.985511
+            },
+            {
+              "latitude": 37.534944,
+              "longitude": 126.985483
+            },
+            {
+              "latitude": 37.534944,
+              "longitude": 126.985453
+            },
+            {
+              "latitude": 37.534942,
+              "longitude": 126.985425
+            },
+            {
+              "latitude": 37.534942,
+              "longitude": 126.985394
+            },
+            {
+              "latitude": 37.534942,
+              "longitude": 126.985367
+            },
+            {
+              "latitude": 37.534783,
+              "longitude": 126.98115
+            },
+            {
+              "latitude": 37.534678,
+              "longitude": 126.977556
+            },
+            {
+              "latitude": 37.534647,
+              "longitude": 126.976092
+            },
+            {
+              "latitude": 37.534644,
+              "longitude": 126.976064
+            },
+            {
+              "latitude": 37.534644,
+              "longitude": 126.976033
+            },
+            {
+              "latitude": 37.534644,
+              "longitude": 126.976003
+            },
+            {
+              "latitude": 37.534647,
+              "longitude": 126.975975
+            },
+            {
+              "latitude": 37.534647,
+              "longitude": 126.975944
+            },
+            {
+              "latitude": 37.53465,
+              "longitude": 126.975917
+            },
+            {
+              "latitude": 37.534653,
+              "longitude": 126.975886
+            },
+            {
+              "latitude": 37.534656,
+              "longitude": 126.975856
+            },
+            {
+              "latitude": 37.534661,
+              "longitude": 126.975828
+            },
+            {
+              "latitude": 37.534667,
+              "longitude": 126.9758
+            },
+            {
+              "latitude": 37.534672,
+              "longitude": 126.975769
+            },
+            {
+              "latitude": 37.534678,
+              "longitude": 126.975742
+            },
+            {
+              "latitude": 37.534686,
+              "longitude": 126.975714
+            },
+            {
+              "latitude": 37.534692,
+              "longitude": 126.975683
+            },
+            {
+              "latitude": 37.534703,
+              "longitude": 126.975658
+            },
+            {
+              "latitude": 37.534711,
+              "longitude": 126.975631
+            },
+            {
+              "latitude": 37.534719,
+              "longitude": 126.975603
+            },
+            {
+              "latitude": 37.534731,
+              "longitude": 126.975578
+            },
+            {
+              "latitude": 37.534742,
+              "longitude": 126.97555
+            },
+            {
+              "latitude": 37.534753,
+              "longitude": 126.975525
+            },
+            {
+              "latitude": 37.534764,
+              "longitude": 126.9755
+            },
+            {
+              "latitude": 37.535019,
+              "longitude": 126.975078
+            },
+            {
+              "latitude": 37.535125,
+              "longitude": 126.974892
+            },
+            {
+              "latitude": 37.535606,
+              "longitude": 126.973989
+            },
+            {
+              "latitude": 37.535606,
+              "longitude": 126.973986
+            },
+            {
+              "latitude": 37.535622,
+              "longitude": 126.973953
             }
           ],
-          "totalTime": 977,
-          "totalFare": 1500,
+          "totalTime": 713,
+          "totalFare": 1400,
           "transferCount": 0,
-          "totalDistance": 992,
-          "totalWalkTime": 773
+          "totalDistance": 2121,
+          "totalWalkTime": 477
         },
         {
           "mode": "WALK",
           "route": "도보",
           "routeColor": "#8A8F96",
           "startLocation": {
-            "name": "남대문시장.회현역",
-            "lon": 126.97839722222223,
-            "lat": 37.55855277777778
+            "name": "삼각지",
+            "lon": 126.97394444444444,
+            "lat": 37.53561111111111
           },
           "endLocation": {
             "name": "도착지",
-            "lon": 126.9770019,
-            "lat": 37.55996327
+            "lon": 126.97701646,
+            "lat": 37.53624102
           },
-          "sectionTime": 256,
-          "passStopList": [],
+          "sectionTime": 391,
+          "steps": [
+            {
+              "streetName": "",
+              "distance": 37,
+              "linestring": [
+                {
+                  "latitude": 37.535618,
+                  "longitude": 126.973946
+                },
+                {
+                  "latitude": 37.5356,
+                  "longitude": 126.97399
+                },
+                {
+                  "latitude": 37.53557,
+                  "longitude": 126.97405
+                },
+                {
+                  "latitude": 37.535442,
+                  "longitude": 126.9743
+                }
+              ]
+            },
+            {
+              "streetName": "",
+              "distance": 45,
+              "linestring": [
+                {
+                  "latitude": 37.535442,
+                  "longitude": 126.9743
+                },
+                {
+                  "latitude": 37.53569,
+                  "longitude": 126.9747
+                }
+              ]
+            },
+            {
+              "streetName": "",
+              "distance": 19,
+              "linestring": [
+                {
+                  "latitude": 37.53569,
+                  "longitude": 126.9747
+                },
+                {
+                  "latitude": 37.535618,
+                  "longitude": 126.97472
+                },
+                {
+                  "latitude": 37.535553,
+                  "longitude": 126.97475
+                },
+                {
+                  "latitude": 37.535534,
+                  "longitude": 126.97478
+                }
+              ]
+            },
+            {
+              "streetName": "한강대로",
+              "distance": 5,
+              "linestring": [
+                {
+                  "latitude": 37.535534,
+                  "longitude": 126.97478
+                },
+                {
+                  "latitude": 37.535496,
+                  "longitude": 126.97481
+                }
+              ]
+            },
+            {
+              "streetName": "",
+              "distance": 121,
+              "linestring": [
+                {
+                  "latitude": 37.53476,
+                  "longitude": 126.976135
+                },
+                {
+                  "latitude": 37.534866,
+                  "longitude": 126.97619
+                },
+                {
+                  "latitude": 37.53493,
+                  "longitude": 126.976234
+                },
+                {
+                  "latitude": 37.535,
+                  "longitude": 126.97632
+                },
+                {
+                  "latitude": 37.53509,
+                  "longitude": 126.97645
+                },
+                {
+                  "latitude": 37.53518,
+                  "longitude": 126.97657
+                },
+                {
+                  "latitude": 37.535248,
+                  "longitude": 126.976746
+                },
+                {
+                  "latitude": 37.535286,
+                  "longitude": 126.976845
+                },
+                {
+                  "latitude": 37.535294,
+                  "longitude": 126.97708
+                },
+                {
+                  "latitude": 37.5353,
+                  "longitude": 126.97721
+                }
+              ]
+            },
+            {
+              "streetName": "",
+              "distance": 84,
+              "linestring": [
+                {
+                  "latitude": 37.5353,
+                  "longitude": 126.97721
+                },
+                {
+                  "latitude": 37.535416,
+                  "longitude": 126.97718
+                },
+                {
+                  "latitude": 37.536057,
+                  "longitude": 126.97715
+                }
+              ]
+            },
+            {
+              "streetName": "보행자도로",
+              "distance": 11,
+              "linestring": [
+                {
+                  "latitude": 37.536057,
+                  "longitude": 126.97715
+                },
+                {
+                  "latitude": 37.536053,
+                  "longitude": 126.97703
+                }
+              ]
+            }
+          ],
           "passShape": [],
-          "totalTime": 977,
-          "totalFare": 1500,
+          "totalTime": 713,
+          "totalFare": 1400,
           "transferCount": 0,
-          "totalDistance": 992,
-          "totalWalkTime": 773
+          "totalDistance": 2121,
+          "totalWalkTime": 477
         }
       ]
-      
+
       // 교통 정보를 각 Day와 장소에 따라 상태에 저장
       setTransportInfo((prevInfo) => {
         const updatedInfo = [...prevInfo];  // 기존 배열 복사
@@ -4695,7 +5168,7 @@ const RouteScreen = () => {
   };
 
   // 실제 api 호출해서 사용
-  const fetchTransportData = async (dayIndex: number, placeIndex: number) => {
+  const fetchTransportData1 = async (dayIndex: number, placeIndex: number) => {
     try {
       // 이미 저장된 데이터가 있는지 확인
       if (transportInfo[dayIndex]?.[placeIndex]) {
@@ -4824,6 +5297,8 @@ const RouteScreen = () => {
         updatedInfo[dayIndex][placeIndex] = newTransportInfo;
         return updatedInfo;
       });
+
+      console.log("대중교통 가공된 API 응답", JSON.stringify(newTransportInfo, null, 2));
   
     } catch (error) {
       console.error('Error fetching TMap transport data:', error);
@@ -4980,9 +5455,18 @@ const RouteScreen = () => {
                           latitude: info.startLocation?.lat || 0,
                           longitude: info.startLocation?.lon || 0,
                         }}
-                        title={`출발: ${info.startLocation?.name}`}
-                        pinColor='#000000'
-                      />
+                        // title={`출발: ${info.startLocation?.name}`}
+                      >
+                        {/* 가운데가 뚫린 커스텀 원 모양 */}
+                        <View
+                          style={{
+                            width: 30,
+                            height: 30,
+                            borderRadius: 15, // 원 모양 만들기
+                            backgroundColor: info.routeColor ? `#${info.routeColor.replace('#', '')}`:'#8A8F96', // 가운데를 뚫기 위해 투명하게 설정
+                          }}
+                        />
+                      </Marker>
                     )}
 
                     {/* 도착지 마커 (마지막 인덱스는 찍지 않음) */}
@@ -4993,11 +5477,19 @@ const RouteScreen = () => {
                           latitude: info.endLocation?.lat || 0,
                           longitude: info.endLocation?.lon || 0,
                         }}
-                        title={`도착: ${info.endLocation?.name}`}
-                        pinColor='#000000'
-                      />
+                        // title={`도착: ${info.endLocation?.name}`}
+                      >
+                        {/* 가운데가 뚫린 커스텀 원 모양 */}
+                        <View
+                          style={{
+                            width: 30,
+                            height: 30,
+                            borderRadius: 15, // 원 모양 만들기
+                            backgroundColor: info.routeColor ? `#${info.routeColor.replace('#', '')}`:'#8A8F96', // 가운데를 뚫기 위해 투명하게 설정
+                          }}
+                        />
+                      </Marker>
                     )}
-
                     {/* 정류장 마커 */}
                     {info.passStopList?.map((station, stationIndex) => (
                       <Marker
@@ -5006,9 +5498,27 @@ const RouteScreen = () => {
                           latitude: station.lat || 0,
                           longitude: station.lon || 0,
                         }}
-                        title={station.stationName}
-                        pinColor='#8A8F96'
-                      />
+                        // title={station.stationName}
+                        // pinColor='#8A8F96'
+                      >
+                        {/* 커스텀 원 모양 마커 */}
+                        <View
+                          style={{
+                            width: 30,
+                            height: 30,
+                            borderRadius: 15, // 원 모양 만들기
+                            borderWidth: 4,
+                            borderColor: info.routeColor ? `#${info.routeColor.replace('#', '')}`:'#8A8F96', // 색상 지정
+                            backgroundColor: 'transparent', // 가운데를 투명하게
+                          }}
+                        />
+                        {/* 정류장 이름 표시 */}
+                        <View style={{ alignItems: 'center', padding: 10 }}>
+                          <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#000' }}>
+                            {station.stationName || '정류장 이름'}
+                          </Text>
+                        </View>
+                      </Marker>
                     ))}
 
                     {/* Polyline 경로 */}
@@ -5025,9 +5535,10 @@ const RouteScreen = () => {
                                 longitude: coord.longitude || 0, // 기본값을 0으로 설정
                               })) || []
                           }
-                          strokeColor='#8A8F96'
-                          strokeWidth={2}
-                          lineDashPattern={[5, 5]} // 점선 패턴
+                          strokeColor='#000000'
+                          strokeWidth={4}
+                          lineDashPattern={[2, 10]} // 점선 패턴 (선길이, 간격)
+                          zIndex={0}
                         />
                       ))
                     ) : (
@@ -5044,6 +5555,7 @@ const RouteScreen = () => {
                           }
                           strokeColor={info.routeColor ? `#${info.routeColor.replace('#', '')}` : '#0047A0'}
                           strokeWidth={4}
+                          zIndex={0}
                         />
                       )
                     )}
@@ -5232,7 +5744,7 @@ const RouteScreen = () => {
                                               />
                                             </View>
                                             {/* 동그라미 옆에 route 표시 후 출발지 표시 */}
-                                            <Text style={styles.stopText}>{`${info.startLocation} 승차`}</Text>
+                                            <Text style={styles.stopText}>{`${info.startLocation?.name} 승차`}</Text>
                                           </View>
 
                                           {/* 도착지 표시 */}
@@ -5248,7 +5760,7 @@ const RouteScreen = () => {
                                               />
                                             </View>
                                             {/* 동그라미 옆에 route 표시 후 도착지 표시 */}
-                                            <Text style={styles.stopText}>{`${info.endLocation} 하차`}</Text>
+                                            <Text style={styles.stopText}>{`${info.endLocation?.name} 하차`}</Text>
                                           </View>
                                         </View>
                                       );
