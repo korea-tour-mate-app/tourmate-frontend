@@ -39,48 +39,103 @@ interface RouteOptResponseDto {
 
 // TransportInfo 타입 재정의
 interface TransportInfo {
-  mode: string;        // 교통수단 종류
-  route: string;       // 버스/지하철 번호
+  mode?: string;        // 교통수단 종류
+  route?: string;       // 버스/지하철 번호
   routeColor?: string | null; // 교통수단 색상 (선택적)
-  startLocation: string; // 출발지
-  endLocation: string;   // 도착지
-  sectionTime: number;   // 소요 시간
+
+  startLocation?: {
+    name?: string;
+    lon?: number;
+    lat?: number;
+  };  // 출발지 정보
+
+  endLocation?: {
+    name?: string;
+    lon?: number;
+    lat?: number;
+  };
+  
+  sectionTime?: number;   // 소요 시간
+
+  passStopList?: {
+    index?: number;
+    stationName?: string;
+    lon?: number;
+    lat?: number;
+    stationID?: string;
+  }[];  // 정류장 리스트
+
+  passShape?: {
+    latitude?: number;
+    longitude?: number;
+  }[];
+
+  steps?: {
+    streetName?: string;
+    distance?: number;
+    // description?: string;
+    linestring?: {
+      latitude?: number;
+      longitude?: number;
+    }[];
+  }[];  // 도보 경로 세부 정보 (WALK일 때만 사용)
+
   totalTime?: number | null;    // 전체 소요시간 (초)
   transferCount?: number | null; // 환승 횟수
   totalWalkTime?: number | null; // 총 보행시간 (초)
   totalDistance?: number | null; // 총 이동거리 (m)
   totalFare?: number | null;     // 대중교통 요금
-  type?: number | null;             // 교통수단 타입 (버스, 지하철 등, 선택적)
 }
 
-// Leg 타입 정의 (routeColor, type 추가)
+// Leg 타입 정의 
 interface Leg {
-  mode: string;                      // 교통수단 종류
+  mode?: string;                      // 교통수단 종류
   route?: string;                    // 대중교통 노선 (버스/지하철 번호, 선택적)
   routeColor?: string | null;        // 노선 색상 (선택적)
   type?: number | null;              // 교통수단 타입 (선택적)
-  start: {
-    name: string;                    // 출발지명
-    lon: number;                     // 경도
-    lat: number;                     // 위도
+  start?: {
+    name?: string;                    // 출발지명
+    lon?: number;                     // 경도
+    lat?: number;                     // 위도
   };
-  end: {
-    name: string;                    // 도착지명
-    lon: number;                     // 경도
-    lat: number;                     // 위도
+  end?: {
+    name?: string;                    // 도착지명
+    lon?: number;                     // 경도
+    lat?: number;                     // 위도
   };
-  sectionTime: number;               // 소요 시간 (초)
+  passStopList?: {
+    stationList?: Station[];   // 정류장 리스트
+  };
+  passShape?: {
+    linestring?: string;
+  };
+  sectionTime?: number;               // 소요 시간 (초)
+
+  steps?:{
+    streetName?: string,
+    distance?: number,
+    // description?: string,
+    linestring?: string
+  }[]; // 도보 경로 (배열)
+}
+
+interface Station {
+  index?: number;
+  stationName?: string;  // 정류장 이름
+  lon?: string;          // 경도
+  lat?: string;          // 위도
+  stationID?: string;   // 정류장 ID (선택적)
 }
 
 interface Fare {
-  regular: {
-    totalFare: number;
+  regular?: {
+    totalFare?: number;
   };
 }
 
 // Itinerary 타입 정의
 interface Itinerary {
-  legs: Leg[];                       // 교통수단 배열
+  legs?: Leg[];                       // 교통수단 배열
   totalTime?: number | null;         // 전체 소요시간 (초, 선택적)
   transferCount?: number | null;     // 환승 횟수 (선택적)
   totalWalkTime?: number | null;     // 총 보행시간 (초, 선택적)
@@ -101,7 +156,6 @@ const RouteScreen = () => {
   const mapRef = useRef<MapView>(null);
   const [toggleState, setToggleState] = useState<{ [key: string]: boolean }>({});
   const [transportInfo, setTransportInfo] = useState<TransportInfo[][][]>([]);
-
 
   const response1 = {
     "totalDistance": "8299",
@@ -4467,45 +4521,163 @@ const RouteScreen = () => {
     
       const newTransportInfo : TransportInfo[] = [
         {
-          "startLocation": "출발지",
-          "endLocation": "남대문시장앞.이회영활동터",
           "mode": "WALK",
           "route": "도보",
           "routeColor": "#8A8F96",
-          "sectionTime": 175, // 구간 소요 시간 (초)
-          "totalDistance": 1197, // 총 이동 거리 (m)
-          "totalFare": 1500, // 총 요금 (원)
-          "totalTime": 708, // 총 소요 시간 (초)
-          "totalWalkTime": 430, // 총 보행 시간 (초)
-          "transferCount": 0 // 환승 횟수
+          "startLocation": {
+            "name": "출발지",
+            "lon": 126.97071928,
+            "lat": 37.55496651
+          },
+          "endLocation": {
+            "name": "서울역버스환승센터(5번승강장)(중)",
+            "lon": 126.97268888888888,
+            "lat": 37.555480555555555
+          },
+          "sectionTime": 517,
+          "passStopList": [],
+          "passShape": [],
+          "totalTime": 977,
+          "totalFare": 1500,
+          "transferCount": 0,
+          "totalDistance": 992,
+          "totalWalkTime": 773
         },
         {
-          "startLocation": "남대문시장앞.이회영활동터",
-          "endLocation": "을지로입구.로얄호텔",
           "mode": "BUS",
-          "route": "간선:152",
+          "route": "간선:104",
           "routeColor": "0068B7",
-          "sectionTime": 278, // 구간 소요 시간 (초)
-          "totalDistance": 1197, // 총 이동 거리 (m)
-          "totalFare": 1500, // 총 요금 (원)
-          "totalTime": 708, // 총 소요 시간 (초)
-          "totalWalkTime": 430, // 총 보행 시간 (초)
-          "transferCount": 0 // 환승 횟수
+          "startLocation": {
+            "name": "서울역버스환승센터(5번승강장)(중)",
+            "lon": 126.97268888888888,
+            "lat": 37.555480555555555
+          },
+          "endLocation": {
+            "name": "남대문시장.회현역",
+            "lon": 126.97839722222223,
+            "lat": 37.55855277777778
+          },
+          "sectionTime": 204,
+          "passStopList": [
+            {
+              "index": 0,
+              "stationName": "서울역버스환승센터(5번승강장)(중)",
+              "lon": 37.555481,
+              "lat": 126.972689,
+              "stationID": "757384"
+            },
+            {
+              "index": 1,
+              "stationName": "남대문시장.회현역",
+              "lon": 37.558553,
+              "lat": 126.978397,
+              "stationID": "757593"
+            }
+          ],
+          "passShape": [
+            {
+              "latitude": 37.555472,
+              "longitude": 126.972664
+            },
+            {
+              "latitude": 37.555469,
+              "longitude": 126.972664
+            },
+            {
+              "latitude": 37.554575,
+              "longitude": 126.97265
+            },
+            {
+              "latitude": 37.554428,
+              "longitude": 126.9728
+            },
+            {
+              "latitude": 37.554431,
+              "longitude": 126.972969
+            },
+            {
+              "latitude": 37.554603,
+              "longitude": 126.972981
+            },
+            {
+              "latitude": 37.554964,
+              "longitude": 126.973128
+            },
+            {
+              "latitude": 37.555375,
+              "longitude": 126.9732
+            },
+            {
+              "latitude": 37.55565,
+              "longitude": 126.973178
+            },
+            {
+              "latitude": 37.555956,
+              "longitude": 126.973219
+            },
+            {
+              "latitude": 37.556219,
+              "longitude": 126.973472
+            },
+            {
+              "latitude": 37.556383,
+              "longitude": 126.973786
+            },
+            {
+              "latitude": 37.556647,
+              "longitude": 126.974533
+            },
+            {
+              "latitude": 37.557475,
+              "longitude": 126.9766
+            },
+            {
+              "latitude": 37.557725,
+              "longitude": 126.977314
+            },
+            {
+              "latitude": 37.557811,
+              "longitude": 126.977486
+            },
+            {
+              "latitude": 37.558094,
+              "longitude": 126.977903
+            },
+            {
+              "latitude": 37.558586,
+              "longitude": 126.978381
+            }
+          ],
+          "totalTime": 977,
+          "totalFare": 1500,
+          "transferCount": 0,
+          "totalDistance": 992,
+          "totalWalkTime": 773
         },
         {
-          "startLocation": "을지로입구.로얄호텔",
-          "endLocation": "도착지",
           "mode": "WALK",
           "route": "도보",
           "routeColor": "#8A8F96",
-          "sectionTime": 255, // 구간 소요 시간 (초)
-          "totalDistance": 1197, // 총 이동 거리 (m)
-          "totalFare": 1500, // 총 요금 (원)
-          "totalTime": 708, // 총 소요 시간 (초)
-          "totalWalkTime": 430, // 총 보행 시간 (초)
-          "transferCount": 0 // 환승 횟수
+          "startLocation": {
+            "name": "남대문시장.회현역",
+            "lon": 126.97839722222223,
+            "lat": 37.55855277777778
+          },
+          "endLocation": {
+            "name": "도착지",
+            "lon": 126.9770019,
+            "lat": 37.55996327
+          },
+          "sectionTime": 256,
+          "passStopList": [],
+          "passShape": [],
+          "totalTime": 977,
+          "totalFare": 1500,
+          "transferCount": 0,
+          "totalDistance": 992,
+          "totalWalkTime": 773
         }
-      ]      
+      ]
       
       // 교통 정보를 각 Day와 장소에 따라 상태에 저장
       setTransportInfo((prevInfo) => {
@@ -4525,17 +4697,19 @@ const RouteScreen = () => {
   // 실제 api 호출해서 사용
   const fetchTransportData = async (dayIndex: number, placeIndex: number) => {
     try {
+      // 이미 저장된 데이터가 있는지 확인
       if (transportInfo[dayIndex]?.[placeIndex]) {
         console.log(`이미 저장된 데이터: Day ${dayIndex}, Place ${placeIndex}`);
-        console.log('저장된 transportInfo:', transportInfo[dayIndex]?.[placeIndex]);  // transportInfo 로그 출력
-        return;  // 이미 데이터가 있으면 API 호출하지 않음
+        return;
       }
   
+      // 출발지와 도착지 정보 가져오기
       const startPlace = routeInfoByDay[`Day ${dayIndex + 1}`]?.visitPlaces[placeIndex];
       const endPlace = routeInfoByDay[`Day ${dayIndex + 1}`]?.visitPlaces[placeIndex + 1];
   
       if (!startPlace || !endPlace) return;
   
+      // API 요청을 위한 requestBody 생성
       const requestBody = {
         startX: startPlace.longitude.toString(),
         startY: startPlace.latitude.toString(),
@@ -4543,88 +4717,116 @@ const RouteScreen = () => {
         endY: endPlace.latitude.toString(),
         count: 1,
         lang: 0,
-        format: "json"
+        format: "json",
       };
   
+      // 대중교통 API 호출
       const public_transport_response = await axios.post(
         'https://apis.openapi.sk.com/transit/routes',
         requestBody,
         {
           headers: {
             'Content-Type': 'application/json',
-            'appKey': '' // 실제 발급받은 API 키
-          }
+            'appKey': '', // 실제 API 키
+          },
         }
       );
-
-      console.log("대중교통 api 초기 응답", public_transport_response);
+  
+      console.log("대중교통 API 응답", public_transport_response);
+  
       const status = public_transport_response.data.result?.status;
-      const errorMessage = public_transport_response.data.result?.message || "No public transport data available";
-
-      // 응답에서 status를 먼저 확인
-      if ([11, 12, 13, 14].includes(status) || !public_transport_response.data.metaData?.plan?.itineraries) {        
-        console.log(`T MAP 대중교통 API 에러: 코드(${status}), 메시지(${errorMessage})`);
-        const newTransportInfo: TransportInfo[] = [];
-
+      const itineraries: Itinerary[] = public_transport_response.data.metaData?.plan?.itineraries || [];
+  
+      // API 응답에서 오류가 있거나 유효한 데이터가 없는 경우 처리
+      if ([11, 12, 13, 14].includes(status) || itineraries.length === 0) {
+        console.log(`T MAP 대중교통 API 오류: 코드(${status}), 메시지(${public_transport_response.data.result?.message || "No public transport data available"})`);
         setTransportInfo((prevInfo) => {
           const updatedInfo = [...prevInfo];
-          if (!updatedInfo[dayIndex]) {
-            updatedInfo[dayIndex] = [];
-          }
-          updatedInfo[dayIndex][placeIndex] = newTransportInfo;  // 대중교통 정보 없음 표시 (빈 객체 넣음)
+          updatedInfo[dayIndex] = updatedInfo[dayIndex] || [];
+          updatedInfo[dayIndex][placeIndex] = []; // 빈 배열로 처리
           return updatedInfo;
         });
         return;
       }
-
-      console.log("대중교통 api 성공 응답 데이터", public_transport_response.data);
-      
-      const itineraries: Itinerary[] = public_transport_response.data.metaData?.plan?.itineraries || [];
   
+      // 새로운 TransportInfo 배열 생성
       const newTransportInfo: TransportInfo[] = [];
   
-      if (Array.isArray(itineraries)) {
-        itineraries.forEach((itinerary) => {
-          const totalFare = itinerary.fare?.regular?.totalFare ?? 0; // totalFare 가져오기
-          const totalWalkTime = itinerary.totalWalkTime ?? 0; // 총 보행 시간
-          const totalTime = itinerary.totalTime ?? 0; // 총 소요 시간
-          const transferCount = itinerary.transferCount ?? 0; // 환승 횟수
-          const totalDistance = itinerary.totalDistance ?? 0; // 총 이동 거리
-
-          // 각 leg 정보를 newTransportInfo 배열에 추가
-          itinerary.legs.forEach((leg: Leg) => { // leg: 하나의 경로
-            const transportDetails: TransportInfo = {
-              mode: leg.mode,
-              route: leg.route ? leg.route : '도보',
-              routeColor: leg.routeColor || '#8A8F96', // routeColor 기본값 추가
-              startLocation: leg.start.name,
-              endLocation: leg.end.name,
-              sectionTime: leg.sectionTime,
-              totalTime, // 전체 소요시간
-              totalFare, // 요금
-              transferCount, // 환승 횟수
-              totalDistance, // 이동 거리
-              totalWalkTime, // 보행 시간
-            };
-            newTransportInfo.push(transportDetails);  // 각 leg를 배열에 추가
-          });
-        });
+      // 각 경로에 대한 정보를 TransportInfo로 변환
+      itineraries.forEach((itinerary) => {
+        const totalFare = itinerary.fare?.regular?.totalFare ?? 0;
+        const totalWalkTime = itinerary.totalWalkTime ?? 0;
+        const totalTime = itinerary.totalTime ?? 0;
+        const transferCount = itinerary.transferCount ?? 0;
+        const totalDistance = itinerary.totalDistance ?? 0;
   
-        console.log('모든 교통 정보:', newTransportInfo);
+        itinerary.legs?.forEach((leg: Leg) => {
+          const transportDetails: TransportInfo = {
+            mode: leg.mode || 'UNKNOWN',
+            route: leg.route || '도보',
+            routeColor: leg.routeColor || '#8A8F96',
   
-        // 교통 정보를 각 Day와 장소에 따라 상태에 저장
-        setTransportInfo((prevInfo) => {
-          const updatedInfo = [...prevInfo];  // 기존 배열 복사
-          if (!updatedInfo[dayIndex]) {
-            updatedInfo[dayIndex] = [];  // 해당 dayIndex에 배열이 없으면 초기화
-          }
-          updatedInfo[dayIndex][placeIndex] = newTransportInfo;  // 각 장소에 맞는 정보를 배열로 저장
-          return updatedInfo;
+            startLocation: {
+              name: leg.start?.name || "-",
+              lon: leg.start?.lon ?? 0,
+              lat: leg.start?.lat ?? 0,
+            },
+            endLocation: {
+              name: leg.end?.name || "-",
+              lon: leg.end?.lon ?? 0,
+              lat: leg.end?.lat ?? 0,
+            },
+            sectionTime: leg.sectionTime ?? 0,
+  
+            // WALK가 아닐 때는 passStopList로 처리
+            passStopList: leg.mode !== 'WALK' ? leg.passStopList?.stationList?.map((station) => ({
+              index: station.index ?? 0,
+              stationName: station.stationName || "-",
+              lon: parseFloat(station.lon || "0"),
+              lat: parseFloat(station.lat || "0"),
+              stationID: station.stationID || "-",
+            })) || [] : undefined,
+  
+            // WALK일 때는 steps 배열로 처리
+            steps: leg.mode === 'WALK' ? leg.steps?.map(step => ({
+              streetName: step.streetName,
+              distance: step.distance,
+              linestring: step.linestring 
+                ? step.linestring.split(" ").map(coord => {
+                    const [lon, lat] = coord.split(",");
+                    return { latitude: parseFloat(lat), longitude: parseFloat(lon) };
+                  })
+                : [],  // linestring이 없을 경우 빈 배열 반환
+            })) : undefined,         
+  
+            passShape: leg.passShape?.linestring
+              ? leg.passShape.linestring.split(" ").map((coord) => {
+                const [lon, lat] = coord.split(",");
+                return { latitude: parseFloat(lat), longitude: parseFloat(lon) };
+              })
+              : [],
+  
+            totalTime,
+            totalFare,
+            transferCount,
+            totalDistance,
+            totalWalkTime,
+          };
+  
+          newTransportInfo.push(transportDetails);
         });
-      }
+      });
+  
+      // 새롭게 얻은 교통 정보를 transportInfo 상태에 저장
+      setTransportInfo((prevInfo) => {
+        const updatedInfo = [...prevInfo];
+        updatedInfo[dayIndex] = updatedInfo[dayIndex] || [];
+        updatedInfo[dayIndex][placeIndex] = newTransportInfo;
+        return updatedInfo;
+      });
+  
     } catch (error) {
       console.error('Error fetching TMap transport data:', error);
-      // Alert.alert('Error', '교통 데이터를 불러오는 중 오류가 발생했습니다.');
     }
   };
   
@@ -4711,46 +4913,45 @@ const RouteScreen = () => {
         showsUserLocation={true}
         showsMyLocationButton={false} // 현재 위치 버튼을 숨김
       >
-
         {/* 장소 마커 찍기 */}
         {routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.visitPlaces?.map((place, index) => {
           // 장소 번호와 현재 일수에 따라 미리 로드된 이미지 경로 설정
           let markerImage;
-          
+
           switch (selectedDayIndex) {
             case 0: // Day 1
-              if (index === 0) markerImage = require('../../assets/images/route/marker/1_r.png');
-              else if (index === 1) markerImage = require('../../assets/images/route/marker/2_r.png');
-              else if (index === 2) markerImage = require('../../assets/images/route/marker/3_r.png');
-              else if (index === 3) markerImage = require('../../assets/images/route/marker/4_r.png');
-              else if (index === 4) markerImage = require('../../assets/images/route/marker/5_r.png');
-              else if (index === 5) markerImage = require('../../assets/images/route/marker/6_r.png');
+              markerImage = index === 0 ? require('../../assets/images/route/marker/1_r.png') : 
+                index === 1 ? require('../../assets/images/route/marker/2_r.png') :
+                index === 2 ? require('../../assets/images/route/marker/3_r.png') :
+                index === 3 ? require('../../assets/images/route/marker/4_r.png') :
+                index === 4 ? require('../../assets/images/route/marker/5_r.png') :
+                require('../../assets/images/route/marker/6_r.png');
               break;
             case 1: // Day 2
-              if (index === 0) markerImage = require('../../assets/images/route/marker/1_o.png');
-              else if (index === 1) markerImage = require('../../assets/images/route/marker/2_o.png');
-              else if (index === 2) markerImage = require('../../assets/images/route/marker/3_o.png');
-              else if (index === 3) markerImage = require('../../assets/images/route/marker/4_o.png');
-              else if (index === 4) markerImage = require('../../assets/images/route/marker/5_o.png');
-              else if (index === 5) markerImage = require('../../assets/images/route/marker/6_r.png');
+              markerImage = index === 0 ? require('../../assets/images/route/marker/1_o.png') :
+                index === 1 ? require('../../assets/images/route/marker/2_o.png') :
+                index === 2 ? require('../../assets/images/route/marker/3_o.png') :
+                index === 3 ? require('../../assets/images/route/marker/4_o.png') :
+                index === 4 ? require('../../assets/images/route/marker/5_o.png') :
+                require('../../assets/images/route/marker/6_o.png');
               break;
             case 2: // Day 3
             default:
-              if (index === 0) markerImage = require('../../assets/images/route/marker/1_y.png');
-              else if (index === 1) markerImage = require('../../assets/images/route/marker/2_y.png');
-              else if (index === 2) markerImage = require('../../assets/images/route/marker/3_y.png');
-              else if (index === 3) markerImage = require('../../assets/images/route/marker/4_y.png');
-              else if (index === 4) markerImage = require('../../assets/images/route/marker/5_y.png');
-              else if (index === 5) markerImage = require('../../assets/images/route/marker/6_r.png');
+              markerImage = index === 0 ? require('../../assets/images/route/marker/1_y.png') :
+                index === 1 ? require('../../assets/images/route/marker/2_y.png') :
+                index === 2 ? require('../../assets/images/route/marker/3_y.png') :
+                index === 3 ? require('../../assets/images/route/marker/4_y.png') :
+                index === 4 ? require('../../assets/images/route/marker/5_y.png') :
+                require('../../assets/images/route/marker/6_y.png');
               break;
           }
-          
+
           return (
             <Marker
               key={index}
               coordinate={{
                 latitude: parseFloat(place.latitude.toString()) || 0,
-                longitude: parseFloat(place.longitude.toString()) || 0
+                longitude: parseFloat(place.longitude.toString()) || 0,
               }}
               title={`${index + 1}. ${place.name}`} // 순서와 장소명 함께 표시
               image={markerImage} // 마커 이미지 설정
@@ -4762,22 +4963,98 @@ const RouteScreen = () => {
           );
         })}
 
-        {/* 경로 그리기 */}
-        {mapPathsByDay[`Day ${selectedDayIndex + 1}`]?.map((path, index) => (
-          <Polyline
-            key={index}
-            coordinates={path.coordinates.map(([latitude, longitude]) => ({
-              latitude,
-              longitude,
-            }))}
-            
-            strokeColor="#0047A0"  // 경로 색상
-            strokeWidth={4}  // 경로 두께
-            // lineDashPattern={[100, 10]} // 점선 패턴 (대시 길이 10, 간격 5)
-            // lineCap="round" // 끝부분을 둥글게 처리
-            />
-          ))}
+        {/* 경로 표시 */}
+        {transportInfo[selectedDayIndex]?.map((placeInfo, placeIndex) => {
+          const toggleKey = `${selectedDayIndex}-${placeIndex}`;
+
+          return (
+            toggleState[toggleKey] && (
+              <React.Fragment key={placeIndex}>
+                {placeInfo?.map((info, transportIndex) => (
+                  <React.Fragment key={`transport-${placeIndex}-${transportIndex}`}>
+                    {/* 출발지 마커 (첫 번째 인덱스는 찍지 않음) */}
+                    {transportIndex !== 0 && (
+                      <Marker
+                        key={`start-marker-${placeIndex}-${transportIndex}`}
+                        coordinate={{
+                          latitude: info.startLocation?.lat || 0,
+                          longitude: info.startLocation?.lon || 0,
+                        }}
+                        title={`출발: ${info.startLocation?.name}`}
+                        pinColor='#000000'
+                      />
+                    )}
+
+                    {/* 도착지 마커 (마지막 인덱스는 찍지 않음) */}
+                    {transportIndex !== placeInfo.length - 1 && (
+                      <Marker
+                        key={`end-marker-${placeIndex}-${transportIndex}`}
+                        coordinate={{
+                          latitude: info.endLocation?.lat || 0,
+                          longitude: info.endLocation?.lon || 0,
+                        }}
+                        title={`도착: ${info.endLocation?.name}`}
+                        pinColor='#000000'
+                      />
+                    )}
+
+                    {/* 정류장 마커 */}
+                    {info.passStopList?.map((station, stationIndex) => (
+                      <Marker
+                        key={`station-marker-${placeIndex}-${stationIndex}`}
+                        coordinate={{
+                          latitude: station.lat || 0,
+                          longitude: station.lon || 0,
+                        }}
+                        title={station.stationName}
+                        pinColor='#8A8F96'
+                      />
+                    ))}
+
+                    {/* Polyline 경로 */}
+                    {info.mode === 'WALK' && info.steps ? (
+                      // WALK일 때는 steps로 경로 표시
+                      info.steps.map((step, stepIndex) => (
+                        <Polyline
+                          key={`walk-line-${placeIndex}-${stepIndex}`}
+                          coordinates={
+                            step.linestring
+                              ?.filter(coord => coord.latitude !== undefined && coord.longitude !== undefined) // 좌표가 존재하는지 필터링
+                              .map(coord => ({
+                                latitude: coord.latitude || 0, // 기본값을 0으로 설정
+                                longitude: coord.longitude || 0, // 기본값을 0으로 설정
+                              })) || []
+                          }
+                          strokeColor='#8A8F96'
+                          strokeWidth={2}
+                          lineDashPattern={[5, 5]} // 점선 패턴
+                        />
+                      ))
+                    ) : (
+                      // 다른 교통수단일 때는 passShape로 경로 표시
+                      info.passShape && info.passShape.length > 0 && (
+                        <Polyline
+                          coordinates={
+                            info.passShape
+                              ?.filter(coord => coord.latitude !== undefined && coord.longitude !== undefined) // 좌표가 undefined가 아닌 값만 필터링
+                              .map(coord => ({
+                                latitude: coord.latitude || 0, // 기본값을 0으로 설정
+                                longitude: coord.longitude || 0, // 기본값을 0으로 설정
+                              })) || []  // 기본적으로 빈 배열을 반환하여 오류 방지
+                          }
+                          strokeColor={info.routeColor ? `#${info.routeColor.replace('#', '')}` : '#0047A0'}
+                          strokeWidth={4}
+                        />
+                      )
+                    )}
+                  </React.Fragment>
+                ))}
+              </React.Fragment>
+            )
+          );
+        })}
       </MapView>
+
 
       <View style={styles.zoomButtonsContainer}>
         <TouchableOpacity style={styles.zoomButton} onPress={handleZoomIn}>
