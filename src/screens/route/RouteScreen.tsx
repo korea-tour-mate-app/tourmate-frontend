@@ -5447,74 +5447,21 @@ const RouteScreen = () => {
               <React.Fragment key={placeIndex}>
                 {placeInfo?.map((info, transportIndex) => (
                   <React.Fragment key={`transport-${placeIndex}-${transportIndex}`}>
-                    {/* 출발지 마커 (첫 번째 인덱스는 찍지 않음) */}
-                    {transportIndex !== 0 && (
-                      <Marker
-                        key={`start-marker-${placeIndex}-${transportIndex}`}
-                        coordinate={{
-                          latitude: info.startLocation?.lat || 0,
-                          longitude: info.startLocation?.lon || 0,
-                        }}
-                        // title={`출발: ${info.startLocation?.name}`}
-                      >
-                        {/* 가운데가 뚫린 커스텀 원 모양 */}
-                        <View
-                          style={{
-                            width: 30,
-                            height: 30,
-                            borderRadius: 15, // 원 모양 만들기
-                            backgroundColor: info.routeColor ? `#${info.routeColor.replace('#', '')}`:'#8A8F96', // 가운데를 뚫기 위해 투명하게 설정
-                          }}
-                        />
-                      </Marker>
-                    )}
-
-                    {/* 도착지 마커 (마지막 인덱스는 찍지 않음) */}
-                    {transportIndex !== placeInfo.length - 1 && (
-                      <Marker
-                        key={`end-marker-${placeIndex}-${transportIndex}`}
-                        coordinate={{
-                          latitude: info.endLocation?.lat || 0,
-                          longitude: info.endLocation?.lon || 0,
-                        }}
-                        // title={`도착: ${info.endLocation?.name}`}
-                      >
-                        {/* 가운데가 뚫린 커스텀 원 모양 */}
-                        <View
-                          style={{
-                            width: 30,
-                            height: 30,
-                            borderRadius: 15, // 원 모양 만들기
-                            backgroundColor: info.routeColor ? `#${info.routeColor.replace('#', '')}`:'#8A8F96', // 가운데를 뚫기 위해 투명하게 설정
-                          }}
-                        />
-                      </Marker>
-                    )}
                     {/* 정류장 마커 */}
                     {info.passStopList?.map((station, stationIndex) => (
                       <Marker
                         key={`station-marker-${placeIndex}-${stationIndex}`}
                         coordinate={{
-                          latitude: station.lat || 0,
-                          longitude: station.lon || 0,
+                          latitude: (station.lat || 0) - 0.0002, 
+                          longitude: (station.lon || 0) - 0.0002,
                         }}
-                        // title={station.stationName}
-                        // pinColor='#8A8F96'
+                        anchor={{ x: 0.5, y: 1 }} // 마커의 하단 중앙을 좌표에 맞춤
+                        icon={require('../../assets/images/route/station_marker_4.png')} // 고정된 이미지 설정
                       >
-                        {/* 커스텀 원 모양 마커 */}
-                        <View
-                          style={{
-                            width: 30,
-                            height: 30,
-                            borderRadius: 15, // 원 모양 만들기
-                            borderWidth: 4,
-                            borderColor: info.routeColor ? `#${info.routeColor.replace('#', '')}`:'#8A8F96', // 색상 지정
-                            backgroundColor: 'transparent', // 가운데를 투명하게
-                          }}
-                        />
                         {/* 정류장 이름 표시 */}
-                        <View style={{ alignItems: 'center', padding: 10 }}>
-                          <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#000' }}>
+                        <View style={{ alignItems: 'center', marginTop: 20 }}>
+                          <Text>""</Text>
+                          <Text style={{ fontSize: 15, fontFamily: 'SBAggroL', color: '#000000' }}>
                             {station.stationName || '정류장 이름'}
                           </Text>
                         </View>
@@ -5565,6 +5512,7 @@ const RouteScreen = () => {
             )
           );
         })}
+        
       </MapView>
 
 
