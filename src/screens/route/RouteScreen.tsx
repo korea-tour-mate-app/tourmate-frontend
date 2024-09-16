@@ -5675,9 +5675,9 @@ const RouteScreen = () => {
                                 <View style={styles.capsuleGroup}>
                                   {transportInfo[selectedDayIndex]?.[index]?.map((info: TransportInfo, subIndex: number) => {
                                     const totalSectionTime = transportInfo[selectedDayIndex][index]
-                                      .reduce((sum, current) => sum + current.sectionTime, 0); // 전체 시간 합계 계산
+                                      .reduce((sum, current) => sum + (current.sectionTime ?? 0), 0); // 전체 시간 합계 계산
                                     const totalCapsuleWidth = 280; // 고정된 전체 타임캡슐 너비 (px 단위)
-                                    const sectionWidth = (info.sectionTime / totalSectionTime) * totalCapsuleWidth; // 각 구간의 비율에 따른 실제 너비 계산 (숫자형 값)
+                                    const sectionWidth = ((info.sectionTime ?? 0) / totalSectionTime) * totalCapsuleWidth; // 각 구간의 비율에 따른 실제 너비 계산 (숫자형 값)
 
                                     return (
                                       <View key={subIndex} style={[styles.capsuleContainer, { width: sectionWidth }]}>
@@ -5699,13 +5699,13 @@ const RouteScreen = () => {
                                             <Text
                                               style={styles.capsuleText}
                                             >
-                                              {`${Math.floor(info.sectionTime / 60)}m`} {/* 분으로 변환 */}
+                                              {`${Math.floor((info.sectionTime ?? 0) / 60)}m`} {/* 분으로 변환 */}
                                             </Text>
                                           </View>
                                         ) : (
                                           // WALK인 경우, 캡슐은 표시하지 않고 시간만 텍스트로 표시
                                           <Text style={styles.walkTimeText}>
-                                            {`${Math.floor(info.sectionTime / 60)}m`}
+                                            {`${Math.floor((info.sectionTime ?? 0) / 60)}m`}
                                           </Text>
                                         )}
                                         {/* 각 교통수단의 정가운데에 route 표시 */}
