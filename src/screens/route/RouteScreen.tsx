@@ -9,6 +9,7 @@ import { useSelection } from '../../components/SelectionContext';
 import { RootStackParamList } from '../navigation/navigationTypes';
 import axios from 'axios';
 import { ScrollView } from 'react-native-gesture-handler';
+import { REACT_TMAP_API_KEY } from '@env';
 
 type RouteScreenNavigationProp = StackNavigationProp<RootStackParamList, 'RouteScreen'>;
 type RouteScreenRouteProp = RouteProp<RootStackParamList, 'RouteScreen'>;
@@ -36,34 +37,55 @@ interface RouteOptResponseDto {
   }[];
 }
 
+// TransportInfo 타입 재정의
 interface TransportInfo {
-  mode: string;       // 교통수단 종류
-  route: string;      // 버스/지하철 번호
+  mode: string;        // 교통수단 종류
+  route: string;       // 버스/지하철 번호
+  routeColor?: string | null; // 교통수단 색상 (선택적)
   startLocation: string; // 출발지
   endLocation: string;   // 도착지
   sectionTime: number;   // 소요 시간
+  totalTime?: number | null;    // 전체 소요시간 (초)
+  transferCount?: number | null; // 환승 횟수
+  totalWalkTime?: number | null; // 총 보행시간 (초)
+  totalDistance?: number | null; // 총 이동거리 (m)
+  totalFare?: number | null;     // 대중교통 요금
+  type?: number | null;             // 교통수단 타입 (버스, 지하철 등, 선택적)
 }
 
-// leg 타입 정의
+// Leg 타입 정의 (routeColor, type 추가)
 interface Leg {
-  mode: string;
-  route?: string;
+  mode: string;                      // 교통수단 종류
+  route?: string;                    // 대중교통 노선 (버스/지하철 번호, 선택적)
+  routeColor?: string | null;        // 노선 색상 (선택적)
+  type?: number | null;              // 교통수단 타입 (선택적)
   start: {
-    name: string;
-    lon: number;
-    lat: number;
+    name: string;                    // 출발지명
+    lon: number;                     // 경도
+    lat: number;                     // 위도
   };
   end: {
-    name: string;
-    lon: number;
-    lat: number;
+    name: string;                    // 도착지명
+    lon: number;                     // 경도
+    lat: number;                     // 위도
   };
-  sectionTime: number;
+  sectionTime: number;               // 소요 시간 (초)
 }
 
-// itinerary 타입 정의
+interface Fare {
+  regular: {
+    totalFare: number;
+  };
+}
+
+// Itinerary 타입 정의
 interface Itinerary {
-  legs: Leg[];
+  legs: Leg[];                       // 교통수단 배열
+  totalTime?: number | null;         // 전체 소요시간 (초, 선택적)
+  transferCount?: number | null;     // 환승 횟수 (선택적)
+  totalWalkTime?: number | null;     // 총 보행시간 (초, 선택적)
+  totalDistance?: number | null;     // 총 이동거리 (m, 선택적)
+  fare?: Fare; // fare 속성 추가
 }
 
 const RouteScreen = () => {
@@ -74,17 +96,12 @@ const RouteScreen = () => {
   const [selectedLocation, setSelectedLocation] = useState({ latitude: 40.54523875839218, longitude: 126.977613738705 });
   const [routeInfoByDay, setRouteInfoByDay] = useState<{ [day: string]: Omit<RouteOptResponseDto, 'paths'> }>({});
   const [mapPathsByDay, setMapPathsByDay] = useState<{ [day: string]: RouteOptResponseDto['paths'] }>({});
-  const navigation = useNavigation<RouteScreenNavigationProp>();
-
   // const [selectedDay, setSelectedDay] = useState("1일차");
-  const [selectedDayIndex, setSelectedDayIndex] = useState(0); // 현재 선택된 일차 (0일차부터 시작)
-  const [selectedLocation, setSelectedLocation] = useState({ latitude: 40.54523875839218, longitude: 126.977613738705 });
-  const [routeInfoByDay, setRouteInfoByDay] = useState<{ [day: string]: Omit<RouteOptResponseDto, 'paths'> }>({});
-  const [mapPathsByDay, setMapPathsByDay] = useState<{ [day: string]: RouteOptResponseDto['paths'] }>({});
   const bottomSheetRef = useRef<BottomSheet>(null);
   const mapRef = useRef<MapView>(null);
   const [toggleState, setToggleState] = useState<{ [key: string]: boolean }>({});
-  const [transportInfo, setTransportInfo] = useState<TransportInfo[]>([]);
+  const [transportInfo, setTransportInfo] = useState<TransportInfo[][][]>([]);
+
 
   const response1 = {
     "totalDistance": "8299",
@@ -4312,7 +4329,7 @@ const RouteScreen = () => {
 
   const dayCount = Number(contextSelectedDay.at(-1)); // 며칠동안 여행을 가는지
   // const dayCount = contextSelectedDay[contextSelectedDay.length - 1]; // 같은 표현 // 마지막 값으로 여행 일 수 계산
-  console.log("여행일수는? ", dayCount);
+  // console.log("여행일수는? ", dayCount);
   // const dayCount = 1; // 일단 api 호출은 한번으로 고정
 
   useEffect(() => {
@@ -4343,27 +4360,27 @@ const RouteScreen = () => {
 
           // const response = await axios.post('http://10.0.2.2:8080/api/tmap/optimize-route', requestBody);
         
-          let response;  // let을 사용하여 나중에 값을 할당할 수 있도록 함
+          let route_response;  // let을 사용하여 나중에 값을 할당할 수 있도록 함
 
           switch (i) {
             case 0:
-              response = response1;
+              route_response = response1;
               break;
             case 1:
-              response = response2;
+              route_response = response2;
               break;
             case 2:
-              response = response3;
+              route_response = response3;
               break;
             default:
-              response = response1;
+              route_response = response1;
           }
 
           // if (!isMounted) return; // 컴포넌트가 언마운트된 경우 종료
           // console.log(`Day ${i + 1} route data:`, response.data);
-          console.log(`Day ${i + 1} route data:`, response);
+          console.log(`Day ${i + 1} route data:`, route_response);
 
-          const { totalDistance, totalTime, totalFare, visitPlaces, paths } = response;
+          const { totalDistance, totalTime, totalFare, visitPlaces, paths } = route_response;
           // const { totalDistance, totalTime, totalFare, visitPlaces, paths } = response;
 
           const dayKey = `Day ${i + 1}`;
@@ -4388,17 +4405,23 @@ const RouteScreen = () => {
     };
   }, []); // useEffect 의존성 배열 추가
 
-  // 토글 상태 변경 함수
+  // 토글 상태 변경 함수  
   const toggleItem = (dayIndex: number, placeIndex: number) => {
-    const toggleKey = `${dayIndex}-${placeIndex}`;
-    setToggleState((prevState) => ({
-      ...prevState,
-      [toggleKey]: !prevState[toggleKey],
-    }));
-    if (!toggleState[toggleKey]) {
-      fetchTransportData(placeIndex);  // 토글이 켜질 때만 API 호출
-    }
+    const toggleKey = `${dayIndex}-${placeIndex}`;    
+    setToggleState((prevState) => {
+      const newState = !prevState[toggleKey]; // 이전 상태를 기반으로 새로운 상태 계산
+      
+      if (newState && !transportInfo[dayIndex]?.[placeIndex]) {
+        fetchTransportData(dayIndex, placeIndex);  // 토글이 true로 변경될 때만 API 호출
+      }
+      
+      return {
+        ...prevState,
+        [toggleKey]: newState,
+      };
+    });
   };
+  
   const handleLocationPress = (latitude: number, longitude: number) => {
     if (mapRef.current) { // ref가 있을 때만 실행
       mapRef.current.animateToRegion({
@@ -4428,10 +4451,88 @@ const RouteScreen = () => {
     }
   };
 
-  const fetchTransportData = async (placeIndex: number) => {
+  // 개발하는 동안 편하게 사용하는 미리 로드된 대중교통 데이터셋
+  const fetchTransportData1 = async (dayIndex: number, placeIndex: number) => {
     try {
-      const startPlace = routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.visitPlaces[placeIndex];
-      const endPlace = routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.visitPlaces[placeIndex + 1];
+      if (transportInfo[dayIndex]?.[placeIndex]) {
+        console.log(`이미 저장된 데이터: Day ${dayIndex}, Place ${placeIndex}`);
+        console.log('저장된 transportInfo:', transportInfo[dayIndex]?.[placeIndex]);  // transportInfo 로그 출력
+        return;  // 이미 데이터가 있으면 API 호출하지 않음
+      }
+  
+      const startPlace = routeInfoByDay[`Day ${dayIndex + 1}`]?.visitPlaces[placeIndex];
+      const endPlace = routeInfoByDay[`Day ${dayIndex + 1}`]?.visitPlaces[placeIndex + 1];
+  
+      if (!startPlace || !endPlace) return;
+    
+      const newTransportInfo : TransportInfo[] = [
+        {
+          "startLocation": "출발지",
+          "endLocation": "남대문시장앞.이회영활동터",
+          "mode": "WALK",
+          "route": "도보",
+          "routeColor": "#8A8F96",
+          "sectionTime": 175, // 구간 소요 시간 (초)
+          "totalDistance": 1197, // 총 이동 거리 (m)
+          "totalFare": 1500, // 총 요금 (원)
+          "totalTime": 708, // 총 소요 시간 (초)
+          "totalWalkTime": 430, // 총 보행 시간 (초)
+          "transferCount": 0 // 환승 횟수
+        },
+        {
+          "startLocation": "남대문시장앞.이회영활동터",
+          "endLocation": "을지로입구.로얄호텔",
+          "mode": "BUS",
+          "route": "간선:152",
+          "routeColor": "0068B7",
+          "sectionTime": 278, // 구간 소요 시간 (초)
+          "totalDistance": 1197, // 총 이동 거리 (m)
+          "totalFare": 1500, // 총 요금 (원)
+          "totalTime": 708, // 총 소요 시간 (초)
+          "totalWalkTime": 430, // 총 보행 시간 (초)
+          "transferCount": 0 // 환승 횟수
+        },
+        {
+          "startLocation": "을지로입구.로얄호텔",
+          "endLocation": "도착지",
+          "mode": "WALK",
+          "route": "도보",
+          "routeColor": "#8A8F96",
+          "sectionTime": 255, // 구간 소요 시간 (초)
+          "totalDistance": 1197, // 총 이동 거리 (m)
+          "totalFare": 1500, // 총 요금 (원)
+          "totalTime": 708, // 총 소요 시간 (초)
+          "totalWalkTime": 430, // 총 보행 시간 (초)
+          "transferCount": 0 // 환승 횟수
+        }
+      ]      
+      
+      // 교통 정보를 각 Day와 장소에 따라 상태에 저장
+      setTransportInfo((prevInfo) => {
+        const updatedInfo = [...prevInfo];  // 기존 배열 복사
+        if (!updatedInfo[dayIndex]) {
+          updatedInfo[dayIndex] = [];  // 해당 dayIndex에 배열이 없으면 초기화
+        }
+        updatedInfo[dayIndex][placeIndex] = newTransportInfo;  // 각 장소에 맞는 정보를 배열로 저장
+        return updatedInfo;
+        });
+    } catch (error) {
+      console.error('Error fetching TMap transport data:', error);
+      Alert.alert('Error', '교통 데이터를 불러오는 중 오류가 발생했습니다.');
+    }
+  };
+
+  // 실제 api 호출해서 사용
+  const fetchTransportData = async (dayIndex: number, placeIndex: number) => {
+    try {
+      if (transportInfo[dayIndex]?.[placeIndex]) {
+        console.log(`이미 저장된 데이터: Day ${dayIndex}, Place ${placeIndex}`);
+        console.log('저장된 transportInfo:', transportInfo[dayIndex]?.[placeIndex]);  // transportInfo 로그 출력
+        return;  // 이미 데이터가 있으면 API 호출하지 않음
+      }
+  
+      const startPlace = routeInfoByDay[`Day ${dayIndex + 1}`]?.visitPlaces[placeIndex];
+      const endPlace = routeInfoByDay[`Day ${dayIndex + 1}`]?.visitPlaces[placeIndex + 1];
   
       if (!startPlace || !endPlace) return;
   
@@ -4445,44 +4546,85 @@ const RouteScreen = () => {
         format: "json"
       };
   
-      const response = await axios.post(
+      const public_transport_response = await axios.post(
         'https://apis.openapi.sk.com/transit/routes',
         requestBody,
         {
           headers: {
             'Content-Type': 'application/json',
-            'appKey': process.env.REACT_APP_TMAP_API_KEY // 실제 발급받은 API 키를 여기에 추가
+            'appKey': '' // 실제 발급받은 API 키
           }
         }
       );
+
+      console.log("대중교통 api 초기 응답", public_transport_response);
+      const status = public_transport_response.data.result?.status;
+      const errorMessage = public_transport_response.data.result?.message || "No public transport data available";
+
+      // 응답에서 status를 먼저 확인
+      if ([11, 12, 13, 14].includes(status) || !public_transport_response.data.metaData?.plan?.itineraries) {        
+        console.log(`T MAP 대중교통 API 에러: 코드(${status}), 메시지(${errorMessage})`);
+        const newTransportInfo: TransportInfo[] = [];
+
+        setTransportInfo((prevInfo) => {
+          const updatedInfo = [...prevInfo];
+          if (!updatedInfo[dayIndex]) {
+            updatedInfo[dayIndex] = [];
+          }
+          updatedInfo[dayIndex][placeIndex] = newTransportInfo;  // 대중교통 정보 없음 표시 (빈 객체 넣음)
+          return updatedInfo;
+        });
+        return;
+      }
+
+      console.log("대중교통 api 성공 응답 데이터", public_transport_response.data);
+      
+      const itineraries: Itinerary[] = public_transport_response.data.metaData?.plan?.itineraries || [];
   
-      const itineraries: Itinerary[] = response.data.metaData.plan.itineraries;
-
-      // 새로운 교통 정보 배열
       const newTransportInfo: TransportInfo[] = [];
-
+  
       if (Array.isArray(itineraries)) {
         itineraries.forEach((itinerary) => {
-          itinerary.legs.forEach((leg: Leg) => {
+          const totalFare = itinerary.fare?.regular?.totalFare ?? 0; // totalFare 가져오기
+          const totalWalkTime = itinerary.totalWalkTime ?? 0; // 총 보행 시간
+          const totalTime = itinerary.totalTime ?? 0; // 총 소요 시간
+          const transferCount = itinerary.transferCount ?? 0; // 환승 횟수
+          const totalDistance = itinerary.totalDistance ?? 0; // 총 이동 거리
+
+          // 각 leg 정보를 newTransportInfo 배열에 추가
+          itinerary.legs.forEach((leg: Leg) => { // leg: 하나의 경로
             const transportDetails: TransportInfo = {
               mode: leg.mode,
               route: leg.route ? leg.route : '도보',
+              routeColor: leg.routeColor || '#8A8F96', // routeColor 기본값 추가
               startLocation: leg.start.name,
               endLocation: leg.end.name,
-              sectionTime: leg.sectionTime
+              sectionTime: leg.sectionTime,
+              totalTime, // 전체 소요시간
+              totalFare, // 요금
+              transferCount, // 환승 횟수
+              totalDistance, // 이동 거리
+              totalWalkTime, // 보행 시간
             };
-            newTransportInfo.push(transportDetails);
+            newTransportInfo.push(transportDetails);  // 각 leg를 배열에 추가
           });
         });
-
+  
         console.log('모든 교통 정보:', newTransportInfo);
-
-        // 교통 정보를 상태에 저장
-        setTransportInfo(newTransportInfo);
+  
+        // 교통 정보를 각 Day와 장소에 따라 상태에 저장
+        setTransportInfo((prevInfo) => {
+          const updatedInfo = [...prevInfo];  // 기존 배열 복사
+          if (!updatedInfo[dayIndex]) {
+            updatedInfo[dayIndex] = [];  // 해당 dayIndex에 배열이 없으면 초기화
+          }
+          updatedInfo[dayIndex][placeIndex] = newTransportInfo;  // 각 장소에 맞는 정보를 배열로 저장
+          return updatedInfo;
+        });
       }
     } catch (error) {
       console.error('Error fetching TMap transport data:', error);
-      Alert.alert('Error', '교통 데이터를 불러오는 중 오류가 발생했습니다.');
+      // Alert.alert('Error', '교통 데이터를 불러오는 중 오류가 발생했습니다.');
     }
   };
   
@@ -4548,7 +4690,7 @@ const RouteScreen = () => {
         },
         {
           text: '나가기',
-          onPress: () => navigation.navigate('ThemeScreen'), // ThemeScreen으로 이동
+          onPress: () => navigation.navigate('Tabs'), // 나가기 버튼 클릭시 Tabs로 이동
         },
       ],
       { cancelable: true },
@@ -4649,7 +4791,7 @@ const RouteScreen = () => {
         <Image source={require('../../assets/images/back_button3.png')} style={styles.backButtonImage} />
       </TouchableOpacity>
       <BottomSheet ref={bottomSheetRef} index={2} snapPoints={['10%', '25%', '50%', '90%']}>
-        {/* Day1, Day2, Day3 버튼을 상단에 추가 */}
+        {/* 1. Day1, Day2, Day3 버튼을 상단에 추가 */}
         <ScrollView contentContainerStyle={styles.bottomSheetContent}>
           <View style={styles.dayButtonsContainer}>
             {Array.from({ length: dayCount }).map((_, index) => (
@@ -4667,46 +4809,46 @@ const RouteScreen = () => {
                 <Text style={selectedDayIndex === index ? styles.selectedDayText : styles.dayButtonText}>
                   {`Day ${index + 1}`}
                 </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+              </TouchableOpacity>
+            ))}
+          </View>
 
-        {/* 장소 리스트와 동그라미 마커 */}
-        <View style={styles.timelineContainer}>
-          {routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.visitPlaces?.map((place, index) => (
-            
-            <View key={index} style={styles.timelineItem}>
-                {/* 동그라미 마커와 장소명 같이 배치 */}
-                <TouchableOpacity 
-                  onPress={() => handlePlaceClick(place.latitude, place.longitude)} 
-                  style={styles.markerAndPlaceContainer}
-                >
-                  {/* 동그라미 마커 */}
-                  <View style={styles.markerContainer}>
-                    <Image
-                      source={getMarkerImage(selectedDayIndex, index)}
-                      style={styles.markerImage}
-                    />
+          {/* 2. 장소 리스트와 동그라미 마커 */}
+          <View style={styles.timelineContainer}>
+            {routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.visitPlaces?.map((place, index) => {
+              // toggleKey 선언
+              const toggleKey = `${selectedDayIndex}-${index}`;
+
+              return (
+                <View key={index} style={styles.timelineItem}>
+                  <View style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+                    {/* 2.1 동그라미 마커와 장소명 */}
+                    <TouchableOpacity onPress={() => handlePlaceClick(place.latitude, place.longitude)} style={styles.markerAndPlaceContainer}>
+                      <View style={styles.markerContainer}>
+                        <Image source={getMarkerImage(selectedDayIndex, index)} style={styles.markerImage} />
+                      </View>
+                      <Text style={styles.placeNameText}>{place.name}</Text>
+                    </TouchableOpacity>
                   </View>
-                  {/* 장소명 */}
-                  <Text style={styles.placeNameText}>{place.name}</Text>
-                </TouchableOpacity>
-                {/* 마커 사이에 세로줄과 교통수단 아이콘 & 텍스트 & 토글 */}
-                {index < routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.visitPlaces?.length - 1 && (
-                  <View style={styles.lineAndTransportContainer}>
-
-                      {/* 세로줄 */}
-                      <View style={styles.verticalLine} />
-
-                      {/* 교통수단 아이콘과 텍스트, 토글 버튼 */}
-                      <TouchableOpacity 
+                  {/* 2.1 세로줄 (markerAndPlaceContainer의 외부에 배치) */}
+                  <View style={[
+                      styles.verticalLine,
+                      toggleState[toggleKey] && styles.expandedVerticalLine,  // 토글 상태에 따라 세로선 높이 확장
+                    ]} />
+                  {/* 2.2 마커 사이에 세로줄과 교통수단 아이콘 & 텍스트 & 토글 */}
+                  {index < routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.visitPlaces?.length - 1 && (
+                    <View style={[
+                      styles.lineAndTransportContainer,
+                      toggleState[toggleKey] && styles.expandedLineAndTransportContainer  // 토글 상태에 따라 높이 확장
+                    ]}>
+                      <TouchableOpacity
                         onPress={() => {
-                          toggleItem(selectedDayIndex, index);  // 토글 상태 변경
-                          if (!toggleState[`${selectedDayIndex}-${index}`]) {
-                            fetchTransportData(index);  // 토글이 true로 변경될 때만 API 호출
-                          }
-                        }} 
-                        style={styles.transportToggleContainer}
+                          toggleItem(selectedDayIndex, index);                
+                        }}
+                        style={[
+                          styles.transportToggleContainer,
+                          toggleState[toggleKey] && styles.expandedContainer  // 토글 상태에 따라 공간 확장
+                        ]}
                       >
                         <View style={styles.transportContent}>
                           {/* 교통수단 아이콘 */}
@@ -4716,45 +4858,148 @@ const RouteScreen = () => {
                               : require('../../assets/images/route/timeline-car.png')}
                             style={styles.transportIcon}
                           />
-                        
-                          {/* 교통수단 밑에 텍스트 (예: 16분) */}
-                          <Text style={styles.transportTimeText}>16분</Text>
-                          {/* 토글 버튼 (아이콘 옆에 표시) */}
                           <Text style={styles.toggleButtonText}>
-                            {toggleState[`${selectedDayIndex}-${index}`] ? 'v 경로 닫기' : '> 경로 보기'}
+                            {toggleState[toggleKey] ? 'v 경로 닫기' : '> 경로 보기'}
                           </Text>
                         </View>
-                        {/* toggleState가 true일 때만 추가 텍스트 표시 */}
-                        {toggleState[`${selectedDayIndex}-${index}`] && (
-                          <View style={styles.additionalTextContainer}>
-                          {transportInfo.length > 0 ? (
-                            transportInfo.map((info, idx) => (
-                              <Text key={idx} style={styles.additionalText}>
-                                {`교통수단 종류: ${info.mode}, 경로: ${info.route}, 출발지: ${info.startLocation}, 도착지: ${info.endLocation}, 소요 시간: ${info.sectionTime}분`}
-                              </Text>
-                            ))
-                          ) : (
-                            <Text style={styles.additionalText}>교통 정보 로드 중...</Text>
-                          )}
-                        </View>
+                        {/* 토글 상태가 true일 때만 추가 정보 표시 */}
+                        {toggleState[toggleKey] && transportInfo[selectedDayIndex]?.[index] && (
+                          <View style={styles.expandedContent}>
+                            {/* transportInfo가 빈 배열이거나 경우도 체크 */}
+                            {Array.isArray(transportInfo[selectedDayIndex]?.[index]) && transportInfo[selectedDayIndex]?.[index].length === 0 ? (
+                              <Text style={styles.noTransportInfoText}>대중교통 정보가 없습니다.</Text>
+                            ) : (
+                              <>
+                                {/* 추가 정보들 */}
+                                {/* 첫 번째 줄 */}
+                                <Text style={styles.transportTimeText}>
+                                  {`총 소요시간: ${Math.floor((transportInfo[selectedDayIndex]?.[index]?.[0]?.totalTime ?? 0) / 60)}m, 대중교통 요금: ${transportInfo[selectedDayIndex]?.[index]?.[0]?.totalFare ?? 0}원`}
+                                </Text>
+
+                                {/* 두 번째 줄 */}
+                                <Text style={styles.transportTimeText}>
+                                  {`환승 횟수: ${transportInfo[selectedDayIndex]?.[index]?.[0]?.transferCount ?? 0}번, 총 보행시간: ${Math.floor((transportInfo[selectedDayIndex]?.[index]?.[0]?.totalWalkTime ?? 0) / 60)}m`}
+                                </Text>
+
+                                {/* 세 번째 줄 */}
+                                {/* 교통수단에 따른 캡슐 형태의 정보 표시 */}
+                                <View style={styles.capsuleGroup}>
+                                  {transportInfo[selectedDayIndex]?.[index]?.map((info: TransportInfo, subIndex: number) => {
+                                    const totalSectionTime = transportInfo[selectedDayIndex][index]
+                                      .reduce((sum, current) => sum + current.sectionTime, 0); // 전체 시간 합계 계산
+                                    const totalCapsuleWidth = 280; // 고정된 전체 타임캡슐 너비 (px 단위)
+                                    const sectionWidth = (info.sectionTime / totalSectionTime) * totalCapsuleWidth; // 각 구간의 비율에 따른 실제 너비 계산 (숫자형 값)
+
+                                    return (
+                                      <View key={subIndex} style={[styles.capsuleContainer, { width: sectionWidth }]}>
+                                        {info.mode !== 'WALK' ? (
+                                          // WALK가 아닌 경우, 캡슐 모양 표시
+                                          <View
+                                            style={[
+                                              styles.capsule,
+                                              {
+                                                width: sectionWidth,
+                                                borderRadius:20,
+                                                height: 35,
+                                                backgroundColor: info.routeColor
+                                                  ? `#${info.routeColor?.replace(' ', '')}` // routeColor가 있으면 적용
+                                                  : '#0A0A0A', // routeColor가 없으면 기본값 #0A0A0A
+                                              },
+                                            ]}
+                                          >
+                                            <Text
+                                              style={styles.capsuleText}
+                                            >
+                                              {`${Math.floor(info.sectionTime / 60)}m`} {/* 분으로 변환 */}
+                                            </Text>
+                                          </View>
+                                        ) : (
+                                          // WALK인 경우, 캡슐은 표시하지 않고 시간만 텍스트로 표시
+                                          <Text style={styles.walkTimeText}>
+                                            {`${Math.floor(info.sectionTime / 60)}m`}
+                                          </Text>
+                                        )}
+                                        {/* 각 교통수단의 정가운데에 route 표시 */}
+                                        {/* {info.mode !== 'WALK' && (
+                                          <Text style={styles.capsuleRouteText}>
+                                            {`BUS ${info.route}`}
+                                          </Text>
+                                        )} */}
+                                      </View>
+                                    );
+                                  })}
+                                </View>
+
+                                {/* 네 번째 줄 */}
+                                {/* 출발지와 도착지 정보를 반복적으로 표시 */}
+                                <View style={styles.stopsGroup}>
+                                  {/* 세로선 추가 */}
+                                  <View style={styles.transport_verticalLine} />
+
+                                  {transportInfo[selectedDayIndex]?.[index]?.map((info: TransportInfo, subIndex: number) => {
+                                    // WALK가 아닌 경우에만 출발지와 도착지를 표시
+                                    if (info.mode !== 'WALK') {
+                                      return (
+                                        <View key={subIndex}>
+                                          <Text style={[styles.stopText, {marginBottom: 15, fontFamily: 'SBAggroM'}]}>{`${info.mode} ${info.route}`}</Text>
+                                          {/* 출발지 표시 */}
+                                          <View style={styles.stopContainer}>
+                                            <View style={styles.stopDotContainer}>
+                                              <View
+                                                style={[
+                                                  styles.stopDot,
+                                                  {
+                                                    backgroundColor: `#${info.routeColor?.replace('#', '') || 'B0ADAD'}`,  // BUS 또는 SUBWAY인 경우 색깔 적용, 없으면 기본값
+                                                  },
+                                                ]}
+                                              />
+                                            </View>
+                                            {/* 동그라미 옆에 route 표시 후 출발지 표시 */}
+                                            <Text style={styles.stopText}>{`${info.startLocation} 승차`}</Text>
+                                          </View>
+
+                                          {/* 도착지 표시 */}
+                                          <View style={styles.stopContainer}>
+                                            <View style={styles.stopDotContainer}>
+                                              <View
+                                                style={[
+                                                  styles.stopDot,
+                                                  {
+                                                    backgroundColor: `#${info.routeColor?.replace('#', '') || 'B0ADAD'}`,  // BUS 또는 SUBWAY인 경우 색깔 적용, 없으면 기본값
+                                                  },
+                                                ]}
+                                              />
+                                            </View>
+                                            {/* 동그라미 옆에 route 표시 후 도착지 표시 */}
+                                            <Text style={styles.stopText}>{`${info.endLocation} 하차`}</Text>
+                                          </View>
+                                        </View>
+                                      );
+                                    }
+                                    return null;  // WALK일 경우 아무것도 반환하지 않음
+                                  })}
+                                </View>
+                              </>
+                            )}
+                          </View>
                         )}
                       </TouchableOpacity>
-                      {/* 토글된 상태에 따라 빈 공간 추가 */}
                     </View>
-                )}
-            </View>
-          ))}
-        </View>
+                  )}
+                </View>
+              );
+            })}
+          </View>
 
-        {/* 선택된 날짜를 우측 하단에 표시 */}
-        <View style={{ position: 'absolute', top: 85, right: 50 }}>
-          {typeof contextSelectedDay[0] === 'string' && (
-            <Text style={{ color: '#000000', fontFamily: 'SBAggroM', fontSize: 12}}>
-              {getCalculatedDate(contextSelectedDay[0] as string, selectedDayIndex)}
-            </Text>
-          )}
-        </View>            
-      </ScrollView>
+          {/* 3. 선택된 날짜를 우측 하단에 표시 */}
+          <View style={{ position: 'absolute', top: 85, right: 50 }}>
+            {typeof contextSelectedDay[0] === 'string' && (
+              <Text style={{ color: '#000000', fontFamily: 'SBAggroM', fontSize: 12 }}>
+                {getCalculatedDate(contextSelectedDay[0] as string, selectedDayIndex)}
+              </Text>
+            )}
+          </View>
+        </ScrollView>
       </BottomSheet>
     </GestureHandlerRootView>
   );
@@ -4776,7 +5021,7 @@ const styles = StyleSheet.create({
   dayButtonText: {
     fontSize: 16,
     color: '#333',
-    fontFamily: 'SBAggroM'
+    fontFamily: 'SBAggroM',
   },
   selectedDayButton: {
     backgroundColor: '#0047A0',
@@ -4784,7 +5029,7 @@ const styles = StyleSheet.create({
   selectedDayText: {
     fontSize: 16,
     color: '#fff',
-    fontFamily: 'SBAggroM'
+    fontFamily: 'SBAggroM',
   },
   dayContainer: {
     padding: 10,
@@ -4799,10 +5044,9 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   timelineItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    position: 'relative', // 자식들의 위치를 상대적으로 설정
-    marginBottom: 130, // 각 timelineItem 간의 간격 추가
+    flexDirection: 'column',
+    alignItems: 'flex-start', // 마커와 장소명을 상단에 맞춤
+    marginBottom: 10, // 기본 간격
   },
   markerAndLineContainer: {
     flexDirection: 'row',
@@ -4826,15 +5070,16 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   transportTimeText: {
-    fontSize: 16,
+    fontSize: 14,
     marginRight: 5,
+    marginBottom: 9,  // 두 줄 사이의 간격을 위해 추가
     color: '#000000',
-    fontFamily: 'SBAggroM'
+    fontFamily: 'SBAggroL',
   },
   toggleButtonText: {
     fontSize: 16,
     color: '#000000',
-    fontFamily: 'SBAggroM'
+    fontFamily: 'SBAggroM',
   },
   emptySpace: {
     height: 50,
@@ -4862,7 +5107,7 @@ const styles = StyleSheet.create({
   zoomButtonText: {
     fontSize: 20,
     fontWeight: 'bold',
-    fontFamily: 'SBAggroM'
+    fontFamily: 'SBAggroM',
   },
   placeInfo: {
     flex: 1,
@@ -4874,26 +5119,27 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   verticalLineAndIconContainer: {
-    alignItems: 'center', // 세로 정렬
-    flexDirection: 'column', // 세로로 정렬
-    justifyContent: 'center', // 중앙에 맞춤
+    alignItems: 'center',
+    flexDirection: 'column',
+    justifyContent: 'center',
   },
   markerAndPlaceContainer: {
-    flexDirection: 'row', // 마커와 장소명을 나란히 배치
+    flexDirection: 'row',
     alignItems: 'center',
+    zIndex: 1,               // 세로선 위에 배치
   },
   placeNameText: {
-    marginLeft: 10, // 마커와 장소명 사이의 간격
-    fontSize: 16, // 원하는 크기로 텍스트 설정
-    fontFamily: 'SBAggroM', // 사용하려는 폰트 적용
-    color: '#000000', // 텍스트 색상
+    marginLeft: 10,
+    fontSize: 16,
+    fontFamily: 'SBAggroM',
+    color: '#000000',
   },
   backButton: {
     position: 'absolute',
     top: 30,
     left: 20,
-    zIndex: 999,  
-    margin: 10
+    zIndex: 999,
+    margin: 10,
   },
   backButtonImage: {
     width: 30,
@@ -4914,6 +5160,165 @@ const styles = StyleSheet.create({
   bottomSheetContent: {
     padding: 10,
   },
+  markerImage: {
+    width: 40,
+    height: 40,
+  },
+  verticalLine: {
+    position: 'absolute',
+    top: '70%',  // 부모 요소의 상단부터 시작
+    left: 24,    // X축에서 마커와 일치하는 위치 (필요에 따라 조정)
+    width: 4,
+    height: 100,  
+    backgroundColor: '#B5B5B5',
+    zIndex: -1,  // 마커 뒤로 배치
+    transform: [{ translateY: -25 }],  // Y축에서 중앙 정렬을 위한 보정
+  },
+  transport_verticalLine: {
+    position: 'absolute',
+    top: 30,
+    bottom: 0,             // 부모 요소의 높이에 맞게 확장
+    left: 9,              // 동그라미의 x좌표에 맞춰서 선 위치 고정 (조정 가능)
+    width: 2,              // 선의 두께
+    height: '50%', 
+    backgroundColor: '#EAEBF0',  // 선의 색상
+    zIndex: -1,            // 동그라미보다 뒤에 표시되도록 설정
+  },
+  transportContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 50,
+    marginBottom: 10
+  },
+  markerContainer: {
+    width: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  transportToggleContainer: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    justifyContent: 'flex-start',
+    overflow: 'hidden', // 넘치는 내용을 숨기기 위해 설정
+  },
+  expandedContent: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginTop: 5,
+    marginLeft: 50,
+  },
+  capsuleGroup: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '90%',  // 전체 타임캡슐 그룹 너비 고정
+    height: 35,  // 고정된 높이
+    borderRadius: 20,  // 전체적으로 둥근 모서리
+    marginTop: 20,
+    marginBottom: 28,
+    padding: 5,
+    backgroundColor: '#E5EAF0',  // 전체 캡슐의 배경색
+  },
+  capsuleContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: 30,
+  },
+  capsule: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 5,
+    borderRadius: 20,  // 네 모서리가 둥근 직사각형
+    height: '100%', // 부모 컨테이너에 맞춤
+  },
+  capsuleText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#E5EAF0',  // 기본 텍스트 색상은 흰색
+  },
+  walkTimeText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#000',  // WALK는 검정색 텍스트
+  },
+  capsuleLabel: {
+    marginTop: 14,
+    textAlign: 'center',
+    fontSize: 12,
+    color: '#000',
+    fontFamily: 'SBAggroM'
+  },
+  stopsGroup: {
+    position: 'relative',  // 자식 요소의 절대 위치를 위해 설정
+  },
+  stopContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  stopDotContainer: {
+    marginRight: 10,
+    alignItems: 'center',
+  },
+  stopDot: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#B5B5B5', // 동그라미 색상
+  },
+  stopText: {
+    fontSize: 14,
+    color: '#000',
+    fontFamily: 'SBAggroL'
+  },
+  expandedLine: {
+    height: 150, // 토글이 열렸을 때의 확장된 세로선 높이
+  },
+  lineAndTransportContainer: {
+    flexDirection: 'column',   // 세로로 배치
+    marginTop: 10,             // 마커와 교통 정보 사이 간격
+    zIndex: 0,                 // 마커보다 뒤에 배치
+  },
+  expandedLineAndTransportContainer: {
+    //flexGrow: 1,  // 자동 확장 대신 동적 높이 사용
+    height: 'auto',  // 컨텐츠에 따라 자동으로 높이 조절
+    marginBottom: 10,
+    maxHeight: 300, // 최대 높이를 설정하여 스크롤이 가능하게 조정
+    // minHeight: 500,  // 최소 높이 설정
+    // maxHeight: 1600,  // 최대 높이 설정
+    // overflow: 'hidden',  // 스크롤이 안되는 영역을 넘지 않도록 설정
+  },
+  expandedVerticalLine: {
+    position: 'absolute',
+    top: '10%',  // 부모 요소의 상단부터 시작
+    left: 24,    // X축에서 마커와 일치하는 위치 (필요에 따라 조정)
+    width: 4,
+    height: '100%',  // 부모 컨테이너에 맞춰 높이를 동적으로 설정
+    backgroundColor: '#B5B5B5',
+    zIndex: -1,  // 마커 뒤로 배치
+    transform: [{ translateY: -25 }],  // Y축에서 중앙 정렬을 위한 보정
+  },
+  expandedContainer: {
+    flexGrow: 1,        // 자동 확장
+    overflow: 'visible' // 넘치는 콘텐츠가 보이도록 설정
+  },  
+  noTransportInfoText: {
+    fontSize: 16,
+    color: '#000000', 
+    textAlign: 'center',
+    fontFamily: 'SBAggroL',
+    marginTop: 10,
+  },
+  // capsuleRouteText: {
+  //   position: 'absolute',   // 캡슐 위에 텍스트를 배치하기 위해 절대 위치 지정
+  //   top: -25,               // 캡슐 위쪽에 위치시키기 위해 top을 -20으로 조정
+  //   width: '100%',          // 텍스트가 캡슐 중앙에 오도록 전체 너비 사용
+  //   textAlign: 'center',    // 텍스트를 중앙 정렬
+  //   fontSize: 12,           // 폰트 크기 설정
+  //   color: '#000',          // 텍스트 색상 (검정으로 지정)
+  //   fontFamily: 'SBAggroM', // 폰트 스타일 적용
+  // },  
 });
 
 
