@@ -39,48 +39,103 @@ interface RouteOptResponseDto {
 
 // TransportInfo 타입 재정의
 interface TransportInfo {
-  mode: string;        // 교통수단 종류
-  route: string;       // 버스/지하철 번호
+  mode?: string;        // 교통수단 종류
+  route?: string;       // 버스/지하철 번호
   routeColor?: string | null; // 교통수단 색상 (선택적)
-  startLocation: string; // 출발지
-  endLocation: string;   // 도착지
-  sectionTime: number;   // 소요 시간
+
+  startLocation?: {
+    name?: string;
+    lon?: number;
+    lat?: number;
+  };  // 출발지 정보
+
+  endLocation?: {
+    name?: string;
+    lon?: number;
+    lat?: number;
+  };
+  
+  sectionTime?: number;   // 소요 시간
+
+  passStopList?: {
+    index?: number;
+    stationName?: string;
+    lon?: number;
+    lat?: number;
+    stationID?: string;
+  }[];  // 정류장 리스트
+
+  passShape?: {
+    latitude?: number;
+    longitude?: number;
+  }[];
+
+  steps?: {
+    streetName?: string;
+    distance?: number;
+    // description?: string;
+    linestring?: {
+      latitude?: number;
+      longitude?: number;
+    }[];
+  }[];  // 도보 경로 세부 정보 (WALK일 때만 사용)
+
   totalTime?: number | null;    // 전체 소요시간 (초)
   transferCount?: number | null; // 환승 횟수
   totalWalkTime?: number | null; // 총 보행시간 (초)
   totalDistance?: number | null; // 총 이동거리 (m)
   totalFare?: number | null;     // 대중교통 요금
-  type?: number | null;             // 교통수단 타입 (버스, 지하철 등, 선택적)
 }
 
-// Leg 타입 정의 (routeColor, type 추가)
+// Leg 타입 정의 
 interface Leg {
-  mode: string;                      // 교통수단 종류
+  mode?: string;                      // 교통수단 종류
   route?: string;                    // 대중교통 노선 (버스/지하철 번호, 선택적)
   routeColor?: string | null;        // 노선 색상 (선택적)
   type?: number | null;              // 교통수단 타입 (선택적)
-  start: {
-    name: string;                    // 출발지명
-    lon: number;                     // 경도
-    lat: number;                     // 위도
+  start?: {
+    name?: string;                    // 출발지명
+    lon?: number;                     // 경도
+    lat?: number;                     // 위도
   };
-  end: {
-    name: string;                    // 도착지명
-    lon: number;                     // 경도
-    lat: number;                     // 위도
+  end?: {
+    name?: string;                    // 도착지명
+    lon?: number;                     // 경도
+    lat?: number;                     // 위도
   };
-  sectionTime: number;               // 소요 시간 (초)
+  passStopList?: {
+    stationList?: Station[];   // 정류장 리스트
+  };
+  passShape?: {
+    linestring?: string;
+  };
+  sectionTime?: number;               // 소요 시간 (초)
+
+  steps?:{
+    streetName?: string,
+    distance?: number,
+    // description?: string,
+    linestring?: string
+  }[]; // 도보 경로 (배열)
+}
+
+interface Station {
+  index?: number;
+  stationName?: string;  // 정류장 이름
+  lon?: string;          // 경도
+  lat?: string;          // 위도
+  stationID?: string;   // 정류장 ID (선택적)
 }
 
 interface Fare {
-  regular: {
-    totalFare: number;
+  regular?: {
+    totalFare?: number;
   };
 }
 
 // Itinerary 타입 정의
 interface Itinerary {
-  legs: Leg[];                       // 교통수단 배열
+  legs?: Leg[];                       // 교통수단 배열
   totalTime?: number | null;         // 전체 소요시간 (초, 선택적)
   transferCount?: number | null;     // 환승 횟수 (선택적)
   totalWalkTime?: number | null;     // 총 보행시간 (초, 선택적)
@@ -101,7 +156,6 @@ const RouteScreen = () => {
   const mapRef = useRef<MapView>(null);
   const [toggleState, setToggleState] = useState<{ [key: string]: boolean }>({});
   const [transportInfo, setTransportInfo] = useState<TransportInfo[][][]>([]);
-
 
   const response1 = {
     "totalDistance": "8299",
@@ -4452,7 +4506,7 @@ const RouteScreen = () => {
   };
 
   // 개발하는 동안 편하게 사용하는 미리 로드된 대중교통 데이터셋
-  const fetchTransportData1 = async (dayIndex: number, placeIndex: number) => {
+  const fetchTransportData = async (dayIndex: number, placeIndex: number) => {
     try {
       if (transportInfo[dayIndex]?.[placeIndex]) {
         console.log(`이미 저장된 데이터: Day ${dayIndex}, Place ${placeIndex}`);
@@ -4465,48 +4519,639 @@ const RouteScreen = () => {
   
       if (!startPlace || !endPlace) return;
     
-      const newTransportInfo : TransportInfo[] = [
+      const newTransportInfo : TransportInfo[] =  [
         {
-          "startLocation": "출발지",
-          "endLocation": "남대문시장앞.이회영활동터",
           "mode": "WALK",
           "route": "도보",
           "routeColor": "#8A8F96",
-          "sectionTime": 175, // 구간 소요 시간 (초)
-          "totalDistance": 1197, // 총 이동 거리 (m)
-          "totalFare": 1500, // 총 요금 (원)
-          "totalTime": 708, // 총 소요 시간 (초)
-          "totalWalkTime": 430, // 총 보행 시간 (초)
-          "transferCount": 0 // 환승 횟수
+          "startLocation": {
+            "name": "출발지",
+            "lon": 126.99463434,
+            "lat": 37.53458875
+          },
+          "endLocation": {
+            "name": "이태원",
+            "lon": 126.99464166666667,
+            "lat": 37.53454444444444
+          },
+          "sectionTime": 86,
+          "steps": [
+            {
+              "streetName": "",
+              "distance": 42,
+              "linestring": [
+                {
+                  "latitude": 37.53454,
+                  "longitude": 126.99464
+                },
+                {
+                  "latitude": 37.53452,
+                  "longitude": 126.99434
+                },
+                {
+                  "latitude": 37.53451,
+                  "longitude": 126.99417
+                }
+              ]
+            },
+            {
+              "streetName": "",
+              "distance": 24,
+              "linestring": [
+                {
+                  "latitude": 37.53451,
+                  "longitude": 126.99417
+                },
+                {
+                  "latitude": 37.5346,
+                  "longitude": 126.994156
+                },
+                {
+                  "latitude": 37.534607,
+                  "longitude": 126.99428
+                },
+                {
+                  "latitude": 37.534637,
+                  "longitude": 126.99431
+                }
+              ]
+            },
+            {
+              "streetName": "이태원로",
+              "distance": 29,
+              "linestring": [
+                {
+                  "latitude": 37.534637,
+                  "longitude": 126.99431
+                },
+                {
+                  "latitude": 37.534637,
+                  "longitude": 126.99437
+                },
+                {
+                  "latitude": 37.534637,
+                  "longitude": 126.994446
+                },
+                {
+                  "latitude": 37.534637,
+                  "longitude": 126.99449
+                },
+                {
+                  "latitude": 37.53465,
+                  "longitude": 126.99463
+                }
+              ]
+            }
+          ],
+          "passShape": [],
+          "totalTime": 713,
+          "totalFare": 1400,
+          "transferCount": 0,
+          "totalDistance": 2121,
+          "totalWalkTime": 477
         },
         {
-          "startLocation": "남대문시장앞.이회영활동터",
-          "endLocation": "을지로입구.로얄호텔",
-          "mode": "BUS",
-          "route": "간선:152",
-          "routeColor": "0068B7",
-          "sectionTime": 278, // 구간 소요 시간 (초)
-          "totalDistance": 1197, // 총 이동 거리 (m)
-          "totalFare": 1500, // 총 요금 (원)
-          "totalTime": 708, // 총 소요 시간 (초)
-          "totalWalkTime": 430, // 총 보행 시간 (초)
-          "transferCount": 0 // 환승 횟수
+          "mode": "SUBWAY",
+          "route": "수도권6호선",
+          "routeColor": "CD7C2F",
+          "startLocation": {
+            "name": "이태원",
+            "lon": 126.99464166666667,
+            "lat": 37.53454444444444
+          },
+          "endLocation": {
+            "name": "삼각지",
+            "lon": 126.97394444444444,
+            "lat": 37.53561111111111
+          },
+          "sectionTime": 236,
+          "passStopList": [
+            {
+              "index": 0,
+              "stationName": "이태원",
+              "lon": 126.994642,
+              "lat": 37.534544,
+              "stationID": "110621"
+            },
+            {
+              "index": 1,
+              "stationName": "녹사평(용산구청)",
+              "lon": 126.986864,
+              "lat": 37.534594,
+              "stationID": "110620"
+            },
+            {
+              "index": 2,
+              "stationName": "삼각지",
+              "lon": 126.973944,
+              "lat": 37.535611,
+              "stationID": "110619"
+            }
+          ],
+          "passShape": [
+            {
+              "latitude": 37.534542,
+              "longitude": 126.994642
+            },
+            {
+              "latitude": 37.534492,
+              "longitude": 126.993856
+            },
+            {
+              "latitude": 37.534344,
+              "longitude": 126.991808
+            },
+            {
+              "latitude": 37.534275,
+              "longitude": 126.990661
+            },
+            {
+              "latitude": 37.534178,
+              "longitude": 126.989108
+            },
+            {
+              "latitude": 37.534131,
+              "longitude": 126.988533
+            },
+            {
+              "latitude": 37.534128,
+              "longitude": 126.988489
+            },
+            {
+              "latitude": 37.534125,
+              "longitude": 126.988447
+            },
+            {
+              "latitude": 37.534122,
+              "longitude": 126.988403
+            },
+            {
+              "latitude": 37.534119,
+              "longitude": 126.988358
+            },
+            {
+              "latitude": 37.534119,
+              "longitude": 126.988317
+            },
+            {
+              "latitude": 37.534122,
+              "longitude": 126.988272
+            },
+            {
+              "latitude": 37.534125,
+              "longitude": 126.988231
+            },
+            {
+              "latitude": 37.534125,
+              "longitude": 126.988186
+            },
+            {
+              "latitude": 37.534131,
+              "longitude": 126.988142
+            },
+            {
+              "latitude": 37.534133,
+              "longitude": 126.9881
+            },
+            {
+              "latitude": 37.534139,
+              "longitude": 126.988056
+            },
+            {
+              "latitude": 37.534144,
+              "longitude": 126.988014
+            },
+            {
+              "latitude": 37.534153,
+              "longitude": 126.987972
+            },
+            {
+              "latitude": 37.534161,
+              "longitude": 126.987928
+            },
+            {
+              "latitude": 37.534169,
+              "longitude": 126.987886
+            },
+            {
+              "latitude": 37.534181,
+              "longitude": 126.987844
+            },
+            {
+              "latitude": 37.534192,
+              "longitude": 126.987806
+            },
+            {
+              "latitude": 37.534203,
+              "longitude": 126.987764
+            },
+            {
+              "latitude": 37.534217,
+              "longitude": 126.987722
+            },
+            {
+              "latitude": 37.534231,
+              "longitude": 126.987683
+            },
+            {
+              "latitude": 37.534244,
+              "longitude": 126.987644
+            },
+            {
+              "latitude": 37.534583,
+              "longitude": 126.9869
+            },
+            {
+              "latitude": 37.534594,
+              "longitude": 126.986864
+            },
+            {
+              "latitude": 37.534881,
+              "longitude": 126.985964
+            },
+            {
+              "latitude": 37.534889,
+              "longitude": 126.985939
+            },
+            {
+              "latitude": 37.534894,
+              "longitude": 126.985908
+            },
+            {
+              "latitude": 37.5349,
+              "longitude": 126.985881
+            },
+            {
+              "latitude": 37.534906,
+              "longitude": 126.985853
+            },
+            {
+              "latitude": 37.534911,
+              "longitude": 126.985825
+            },
+            {
+              "latitude": 37.534917,
+              "longitude": 126.985797
+            },
+            {
+              "latitude": 37.534919,
+              "longitude": 126.985769
+            },
+            {
+              "latitude": 37.534925,
+              "longitude": 126.985742
+            },
+            {
+              "latitude": 37.534928,
+              "longitude": 126.985714
+            },
+            {
+              "latitude": 37.534931,
+              "longitude": 126.985683
+            },
+            {
+              "latitude": 37.534933,
+              "longitude": 126.985656
+            },
+            {
+              "latitude": 37.534939,
+              "longitude": 126.985628
+            },
+            {
+              "latitude": 37.534939,
+              "longitude": 126.985597
+            },
+            {
+              "latitude": 37.534942,
+              "longitude": 126.985569
+            },
+            {
+              "latitude": 37.534942,
+              "longitude": 126.985539
+            },
+            {
+              "latitude": 37.534942,
+              "longitude": 126.985511
+            },
+            {
+              "latitude": 37.534944,
+              "longitude": 126.985483
+            },
+            {
+              "latitude": 37.534944,
+              "longitude": 126.985453
+            },
+            {
+              "latitude": 37.534942,
+              "longitude": 126.985425
+            },
+            {
+              "latitude": 37.534942,
+              "longitude": 126.985394
+            },
+            {
+              "latitude": 37.534942,
+              "longitude": 126.985367
+            },
+            {
+              "latitude": 37.534783,
+              "longitude": 126.98115
+            },
+            {
+              "latitude": 37.534678,
+              "longitude": 126.977556
+            },
+            {
+              "latitude": 37.534647,
+              "longitude": 126.976092
+            },
+            {
+              "latitude": 37.534644,
+              "longitude": 126.976064
+            },
+            {
+              "latitude": 37.534644,
+              "longitude": 126.976033
+            },
+            {
+              "latitude": 37.534644,
+              "longitude": 126.976003
+            },
+            {
+              "latitude": 37.534647,
+              "longitude": 126.975975
+            },
+            {
+              "latitude": 37.534647,
+              "longitude": 126.975944
+            },
+            {
+              "latitude": 37.53465,
+              "longitude": 126.975917
+            },
+            {
+              "latitude": 37.534653,
+              "longitude": 126.975886
+            },
+            {
+              "latitude": 37.534656,
+              "longitude": 126.975856
+            },
+            {
+              "latitude": 37.534661,
+              "longitude": 126.975828
+            },
+            {
+              "latitude": 37.534667,
+              "longitude": 126.9758
+            },
+            {
+              "latitude": 37.534672,
+              "longitude": 126.975769
+            },
+            {
+              "latitude": 37.534678,
+              "longitude": 126.975742
+            },
+            {
+              "latitude": 37.534686,
+              "longitude": 126.975714
+            },
+            {
+              "latitude": 37.534692,
+              "longitude": 126.975683
+            },
+            {
+              "latitude": 37.534703,
+              "longitude": 126.975658
+            },
+            {
+              "latitude": 37.534711,
+              "longitude": 126.975631
+            },
+            {
+              "latitude": 37.534719,
+              "longitude": 126.975603
+            },
+            {
+              "latitude": 37.534731,
+              "longitude": 126.975578
+            },
+            {
+              "latitude": 37.534742,
+              "longitude": 126.97555
+            },
+            {
+              "latitude": 37.534753,
+              "longitude": 126.975525
+            },
+            {
+              "latitude": 37.534764,
+              "longitude": 126.9755
+            },
+            {
+              "latitude": 37.535019,
+              "longitude": 126.975078
+            },
+            {
+              "latitude": 37.535125,
+              "longitude": 126.974892
+            },
+            {
+              "latitude": 37.535606,
+              "longitude": 126.973989
+            },
+            {
+              "latitude": 37.535606,
+              "longitude": 126.973986
+            },
+            {
+              "latitude": 37.535622,
+              "longitude": 126.973953
+            }
+          ],
+          "totalTime": 713,
+          "totalFare": 1400,
+          "transferCount": 0,
+          "totalDistance": 2121,
+          "totalWalkTime": 477
         },
         {
-          "startLocation": "을지로입구.로얄호텔",
-          "endLocation": "도착지",
           "mode": "WALK",
           "route": "도보",
           "routeColor": "#8A8F96",
-          "sectionTime": 255, // 구간 소요 시간 (초)
-          "totalDistance": 1197, // 총 이동 거리 (m)
-          "totalFare": 1500, // 총 요금 (원)
-          "totalTime": 708, // 총 소요 시간 (초)
-          "totalWalkTime": 430, // 총 보행 시간 (초)
-          "transferCount": 0 // 환승 횟수
+          "startLocation": {
+            "name": "삼각지",
+            "lon": 126.97394444444444,
+            "lat": 37.53561111111111
+          },
+          "endLocation": {
+            "name": "도착지",
+            "lon": 126.97701646,
+            "lat": 37.53624102
+          },
+          "sectionTime": 391,
+          "steps": [
+            {
+              "streetName": "",
+              "distance": 37,
+              "linestring": [
+                {
+                  "latitude": 37.535618,
+                  "longitude": 126.973946
+                },
+                {
+                  "latitude": 37.5356,
+                  "longitude": 126.97399
+                },
+                {
+                  "latitude": 37.53557,
+                  "longitude": 126.97405
+                },
+                {
+                  "latitude": 37.535442,
+                  "longitude": 126.9743
+                }
+              ]
+            },
+            {
+              "streetName": "",
+              "distance": 45,
+              "linestring": [
+                {
+                  "latitude": 37.535442,
+                  "longitude": 126.9743
+                },
+                {
+                  "latitude": 37.53569,
+                  "longitude": 126.9747
+                }
+              ]
+            },
+            {
+              "streetName": "",
+              "distance": 19,
+              "linestring": [
+                {
+                  "latitude": 37.53569,
+                  "longitude": 126.9747
+                },
+                {
+                  "latitude": 37.535618,
+                  "longitude": 126.97472
+                },
+                {
+                  "latitude": 37.535553,
+                  "longitude": 126.97475
+                },
+                {
+                  "latitude": 37.535534,
+                  "longitude": 126.97478
+                }
+              ]
+            },
+            {
+              "streetName": "한강대로",
+              "distance": 5,
+              "linestring": [
+                {
+                  "latitude": 37.535534,
+                  "longitude": 126.97478
+                },
+                {
+                  "latitude": 37.535496,
+                  "longitude": 126.97481
+                }
+              ]
+            },
+            {
+              "streetName": "",
+              "distance": 121,
+              "linestring": [
+                {
+                  "latitude": 37.53476,
+                  "longitude": 126.976135
+                },
+                {
+                  "latitude": 37.534866,
+                  "longitude": 126.97619
+                },
+                {
+                  "latitude": 37.53493,
+                  "longitude": 126.976234
+                },
+                {
+                  "latitude": 37.535,
+                  "longitude": 126.97632
+                },
+                {
+                  "latitude": 37.53509,
+                  "longitude": 126.97645
+                },
+                {
+                  "latitude": 37.53518,
+                  "longitude": 126.97657
+                },
+                {
+                  "latitude": 37.535248,
+                  "longitude": 126.976746
+                },
+                {
+                  "latitude": 37.535286,
+                  "longitude": 126.976845
+                },
+                {
+                  "latitude": 37.535294,
+                  "longitude": 126.97708
+                },
+                {
+                  "latitude": 37.5353,
+                  "longitude": 126.97721
+                }
+              ]
+            },
+            {
+              "streetName": "",
+              "distance": 84,
+              "linestring": [
+                {
+                  "latitude": 37.5353,
+                  "longitude": 126.97721
+                },
+                {
+                  "latitude": 37.535416,
+                  "longitude": 126.97718
+                },
+                {
+                  "latitude": 37.536057,
+                  "longitude": 126.97715
+                }
+              ]
+            },
+            {
+              "streetName": "보행자도로",
+              "distance": 11,
+              "linestring": [
+                {
+                  "latitude": 37.536057,
+                  "longitude": 126.97715
+                },
+                {
+                  "latitude": 37.536053,
+                  "longitude": 126.97703
+                }
+              ]
+            }
+          ],
+          "passShape": [],
+          "totalTime": 713,
+          "totalFare": 1400,
+          "transferCount": 0,
+          "totalDistance": 2121,
+          "totalWalkTime": 477
         }
-      ]      
-      
+      ]
+
       // 교통 정보를 각 Day와 장소에 따라 상태에 저장
       setTransportInfo((prevInfo) => {
         const updatedInfo = [...prevInfo];  // 기존 배열 복사
@@ -4523,19 +5168,21 @@ const RouteScreen = () => {
   };
 
   // 실제 api 호출해서 사용
-  const fetchTransportData = async (dayIndex: number, placeIndex: number) => {
+  const fetchTransportData1 = async (dayIndex: number, placeIndex: number) => {
     try {
+      // 이미 저장된 데이터가 있는지 확인
       if (transportInfo[dayIndex]?.[placeIndex]) {
         console.log(`이미 저장된 데이터: Day ${dayIndex}, Place ${placeIndex}`);
-        console.log('저장된 transportInfo:', transportInfo[dayIndex]?.[placeIndex]);  // transportInfo 로그 출력
-        return;  // 이미 데이터가 있으면 API 호출하지 않음
+        return;
       }
   
+      // 출발지와 도착지 정보 가져오기
       const startPlace = routeInfoByDay[`Day ${dayIndex + 1}`]?.visitPlaces[placeIndex];
       const endPlace = routeInfoByDay[`Day ${dayIndex + 1}`]?.visitPlaces[placeIndex + 1];
   
       if (!startPlace || !endPlace) return;
   
+      // API 요청을 위한 requestBody 생성
       const requestBody = {
         startX: startPlace.longitude.toString(),
         startY: startPlace.latitude.toString(),
@@ -4543,88 +5190,118 @@ const RouteScreen = () => {
         endY: endPlace.latitude.toString(),
         count: 1,
         lang: 0,
-        format: "json"
+        format: "json",
       };
   
+      // 대중교통 API 호출
       const public_transport_response = await axios.post(
         'https://apis.openapi.sk.com/transit/routes',
         requestBody,
         {
           headers: {
             'Content-Type': 'application/json',
-            'appKey': '' // 실제 발급받은 API 키
-          }
+            'appKey': '', // 실제 API 키
+          },
         }
       );
-
-      console.log("대중교통 api 초기 응답", public_transport_response);
+  
+      console.log("대중교통 API 응답", public_transport_response);
+  
       const status = public_transport_response.data.result?.status;
-      const errorMessage = public_transport_response.data.result?.message || "No public transport data available";
-
-      // 응답에서 status를 먼저 확인
-      if ([11, 12, 13, 14].includes(status) || !public_transport_response.data.metaData?.plan?.itineraries) {        
-        console.log(`T MAP 대중교통 API 에러: 코드(${status}), 메시지(${errorMessage})`);
-        const newTransportInfo: TransportInfo[] = [];
-
+      const itineraries: Itinerary[] = public_transport_response.data.metaData?.plan?.itineraries || [];
+  
+      // API 응답에서 오류가 있거나 유효한 데이터가 없는 경우 처리
+      if ([11, 12, 13, 14].includes(status) || itineraries.length === 0) {
+        console.log(`T MAP 대중교통 API 오류: 코드(${status}), 메시지(${public_transport_response.data.result?.message || "No public transport data available"})`);
         setTransportInfo((prevInfo) => {
           const updatedInfo = [...prevInfo];
-          if (!updatedInfo[dayIndex]) {
-            updatedInfo[dayIndex] = [];
-          }
-          updatedInfo[dayIndex][placeIndex] = newTransportInfo;  // 대중교통 정보 없음 표시 (빈 객체 넣음)
+          updatedInfo[dayIndex] = updatedInfo[dayIndex] || [];
+          updatedInfo[dayIndex][placeIndex] = []; // 빈 배열로 처리
           return updatedInfo;
         });
         return;
       }
-
-      console.log("대중교통 api 성공 응답 데이터", public_transport_response.data);
-      
-      const itineraries: Itinerary[] = public_transport_response.data.metaData?.plan?.itineraries || [];
   
+      // 새로운 TransportInfo 배열 생성
       const newTransportInfo: TransportInfo[] = [];
   
-      if (Array.isArray(itineraries)) {
-        itineraries.forEach((itinerary) => {
-          const totalFare = itinerary.fare?.regular?.totalFare ?? 0; // totalFare 가져오기
-          const totalWalkTime = itinerary.totalWalkTime ?? 0; // 총 보행 시간
-          const totalTime = itinerary.totalTime ?? 0; // 총 소요 시간
-          const transferCount = itinerary.transferCount ?? 0; // 환승 횟수
-          const totalDistance = itinerary.totalDistance ?? 0; // 총 이동 거리
+      // 각 경로에 대한 정보를 TransportInfo로 변환
+      itineraries.forEach((itinerary) => {
+        const totalFare = itinerary.fare?.regular?.totalFare ?? 0;
+        const totalWalkTime = itinerary.totalWalkTime ?? 0;
+        const totalTime = itinerary.totalTime ?? 0;
+        const transferCount = itinerary.transferCount ?? 0;
+        const totalDistance = itinerary.totalDistance ?? 0;
+  
+        itinerary.legs?.forEach((leg: Leg) => {
+          const transportDetails: TransportInfo = {
+            mode: leg.mode || 'UNKNOWN',
+            route: leg.route || '도보',
+            routeColor: leg.routeColor || '#8A8F96',
+  
+            startLocation: {
+              name: leg.start?.name || "-",
+              lon: leg.start?.lon ?? 0,
+              lat: leg.start?.lat ?? 0,
+            },
+            endLocation: {
+              name: leg.end?.name || "-",
+              lon: leg.end?.lon ?? 0,
+              lat: leg.end?.lat ?? 0,
+            },
+            sectionTime: leg.sectionTime ?? 0,
+  
+            // WALK가 아닐 때는 passStopList로 처리
+            passStopList: leg.mode !== 'WALK' ? leg.passStopList?.stationList?.map((station) => ({
+              index: station.index ?? 0,
+              stationName: station.stationName || "-",
+              lon: parseFloat(station.lon || "0"),
+              lat: parseFloat(station.lat || "0"),
+              stationID: station.stationID || "-",
+            })) || [] : undefined,
+  
+            // WALK일 때는 steps 배열로 처리
+            steps: leg.mode === 'WALK' ? leg.steps?.map(step => ({
+              streetName: step.streetName,
+              distance: step.distance,
+              linestring: step.linestring 
+                ? step.linestring.split(" ").map(coord => {
+                    const [lon, lat] = coord.split(",");
+                    return { latitude: parseFloat(lat), longitude: parseFloat(lon) };
+                  })
+                : [],  // linestring이 없을 경우 빈 배열 반환
+            })) : undefined,         
+  
+            passShape: leg.passShape?.linestring
+              ? leg.passShape.linestring.split(" ").map((coord) => {
+                const [lon, lat] = coord.split(",");
+                return { latitude: parseFloat(lat), longitude: parseFloat(lon) };
+              })
+              : [],
+  
+            totalTime,
+            totalFare,
+            transferCount,
+            totalDistance,
+            totalWalkTime,
+          };
+  
+          newTransportInfo.push(transportDetails);
+        });
+      });
+  
+      // 새롭게 얻은 교통 정보를 transportInfo 상태에 저장
+      setTransportInfo((prevInfo) => {
+        const updatedInfo = [...prevInfo];
+        updatedInfo[dayIndex] = updatedInfo[dayIndex] || [];
+        updatedInfo[dayIndex][placeIndex] = newTransportInfo;
+        return updatedInfo;
+      });
 
-          // 각 leg 정보를 newTransportInfo 배열에 추가
-          itinerary.legs.forEach((leg: Leg) => { // leg: 하나의 경로
-            const transportDetails: TransportInfo = {
-              mode: leg.mode,
-              route: leg.route ? leg.route : '도보',
-              routeColor: leg.routeColor || '#8A8F96', // routeColor 기본값 추가
-              startLocation: leg.start.name,
-              endLocation: leg.end.name,
-              sectionTime: leg.sectionTime,
-              totalTime, // 전체 소요시간
-              totalFare, // 요금
-              transferCount, // 환승 횟수
-              totalDistance, // 이동 거리
-              totalWalkTime, // 보행 시간
-            };
-            newTransportInfo.push(transportDetails);  // 각 leg를 배열에 추가
-          });
-        });
+      console.log("대중교통 가공된 API 응답", JSON.stringify(newTransportInfo, null, 2));
   
-        console.log('모든 교통 정보:', newTransportInfo);
-  
-        // 교통 정보를 각 Day와 장소에 따라 상태에 저장
-        setTransportInfo((prevInfo) => {
-          const updatedInfo = [...prevInfo];  // 기존 배열 복사
-          if (!updatedInfo[dayIndex]) {
-            updatedInfo[dayIndex] = [];  // 해당 dayIndex에 배열이 없으면 초기화
-          }
-          updatedInfo[dayIndex][placeIndex] = newTransportInfo;  // 각 장소에 맞는 정보를 배열로 저장
-          return updatedInfo;
-        });
-      }
     } catch (error) {
       console.error('Error fetching TMap transport data:', error);
-      // Alert.alert('Error', '교통 데이터를 불러오는 중 오류가 발생했습니다.');
     }
   };
   
@@ -4711,46 +5388,45 @@ const RouteScreen = () => {
         showsUserLocation={true}
         showsMyLocationButton={false} // 현재 위치 버튼을 숨김
       >
-
         {/* 장소 마커 찍기 */}
         {routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.visitPlaces?.map((place, index) => {
           // 장소 번호와 현재 일수에 따라 미리 로드된 이미지 경로 설정
           let markerImage;
-          
+
           switch (selectedDayIndex) {
             case 0: // Day 1
-              if (index === 0) markerImage = require('../../assets/images/route/marker/1_r.png');
-              else if (index === 1) markerImage = require('../../assets/images/route/marker/2_r.png');
-              else if (index === 2) markerImage = require('../../assets/images/route/marker/3_r.png');
-              else if (index === 3) markerImage = require('../../assets/images/route/marker/4_r.png');
-              else if (index === 4) markerImage = require('../../assets/images/route/marker/5_r.png');
-              else if (index === 5) markerImage = require('../../assets/images/route/marker/6_r.png');
+              markerImage = index === 0 ? require('../../assets/images/route/marker/1_r.png') : 
+                index === 1 ? require('../../assets/images/route/marker/2_r.png') :
+                index === 2 ? require('../../assets/images/route/marker/3_r.png') :
+                index === 3 ? require('../../assets/images/route/marker/4_r.png') :
+                index === 4 ? require('../../assets/images/route/marker/5_r.png') :
+                require('../../assets/images/route/marker/6_r.png');
               break;
             case 1: // Day 2
-              if (index === 0) markerImage = require('../../assets/images/route/marker/1_o.png');
-              else if (index === 1) markerImage = require('../../assets/images/route/marker/2_o.png');
-              else if (index === 2) markerImage = require('../../assets/images/route/marker/3_o.png');
-              else if (index === 3) markerImage = require('../../assets/images/route/marker/4_o.png');
-              else if (index === 4) markerImage = require('../../assets/images/route/marker/5_o.png');
-              else if (index === 5) markerImage = require('../../assets/images/route/marker/6_r.png');
+              markerImage = index === 0 ? require('../../assets/images/route/marker/1_o.png') :
+                index === 1 ? require('../../assets/images/route/marker/2_o.png') :
+                index === 2 ? require('../../assets/images/route/marker/3_o.png') :
+                index === 3 ? require('../../assets/images/route/marker/4_o.png') :
+                index === 4 ? require('../../assets/images/route/marker/5_o.png') :
+                require('../../assets/images/route/marker/6_o.png');
               break;
             case 2: // Day 3
             default:
-              if (index === 0) markerImage = require('../../assets/images/route/marker/1_y.png');
-              else if (index === 1) markerImage = require('../../assets/images/route/marker/2_y.png');
-              else if (index === 2) markerImage = require('../../assets/images/route/marker/3_y.png');
-              else if (index === 3) markerImage = require('../../assets/images/route/marker/4_y.png');
-              else if (index === 4) markerImage = require('../../assets/images/route/marker/5_y.png');
-              else if (index === 5) markerImage = require('../../assets/images/route/marker/6_r.png');
+              markerImage = index === 0 ? require('../../assets/images/route/marker/1_y.png') :
+                index === 1 ? require('../../assets/images/route/marker/2_y.png') :
+                index === 2 ? require('../../assets/images/route/marker/3_y.png') :
+                index === 3 ? require('../../assets/images/route/marker/4_y.png') :
+                index === 4 ? require('../../assets/images/route/marker/5_y.png') :
+                require('../../assets/images/route/marker/6_y.png');
               break;
           }
-          
+
           return (
             <Marker
               key={index}
               coordinate={{
                 latitude: parseFloat(place.latitude.toString()) || 0,
-                longitude: parseFloat(place.longitude.toString()) || 0
+                longitude: parseFloat(place.longitude.toString()) || 0,
               }}
               title={`${index + 1}. ${place.name}`} // 순서와 장소명 함께 표시
               image={markerImage} // 마커 이미지 설정
@@ -4762,22 +5438,115 @@ const RouteScreen = () => {
           );
         })}
 
-        {/* 경로 그리기 */}
-        {mapPathsByDay[`Day ${selectedDayIndex + 1}`]?.map((path, index) => (
-          <Polyline
-            key={index}
-            coordinates={path.coordinates.map(([latitude, longitude]) => ({
-              latitude,
-              longitude,
-            }))}
-            
-            strokeColor="#0047A0"  // 경로 색상
-            strokeWidth={4}  // 경로 두께
-            // lineDashPattern={[100, 10]} // 점선 패턴 (대시 길이 10, 간격 5)
-            // lineCap="round" // 끝부분을 둥글게 처리
-            />
-          ))}
+        {/* 경로 표시 */}
+        {transportInfo[selectedDayIndex]?.map((placeInfo, placeIndex) => {
+          const toggleKey = `${selectedDayIndex}-${placeIndex}`;
+
+          return (
+            toggleState[toggleKey] && (
+              <React.Fragment key={placeIndex}>
+                {placeInfo?.map((info, transportIndex) => (
+                  <React.Fragment key={`transport-${placeIndex}-${transportIndex}`}>
+                    {/* 정류장 마커 */}
+                    {info.passStopList?.map((station, stationIndex) => (
+                      <React.Fragment key={`station-marker-${placeIndex}-${stationIndex}`}>
+                        <Marker
+                          key={`station-marker-${placeIndex}-${stationIndex}`}
+                          coordinate={{
+                            latitude: (station.lat || 0) - 0.0002, 
+                            longitude: (station.lon || 0) - 0.0002,
+                          }}
+                          anchor={{ x: 0.5, y: 1 }} // 마커의 하단 중앙을 좌표에 맞춤
+                          icon={require('../../assets/images/route/station_marker_4.png')} // 고정된 이미지 설정
+                        >
+                          {/* 정류장 이름 표시 */}
+                          <View style={{ alignItems: 'center', marginTop: 20 }}>
+                            <Text>""</Text>
+                            <Text style={{ fontSize: 15, fontFamily: 'SBAggroL', color: '#000000' }}>
+                              {station.stationName || '정류장 이름'}
+                            </Text>
+                          </View>
+                        </Marker>
+
+                        {/* 두 번째 마커: 첫 번째 정류장일 때만 표시 */}
+                        {stationIndex === 0 && (
+                          <Marker
+                          coordinate={{
+                            latitude: (station.lat || 0) - 0.0007, // 약간 아래에 위치
+                            longitude: (station.lon || 0),
+                          }}
+                          anchor={{ x: 0.5, y: 1 }}
+                        >
+                          {/* 말풍선 형태로 View를 스타일링 */}
+                          <View
+                            style={{
+                              backgroundColor: info.routeColor ? `#${info.routeColor.replace('#', '')}` : '#FF6347', // routeColor 적용
+                              paddingVertical: 5,
+                              paddingHorizontal: 10,
+                              borderRadius: 15,
+                              position: 'relative',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              minWidth: 70, // 적절한 넓이 설정
+                            }}
+                          >
+                            {/* 텍스트 표시 */}
+                            <Text style={{ color: '#ffffff', fontSize: 16, fontWeight: 'bold' }}>
+                              {info.route || 'Route 정보'}
+                            </Text>
+                          </View>
+                        </Marker>
+                        )}
+                      </React.Fragment>
+                    ))}
+              
+                    {/* Polyline 경로 */}
+                    {info.mode === 'WALK' && info.steps ? (
+                      // WALK일 때는 steps로 경로 표시
+                      info.steps.map((step, stepIndex) => (
+                        <Polyline
+                          key={`walk-line-${placeIndex}-${stepIndex}`}
+                          coordinates={
+                            step.linestring
+                              ?.filter(coord => coord.latitude !== undefined && coord.longitude !== undefined) // 좌표가 존재하는지 필터링
+                              .map(coord => ({
+                                latitude: coord.latitude || 0, // 기본값을 0으로 설정
+                                longitude: coord.longitude || 0, // 기본값을 0으로 설정
+                              })) || []
+                          }
+                          strokeColor='#000000'
+                          strokeWidth={4}
+                          lineDashPattern={[2, 10]} // 점선 패턴 (선길이, 간격)
+                          zIndex={0}
+                        />
+                      ))
+                    ) : (
+                      // 다른 교통수단일 때는 passShape로 경로 표시
+                      info.passShape && info.passShape.length > 0 && (
+                        <Polyline
+                          coordinates={
+                            info.passShape
+                              ?.filter(coord => coord.latitude !== undefined && coord.longitude !== undefined) // 좌표가 undefined가 아닌 값만 필터링
+                              .map(coord => ({
+                                latitude: coord.latitude || 0, // 기본값을 0으로 설정
+                                longitude: coord.longitude || 0, // 기본값을 0으로 설정
+                              })) || []  // 기본적으로 빈 배열을 반환하여 오류 방지
+                          }
+                          strokeColor={info.routeColor ? `#${info.routeColor.replace('#', '')}` : '#0047A0'}
+                          strokeWidth={4}
+                          zIndex={0}
+                        />
+                      )
+                    )}
+                  </React.Fragment>
+                ))}
+              </React.Fragment>
+            )
+          );
+        })}
+        
       </MapView>
+
 
       <View style={styles.zoomButtonsContainer}>
         <TouchableOpacity style={styles.zoomButton} onPress={handleZoomIn}>
@@ -4886,9 +5655,9 @@ const RouteScreen = () => {
                                 <View style={styles.capsuleGroup}>
                                   {transportInfo[selectedDayIndex]?.[index]?.map((info: TransportInfo, subIndex: number) => {
                                     const totalSectionTime = transportInfo[selectedDayIndex][index]
-                                      .reduce((sum, current) => sum + current.sectionTime, 0); // 전체 시간 합계 계산
+                                      .reduce((sum, current) => sum + (current.sectionTime ?? 0), 0); // 전체 시간 합계 계산
                                     const totalCapsuleWidth = 280; // 고정된 전체 타임캡슐 너비 (px 단위)
-                                    const sectionWidth = (info.sectionTime / totalSectionTime) * totalCapsuleWidth; // 각 구간의 비율에 따른 실제 너비 계산 (숫자형 값)
+                                    const sectionWidth = ((info.sectionTime ?? 0) / totalSectionTime) * totalCapsuleWidth; // 각 구간의 비율에 따른 실제 너비 계산 (숫자형 값)
 
                                     return (
                                       <View key={subIndex} style={[styles.capsuleContainer, { width: sectionWidth }]}>
@@ -4910,13 +5679,13 @@ const RouteScreen = () => {
                                             <Text
                                               style={styles.capsuleText}
                                             >
-                                              {`${Math.floor(info.sectionTime / 60)}m`} {/* 분으로 변환 */}
+                                              {`${Math.floor((info.sectionTime ?? 0) / 60)}m`} {/* 분으로 변환 */}
                                             </Text>
                                           </View>
                                         ) : (
                                           // WALK인 경우, 캡슐은 표시하지 않고 시간만 텍스트로 표시
                                           <Text style={styles.walkTimeText}>
-                                            {`${Math.floor(info.sectionTime / 60)}m`}
+                                            {`${Math.floor((info.sectionTime ?? 0) / 60)}m`}
                                           </Text>
                                         )}
                                         {/* 각 교통수단의 정가운데에 route 표시 */}
@@ -4955,7 +5724,7 @@ const RouteScreen = () => {
                                               />
                                             </View>
                                             {/* 동그라미 옆에 route 표시 후 출발지 표시 */}
-                                            <Text style={styles.stopText}>{`${info.startLocation} 승차`}</Text>
+                                            <Text style={styles.stopText}>{`${info.startLocation?.name} 승차`}</Text>
                                           </View>
 
                                           {/* 도착지 표시 */}
@@ -4971,7 +5740,7 @@ const RouteScreen = () => {
                                               />
                                             </View>
                                             {/* 동그라미 옆에 route 표시 후 도착지 표시 */}
-                                            <Text style={styles.stopText}>{`${info.endLocation} 하차`}</Text>
+                                            <Text style={styles.stopText}>{`${info.endLocation?.name} 하차`}</Text>
                                           </View>
                                         </View>
                                       );
