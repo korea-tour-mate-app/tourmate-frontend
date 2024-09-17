@@ -5449,25 +5449,57 @@ const RouteScreen = () => {
                   <React.Fragment key={`transport-${placeIndex}-${transportIndex}`}>
                     {/* 정류장 마커 */}
                     {info.passStopList?.map((station, stationIndex) => (
-                      <Marker
-                        key={`station-marker-${placeIndex}-${stationIndex}`}
-                        coordinate={{
-                          latitude: (station.lat || 0) - 0.0002, 
-                          longitude: (station.lon || 0) - 0.0002,
-                        }}
-                        anchor={{ x: 0.5, y: 1 }} // 마커의 하단 중앙을 좌표에 맞춤
-                        icon={require('../../assets/images/route/station_marker_4.png')} // 고정된 이미지 설정
-                      >
-                        {/* 정류장 이름 표시 */}
-                        <View style={{ alignItems: 'center', marginTop: 20 }}>
-                          <Text>""</Text>
-                          <Text style={{ fontSize: 15, fontFamily: 'SBAggroL', color: '#000000' }}>
-                            {station.stationName || '정류장 이름'}
-                          </Text>
-                        </View>
-                      </Marker>
-                    ))}
+                      <React.Fragment key={`station-marker-${placeIndex}-${stationIndex}`}>
+                        <Marker
+                          key={`station-marker-${placeIndex}-${stationIndex}`}
+                          coordinate={{
+                            latitude: (station.lat || 0) - 0.0002, 
+                            longitude: (station.lon || 0) - 0.0002,
+                          }}
+                          anchor={{ x: 0.5, y: 1 }} // 마커의 하단 중앙을 좌표에 맞춤
+                          icon={require('../../assets/images/route/station_marker_4.png')} // 고정된 이미지 설정
+                        >
+                          {/* 정류장 이름 표시 */}
+                          <View style={{ alignItems: 'center', marginTop: 20 }}>
+                            <Text>""</Text>
+                            <Text style={{ fontSize: 15, fontFamily: 'SBAggroL', color: '#000000' }}>
+                              {station.stationName || '정류장 이름'}
+                            </Text>
+                          </View>
+                        </Marker>
 
+                        {/* 두 번째 마커: 첫 번째 정류장일 때만 표시 */}
+                        {stationIndex === 0 && (
+                          <Marker
+                          coordinate={{
+                            latitude: (station.lat || 0) - 0.0007, // 약간 아래에 위치
+                            longitude: (station.lon || 0),
+                          }}
+                          anchor={{ x: 0.5, y: 1 }}
+                        >
+                          {/* 말풍선 형태로 View를 스타일링 */}
+                          <View
+                            style={{
+                              backgroundColor: info.routeColor ? `#${info.routeColor.replace('#', '')}` : '#FF6347', // routeColor 적용
+                              paddingVertical: 5,
+                              paddingHorizontal: 10,
+                              borderRadius: 15,
+                              position: 'relative',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              minWidth: 70, // 적절한 넓이 설정
+                            }}
+                          >
+                            {/* 텍스트 표시 */}
+                            <Text style={{ color: '#ffffff', fontSize: 16, fontWeight: 'bold' }}>
+                              {info.route || 'Route 정보'}
+                            </Text>
+                          </View>
+                        </Marker>
+                        )}
+                      </React.Fragment>
+                    ))}
+              
                     {/* Polyline 경로 */}
                     {info.mode === 'WALK' && info.steps ? (
                       // WALK일 때는 steps로 경로 표시
