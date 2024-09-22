@@ -4,6 +4,7 @@ import { LanguageProvider } from './src/components/LanguageProvider';
 import { NavigationContainer } from '@react-navigation/native';
 import AppNavigator from './src/screens/navigation/AppNavigator';
 import { SelectionProvider } from './src/components/SelectionContext';
+import { AuthProvider } from './src/components/AuthProvider';
 
 const App = () => {
   const [currentScreen, setCurrentScreen] = useState('SplashScreen');
@@ -14,6 +15,7 @@ const App = () => {
 
   return (
     <SelectionProvider>
+      <AuthProvider>
       <LanguageProvider>
         <NavigationContainer>
           <View style={styles.container}>
@@ -21,6 +23,7 @@ const App = () => {
           </View>
         </NavigationContainer>
       </LanguageProvider>
+      </AuthProvider>
     </SelectionProvider>
   );
 };

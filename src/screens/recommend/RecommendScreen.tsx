@@ -37,8 +37,9 @@ type Props = {
 const ThemeScreen = () => {
   const navigation = useNavigation<RootStackNavigationProp<'ThemeScreen'>>();
   const { language: globalLanguage } = useLanguage();
-  const { selectedThemes, setSelectedThemes } = useSelection();  // 상태와 setter 함수 사용
-  // const [selectedThemes, setSelectedThemes] = useState<number[]>([]);
+  // const { selectedThemes, setSelectedThemes } = useSelection();  // 상태와 setter 함수 사용
+  const [selectedThemes, setSelectedThemes] = useState<number[]>([]);
+  
 
   const [question, setQuestion] = useState<string>('서울에서 어떤 여행 테마를 원하나요?');
   const [content, setContent] = useState<string>('원하는 테마를 모두 골라주세요.');
@@ -52,7 +53,7 @@ const ThemeScreen = () => {
       image: require('../../assets/images/themeIcon/k-pop.png'),
     },
     palace: {
-      label: '궁궐',
+      label: '역사',
       backgroundColor: '#ffffff',
       textColor: '#000000',
       image: require('../../assets/images/themeIcon/palace.png'),
@@ -74,12 +75,6 @@ const ThemeScreen = () => {
       backgroundColor: '#ffffff',
       textColor: '#000000',
       image: require('../../assets/images/themeIcon/hotel.png'),
-    },
-    hiking: {
-      label: '등산코스',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('../../assets/images/themeIcon/hiking.png'),
     },
     theme: {
       label: '테마시설',
@@ -111,69 +106,12 @@ const ThemeScreen = () => {
       textColor: '#000000',
       image: require('../../assets/images/themeIcon/camping.png'),
     },
-    entertainment: {
-      label: '유흥/오락',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('../../assets/images/themeIcon/yoohoo.png'),
-    },
     spa: {
       label: '온천/스파',
       backgroundColor: '#ffffff',
       textColor: '#000000',
       image: require('../../assets/images/themeIcon/spa.png'),
-    },
-    education: {
-      label: '교육/체험',
-      subLabel: '참여하기',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('../../assets/images/themeIcon/education.png'),
-    },
-    drama: {
-      label: '드라마 촬영지',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('../../assets/images/themeIcon/drama.png'),
-    },
-    religion: {
-      label: '종교/성지 순례',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('../../assets/images/themeIcon/religion.png'),
-    },
-    wellness: {
-      label: '웰니스',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('../../assets/images/themeIcon/wellness.png'),
-    },
-    sns: {
-      label: 'SNS 인생샷',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('../../assets/images/themeIcon/sns.png'),
-    },
-    pet: {
-      label: '반려동물 동반',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('../../assets/images/themeIcon/pet.png'),
-    },
-    influencer: {
-      label: '인플루언서',
-      subLabel: '따라하기',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('../../assets/images/themeIcon/influencer.png'),
-    },
-    environment: {
-      label: '친환경 여행',
-      subLabel: '(플로깅 여행)',
-      backgroundColor: '#ffffff',
-      textColor: '#000000',
-      image: require('../../assets/images/themeIcon/plogging.png'),
-    },
+    }
   });
 
  
@@ -190,16 +128,7 @@ const ThemeScreen = () => {
     handcraft: { label: '공방여행' },
     shopping: { label: '쇼핑' },
     camping: { label: '캠핑' },
-    entertainment: { label: '유흥/오락' },
     spa: { label: '온천/스파' },
-    education: { label: '교육/체험', subLabel: '참여하기' },
-    drama: { label: '드라마 촬영지' },
-    religion: { label: '종교/성지 순례' },
-    wellness: { label: '웰니스' },
-    sns: { label: 'SNS 인생샷' },
-    pet: { label: '반려동물 동반' },
-    influencer: { label: '인플루언서', subLabel: '따라하기' },
-    environment: { label: '친환경 여행', subLabel: '(플로깅 여행)' },
   };
   
 
@@ -250,7 +179,7 @@ const ThemeScreen = () => {
     
     // 선택된 테마를 selectedThemes에 추가 또는 제거
     setSelectedThemes((prevSelectedThemes : number[]) => {
-      const themeIndex = Object.keys(themes).indexOf(key);
+      const themeIndex = Object.keys(themes).indexOf(String(key));
 
       if (prevSelectedThemes.includes(themeIndex)) {
         // 이미 선택된 테마인 경우 제거

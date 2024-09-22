@@ -4505,6 +4505,7 @@ const RouteScreen = () => {
     }
   };
 
+
   // 개발하는 동안 편하게 사용하는 미리 로드된 대중교통 데이터셋
   const fetchTransportData = async (dayIndex: number, placeIndex: number) => {
     try {
@@ -5200,6 +5201,7 @@ const RouteScreen = () => {
         {
           headers: {
             'Content-Type': 'application/json',
+
             'appKey': '', // 실제 API 키
           },
         }
@@ -5581,6 +5583,7 @@ const RouteScreen = () => {
               </TouchableOpacity>
             ))}
           </View>
+
 
           {/* 2. 장소 리스트와 동그라미 마커 */}
           <View style={styles.timelineContainer}>
@@ -6090,5 +6093,54 @@ const styles = StyleSheet.create({
   // },  
 });
 
+  capsuleGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  capsuleContainer: {
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  capsule: {
+    borderRadius: 20,
+    paddingVertical: 5,
+    paddingHorizontal: 15,
+    marginHorizontal: 5,
+    minWidth: 50,
+  },
+  capsuleText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  capsuleLabel: {
+    marginTop: 5,
+    textAlign: 'center',
+    fontSize: 12,
+    color: '#000',
+  },
+  stopsGroup: {
+    marginTop: 10,
+  },
+  stopContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  stopDotContainer: {
+    marginRight: 10,
+    alignItems: 'center',
+  },
+  stopDot: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#B5B5B5', // 동그라미 색상
+  },
+  stopText: {
+    fontSize: 14,
+    color: '#000',
+  },
+});
 
 export default RouteScreen;
