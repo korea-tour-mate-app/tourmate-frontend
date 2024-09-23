@@ -14,6 +14,25 @@ import { REACT_TMAP_API_KEY } from '@env';
 type RouteScreenNavigationProp = StackNavigationProp<RootStackParamList, 'RouteScreen'>;
 type RouteScreenRouteProp = RouteProp<RootStackParamList, 'RouteScreen'>;
 
+interface RestaurantInfo {
+  restaurantId: number;
+  res_name: string;
+  res_latitude: number;
+  res_longitude: number;
+}
+
+interface FindRestaurantsResponseDto {
+  locationsWithRestaurants: {
+    place_location: {
+      place_latitude: number;
+      place_longitude: number;
+      place_order: number;
+    };
+    restaurants: RestaurantInfo[];
+  }[];
+}
+
+
 interface DayData {
   id: number;
   title: string;
@@ -151,6 +170,8 @@ const RouteScreen = () => {
   const [selectedLocation, setSelectedLocation] = useState({ latitude: 40.54523875839218, longitude: 126.977613738705 });
   const [routeInfoByDay, setRouteInfoByDay] = useState<{ [day: string]: Omit<RouteOptResponseDto, 'paths'> }>({});
   const [mapPathsByDay, setMapPathsByDay] = useState<{ [day: string]: RouteOptResponseDto['paths'] }>({});
+  const [restaurantsByDay, setRestaurantsByDay] = useState<{ [day: string]: RestaurantInfo[] }>({});
+
   // const [selectedDay, setSelectedDay] = useState("1일차");
   const bottomSheetRef = useRef<BottomSheet>(null);
   const mapRef = useRef<MapView>(null);
@@ -4386,78 +4407,83 @@ const RouteScreen = () => {
   // console.log("여행일수는? ", dayCount);
   // const dayCount = 1; // 일단 api 호출은 한번으로 고정
 
-  useEffect(() => {
-    // let isMounted = true; // 컴포넌트 마운트 여부 추적
+  const fetchRouteDataForEachDay = async () => {
+    try {
+      const newRouteInfoByDay: { [day: string]: Omit<RouteOptResponseDto, 'paths'> } = {};
+      const newMapPathsByDay: { [day: string]: RouteOptResponseDto['paths'] } = {};
 
-    const fetchRouteDataForEachDay = async () => {
-      try {
-        const newRouteInfoByDay: { [day: string]: Omit<RouteOptResponseDto, 'paths'> } = {};
-        const newMapPathsByDay: { [day: string]: RouteOptResponseDto['paths'] } = {};
+      // 각 날짜에 대해 API 호출
+      for (let i = 0; i < dayCount; i++) {
+        // TODO 데이터는 모델API에서 받아오는 걸로 나중에 수정
+        // const requestBody = {
+        //   startName: "숭례문", // ex. modelData[i][startName] 형태
+        //   startX: "126.975208",
+        //   startY: "37.561004",
+        //   startTime: "202408251200",
+        //   endName: "운현궁",
+        //   endX: "126.985512",
+        //   endY: "37.574385",
+        //   viaPoints: [
+        //     { viaPointId: "test01", viaPointName: "경복궁", viaX: "126.976889", viaY: "37.579617" },
+        //     { viaPointId: "test02", viaPointName: "창덕궁", viaX: "126.991898", viaY: "37.579620" },
+        //     { viaPointId: "test03", viaPointName: "남산서울타워", viaX: "126.988205", viaY: "37.551169" }
+        //   ]
+        // };
 
-        // 각 날짜에 대해 API 호출
-        for (let i = 0; i < dayCount; i++) {
-          // TODO 데이터는 모델API에서 받아오는 걸로 나중에 수정
-          // const requestBody = {
-          //   startName: "숭례문", // ex. modelData[i][startName] 형태
-          //   startX: "126.975208",
-          //   startY: "37.561004",
-          //   startTime: "202408251200",
-          //   endName: "운현궁",
-          //   endX: "126.985512",
-          //   endY: "37.574385",
-          //   viaPoints: [
-          //     { viaPointId: "test01", viaPointName: "경복궁", viaX: "126.976889", viaY: "37.579617" },
-          //     { viaPointId: "test02", viaPointName: "창덕궁", viaX: "126.991898", viaY: "37.579620" },
-          //     { viaPointId: "test03", viaPointName: "남산서울타워", viaX: "126.988205", viaY: "37.551169" }
-          //   ]
-          // };
+        // const response = await axios.post('http://10.0.2.2:8080/api/tmap/optimize-route', requestBody);
+      
+        let route_response;  // let을 사용하여 나중에 값을 할당할 수 있도록 함
 
-          // const response = await axios.post('http://10.0.2.2:8080/api/tmap/optimize-route', requestBody);
-        
-          let route_response;  // let을 사용하여 나중에 값을 할당할 수 있도록 함
-
-          switch (i) {
-            case 0:
-              route_response = response1;
-              break;
-            case 1:
-              route_response = response2;
-              break;
-            case 2:
-              route_response = response3;
-              break;
-            default:
-              route_response = response1;
-          }
-
-          // if (!isMounted) return; // 컴포넌트가 언마운트된 경우 종료
-          // console.log(`Day ${i + 1} route data:`, response.data);
-          console.log(`Day ${i + 1} route data:`, route_response);
-
-          const { totalDistance, totalTime, totalFare, visitPlaces, paths } = route_response;
-          // const { totalDistance, totalTime, totalFare, visitPlaces, paths } = response;
-
-          const dayKey = `Day ${i + 1}`;
-
-          newRouteInfoByDay[dayKey] = { totalDistance, totalTime, totalFare, visitPlaces };
-          newMapPathsByDay[dayKey] = paths;
+        switch (i) {
+          case 0:
+            route_response = response1;
+            break;
+          case 1:
+            route_response = response2;
+            break;
+          case 2:
+            route_response = response3;
+            break;
+          default:
+            route_response = response1;
         }
 
-        setRouteInfoByDay(newRouteInfoByDay);
-        setMapPathsByDay(newMapPathsByDay);
-      } catch (error) {
-        console.error('Error fetching route data:', error);
-        Alert.alert('Error', '경로 데이터를 불러오는 중 오류가 발생했습니다.');
-      } finally {
+        // if (!isMounted) return; // 컴포넌트가 언마운트된 경우 종료
+        // console.log(`Day ${i + 1} route data:`, response.data);
+        console.log(`Day ${i + 1} route data:`, route_response);
+
+        const { totalDistance, totalTime, totalFare, visitPlaces, paths } = route_response;
+        // const { totalDistance, totalTime, totalFare, visitPlaces, paths } = response;
+
+        const dayKey = `Day ${i + 1}`;
+
+        newRouteInfoByDay[dayKey] = { totalDistance, totalTime, totalFare, visitPlaces };
+        newMapPathsByDay[dayKey] = paths;
       }
-    };
 
-    fetchRouteDataForEachDay();
+      setRouteInfoByDay(newRouteInfoByDay);
+      setMapPathsByDay(newMapPathsByDay);
 
-    return () => {
-      // isMounted = false; // 컴포넌트 언마운트 시 플래그 변경
-    };
-  }, []); // useEffect 의존성 배열 추가
+      
+    } catch (error) {
+      console.error('Error fetching route data:', error);
+      Alert.alert('Error', '경로 데이터를 불러오는 중 오류가 발생했습니다.');
+    } finally {
+    }
+  };
+
+
+  useEffect(() => {
+    // 경로 데이터를 먼저 가져옴
+    fetchRouteDataForEachDay(); 
+  }, []); // 빈 배열로 설정하여 컴포넌트가 처음 마운트될 때만 실행
+  
+  // routeInfoByDay가 업데이트되면 fetchRestaurantsData 호출
+  useEffect(() => {
+    if (Object.keys(routeInfoByDay).length > 0) { // routeInfoByDay가 비어있지 않은 경우에만 호출
+      fetchRestaurantsData(); 
+    }
+  }, [routeInfoByDay]); // routeInfoByDay가 변경될 때 실행
 
   // 토글 상태 변경 함수  
   const toggleItem = (dayIndex: number, placeIndex: number) => {
@@ -5374,6 +5400,41 @@ const RouteScreen = () => {
     );
   };
 
+  const fetchRestaurantsData = async () => {
+    try {
+      const newRestaurantsByDay: { [day: string]: RestaurantInfo[] } = {};
+  
+      for (let i = 0; i < dayCount; i++) {
+        const dayKey = `Day ${i + 1}`;
+  
+        // 요청 데이터 생성 (방문할 장소들의 위경도를 포함)
+        const requestBody = {
+          place_locations: routeInfoByDay[dayKey]?.visitPlaces.map((place) => ({
+            place_latitude: place.latitude,
+            place_longitude: place.longitude,
+            place_order: parseInt(place.order, 10),
+          })),
+        };
+        
+        console.log("requestBody:", JSON.stringify(requestBody, null, 2));
+        // API 호출하여 음식점 데이터 가져오기
+        const response = await axios.post<FindRestaurantsResponseDto>(
+          'http://13.125.53.226:8080/api/restaurants/list',
+          requestBody
+        );
+        console.log("response:", JSON.stringify(response.data, null, 2));
+
+        // 각 Day별 음식점 데이터를 상태에 저장
+        newRestaurantsByDay[dayKey] = response.data.locationsWithRestaurants.flatMap((location) => location.restaurants);
+      }
+  
+      setRestaurantsByDay(newRestaurantsByDay);
+    } catch (error) {
+      console.error('Error fetching restaurant data:', error);
+      Alert.alert('Error', '음식점 데이터를 불러오는 중 오류가 발생했습니다.');
+    }
+  };
+
   return (
     <GestureHandlerRootView style={styles.container}>
       <MapView
@@ -5437,6 +5498,22 @@ const RouteScreen = () => {
             </Marker>
           );
         })}
+
+        {/* 음식점 마커 표시 */}
+        {restaurantsByDay[`Day ${selectedDayIndex + 1}`]?.map((restaurant, index) => (
+          <Marker
+            key={`restaurant-${index}`}
+            coordinate={{
+              latitude: restaurant.res_latitude,
+              longitude: restaurant.res_longitude,
+            }}
+            image={require('../../assets/images/route/restaurant_marker.png')} // 음식점 마커 이미지 설정
+          >
+            <Callout>
+              <Text>{restaurant.res_name}</Text>
+            </Callout>
+          </Marker>
+        ))}
 
         {/* 경로 표시 */}
         {transportInfo[selectedDayIndex]?.map((placeInfo, placeIndex) => {
