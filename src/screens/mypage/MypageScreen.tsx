@@ -19,13 +19,12 @@ const MyPageScreen = () => {
   const [currentDate, setCurrentDate] = useState<string>('');
   const [forceUpdate, setForceUpdate] = useState<boolean>(false);
   const [username, setUsername] = useState<string>('');
-  const { isGoogleUser, setIsGoogleUser } = useAuth();
+  const { isGoogleUser } = useAuth();
 
   const { language: globalLanguage, setLanguage: setGlobalLanguage } = useLanguage();
 
   const [changeHi, setChangeHi] = useState<string>('안녕하세요,');
   const [changePasswordText, setChangePasswordText] = useState<string>('비밀번호 변경');
-  const [myReviewsText, setMyReviewsText] = useState<string>('내 리뷰');
   const [myPlacesText, setMyPlacesText] = useState<string>('내가 가본 장소');
   const [languageSettingsText, setLanguageSettingsText] = useState<string>('언어 설정');
   const [logoutText, setLogoutText] = useState<string>('로그아웃');
@@ -45,9 +44,6 @@ const MyPageScreen = () => {
 
         const translatedPassword = await translateText('비밀번호 변경', globalLanguage);
         setChangePasswordText(translatedPassword);
-
-        const translatedReviews = await translateText('내 리뷰', globalLanguage);
-        setMyReviewsText(translatedReviews);
 
         const translatedPlaces = await translateText('내가 가본 장소', globalLanguage);
         setMyPlacesText(translatedPlaces);
@@ -158,23 +154,6 @@ const MyPageScreen = () => {
             <View style={styles.menuContainer}>
               <TouchableOpacity onPress={navigateToPasswordChange}>
                 <Text style={styles.menu}>{changePasswordText}</Text>
-              </TouchableOpacity>
-              <View style={styles.dottedLineContainer}>
-                <Svg height="2" width="75%">
-                  <Line
-                    x1="0"
-                    y1="1"
-                    x2="100%"
-                    y2="1"
-                    stroke="black"
-                    strokeWidth="2"
-                    strokeDasharray="5,2"
-                  />
-                </Svg>
-              </View>
-
-              <TouchableOpacity>
-                <Text style={styles.menu}>{myReviewsText}</Text>
               </TouchableOpacity>
               <View style={styles.dottedLineContainer}>
                 <Svg height="2" width="75%">

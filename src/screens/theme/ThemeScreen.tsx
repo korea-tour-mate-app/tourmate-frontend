@@ -1,15 +1,12 @@
 import React, {useEffect, useState, useCallback} from 'react';
-import { StyleSheet, View,TouchableOpacity,Text, ScrollView, Dimensions, Image, Alert, Platform,} from 'react-native';
-import MapView, {PROVIDER_GOOGLE, Marker} from 'react-native-maps';
+import { StyleSheet, View,TouchableOpacity,Text, ScrollView, Dimensions, Image, Alert, Platform, Linking } from 'react-native';
+import MapView, {PROVIDER_GOOGLE, Marker, Region } from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
 import BottomSheet from '@gorhom/bottom-sheet';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {request, PERMISSIONS, RESULTS} from 'react-native-permissions';
 import {useLanguage} from '../../components/LanguageProvider';
 import {translateText} from '../../utils/Translation';
-
-// 화면 높이 가져오기
-const {height: screenHeight} = Dimensions.get('window');
 
 // 위치 및 장소 타입 정의
 interface LocationType {
@@ -20,18 +17,49 @@ interface LocationType {
 }
 
 interface Place {
-  id: number;
-  name: string;
   tag: string;
-  description: string;
-  address: string;
-  homepage: string;
-  contact: string;
-  hour: string;
-  coordinate: {
-    latitude: number;
-    longitude: number;
-  };
+  placeId: number;
+  placeName: string;
+  latitude: number;
+  longitude: number;
+}
+
+interface PlaceDetail{
+  placeId: number;
+  themeId: number;
+  테마이름: string;
+  위도: number;
+  경도: number;
+  장소명: string;
+  주소명: string;
+  이미지: string | null; 
+  이미지2: string | null; 
+  이미지3: string | null; 
+  영업시간: string | null; 
+  '홈페이지 URL': string | null;
+  설명: string | null; 
+  평점: number | null;
+  리뷰수: number | null;
+  가격: number | null;
+  '비건 유형': string | null; 
+  '음식 종류': string | null; 
+  '방문 유형': string | null; 
+  '실내외 유형': string | null; 
+  '카페 유형': string | null; 
+  입장료: string | null; 
+  '체크인 시간': string | null; 
+  '체크 아웃 시간': string | null;
+  숙박료: string | null;
+  '영업 시작 시간': string | null; 
+  '영업 종료 시간': string | null;
+  휴무일: string | null; 
+  '관람 시간': string | null;
+  비고: string | null; 
+  '이용 방법': string | null;
+  '수영장 유무': boolean | null;
+  가격대: string | null; 
+  '관련 링크': string | null;
+  '총 별점': number | null; 
 }
 
 interface Baggage {
@@ -55,8 +83,13 @@ interface BaggageDetail{
 function ThemeScreen() {
   const [location, setLocation] = useState<LocationType | undefined>();
   const [initialLocationSet, setInitialLocationSet] = useState(false);
+  const [initialRegion, setInitialRegion] = useState<Region | undefined>(undefined); // 초기 위치를 undefined로 설정
+  const [region, setRegion] = useState<Region | undefined>(undefined); // 지역 상태 추가
+
+
   // 필터 상태
   const [activeFilter, setActiveFilter] = useState<string>('전체');
+  const [places, setPlaces] = useState<Place[]>([]); // 장소 데이터 상태 관리
   const [visitedFilterActive, setVisitedFilterActive] = useState(false);
   const [likesFilterActive, setLikesFilterActive] = useState(false);
   const [baggageFilterActive, setBaggageFilterActive] = useState(false);
@@ -70,6 +103,13 @@ function ThemeScreen() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const bottomSheetRef = React.useRef<BottomSheet>(null);
   const {language: globalLanguage} = useLanguage(); // 현재 언어 상태 가져오기
+  // Place 관련 상태
+  const [placeNames, setPlaceNames] = useState([]);
+  const [placeIds, setPlaceIds] = useState([]);
+  const [placeLatitudes, setPlaceLatitudes] = useState([]);
+  const [placeLongitudes, setPlaceLongitudes] = useState([]);
+  // Place Detail 관련 상태
+  const [placeDetail, setPlaceDetail] = useState<PlaceDetail | null>(null);
   // Baggage Data 관련 상태
   const [isBaggageDataFetched, setIsBaggageDataFetched] = useState(false);
   const [baggageData, setBaggageData] = useState<Baggage[]>([]);
@@ -80,189 +120,117 @@ function ThemeScreen() {
   const [latitudes, setLatitudes] = useState([]);
   // Baggage Detail 관련 상태
   const [baggageDetail, setBaggageDetail] = useState<BaggageDetail[]>([]);
-  const [lockerName, setLockerName] = useState([]);
-  const [lockerDeatil, setLockerDetail] = useState([]);
-  const [smallCount, setSmallCount] = useState([]);
-  const [mediumCount, setMediumCount] = useState([]);
-  const [largeCount, setLargeCount] = useState([]);
 
   // 필터 단어 목록
   const filters = [
     '전체',
-    'K-POP',
-    '역사',
-    '템플스테이',
-    '식도락',
+    'k-pop',
     '쇼핑',
-    '레저스포츠',
-    '등산코스',
-    '테마시설',
-    '문화시설',
-    '호캉스',
-    '카페',
-    '공방',
+    '템플스테이',
     '캠핑',
     '온천/스파',
+    '공방 여행',
+    '역사',
+    '레저 스포츠',
+    '문화시설',
+    '테마시설',
+    '호캉스',
+    '카페',
+    '식도락',
   ];
 
   // 번역된 필터 상태 관리
   const [translatedFilters, setTranslatedFilters] = useState<string[]>(filters);
 
-  // 더미 장소 데이터
-  const places: Place[] = [
-    {
-      id: 1,
-      name: '월드케이팝센터',
-      tag: 'K-POP',
-      description: '케이팝 문화와 관련된 다양한 경험을 제공하는 공간',
-      address: '서울특별시 중구 장충단로 72 (장충동2가, 한국자유총연맹)',
-      homepage: 'https://w-kpop.com/',
-      contact: '02-2232-7399',
-      hour: '09:00 ~ 20:00',
-      coordinate: {latitude: 37.558, longitude: 127.0065},
-    },
-    {
-      id: 2,
-      name: 'HEMA studio',
-      tag: 'K-POP',
-      description: '전문적인 케이팝 녹음 스튜디오',
-      address: '서울특별시 강남구 학동로3길 27 (논현동, 메리디엠타워) 지하1층',
-      homepage: 'https://hemastudio.com/',
-      contact: '070-7504-1415',
-      hour: '10:00 ~ 22:00',
-      coordinate: {latitude: 37.5149, longitude: 127.0318},
-    },
-    {
-      id: 3,
-      name: '광야@서울',
-      tag: 'K-POP',
-      description: '케이팝 팬들을 위한 체험형 공간',
-      address:
-        '서울특별시 성동구 왕십리로 83-21 (성수동1가, 아크로 서울포레스트) B1F',
-      homepage:
-        'https://www.instagram.com/kwangya_seoul/?igshid=MzRlODBiNWFlZA%3D%3D/',
-      contact: '02-6233-6729',
-      hour: '10:30 ~ 20:00',
-      coordinate: {latitude: 37.5446, longitude: 127.0435},
-    },
-    {
-      id: 4,
-      name: 'REAL K-POP DANCE',
-      tag: 'K-POP',
-      description: '케이팝 댄스를 배울 수 있는 공간',
-      address: '서울특별시 마포구 동교로 19길 48',
-      homepage: 'https://www.realkpopdance.co',
-      contact: '010-3445-2737',
-      hour: '10:00 ~ 21:00',
-      coordinate: {latitude: 37.5586, longitude: 126.9254},
-    },
-    {
-      id: 5,
-      name: '한류스타 거리',
-      tag: 'K-POP',
-      description: '한류 스타들을 기념하는 거리',
-      address: '서울특별시 강남구 압구정동 517',
-      homepage: '',
-      contact: '',
-      hour: '24시간 영업',
-      coordinate: {latitude: 37.5281, longitude: 127.0285},
-    },
-    {
-      id: 6,
-      name: '이스타아카데미',
-      tag: 'K-POP',
-      description: '케이팝 관련 교육을 제공하는 아카데미',
-      address: '서울특별시 양천구 오목로 321-1 (목동, 서경빌딩)',
-      homepage: 'https://www.instagram.com/estar_academy/?hl=en',
-      contact: '',
-      hour: '11:00 ~ 22:00',
-      coordinate: {latitude: 37.526, longitude: 126.872},
-    },
-    {
-      id: 7,
-      name: '라인프렌즈 홍대 플래그십스토어',
-      tag: 'K-POP',
-      description: '라인 캐릭터 상품을 구매할 수 있는 플래그십 스토어',
-      address: '서울특별시 마포구 양화로 141',
-      homepage: 'https://brand.naver.com/linefriends',
-      contact: '02-322-9631',
-      hour: '11:00 ~ 22:00',
-      coordinate: {latitude: 37.5565, longitude: 126.9236},
-    },
-  ];
-
   useEffect(() => {
     const fetchAndTranslateData = async () => {
-      // 위치 권한 요청 및 위치 정보 가져오기
       try {
         const permissionStatus = await request(
           Platform.OS === 'ios'
             ? PERMISSIONS.IOS.LOCATION_WHEN_IN_USE
             : PERMISSIONS.ANDROID.ACCESS_FINE_LOCATION,
         );
-
+  
         if (permissionStatus !== RESULTS.GRANTED) {
-          setErrorMessage(
-            '위치 권한이 거부되었습니다. 설정에서 위치 권한을 허용해주세요.',
-          );
-          Alert.alert(
-            '위치 권한 오류',
-            '위치 권한이 거부되었습니다. 설정에서 위치 권한을 허용해주세요.',
-          );
+          setErrorMessage('위치 권한이 거부되었습니다.');
           return;
         }
-
+  
         Geolocation.getCurrentPosition(
           position => {
-            setLocation({
+            const userLocation = {
               latitude: position.coords.latitude,
               longitude: position.coords.longitude,
-              latitudeDelta: 0.0922,
-              longitudeDelta: 0.0421,
-            });
+              latitudeDelta: 0.004,
+              longitudeDelta: 0.004,
+            };
+            setLocation(userLocation);
+            setInitialRegion(userLocation); // 초기 위치 설정
             setInitialLocationSet(true);
           },
           error => {
             console.error(error);
-            setErrorMessage(
-              '위치를 가져오는 데 실패했습니다. 네트워크 상태를 확인해주세요.',
-            );
-            Alert.alert(
-              '위치 오류',
-              '위치를 가져오는 데 실패했습니다. 네트워크 상태를 확인해주세요.',
-            );
+            setErrorMessage('위치를 가져오는 데 실패했습니다.');
           },
-          {enableHighAccuracy: true, timeout: 20000, maximumAge: 1000},
+          { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 },
         );
-
-        // 필터 단어 번역
-        const translated = await Promise.all(
-          filters.map(filter => translateText(filter, globalLanguage)),
-        );
-        setTranslatedFilters(translated);
       } catch (error) {
         console.error('Error:', error);
-        setErrorMessage(
-          '데이터를 가져오는 데 실패했습니다. 네트워크 상태를 확인해주세요.',
-        );
-        Alert.alert(
-          '오류',
-          '데이터를 가져오는 데 실패했습니다. 네트워크 상태를 확인해주세요.',
-        );
+        setErrorMessage('데이터를 가져오는 데 실패했습니다.');
       }
     };
-
+  
     fetchAndTranslateData();
   }, [globalLanguage]);
 
   const [filteredPlaces, setFilteredPlaces] = useState(places);
 
-  const handleFilterPress = (filter: string) => {
+  const handleFilterPress = async (filter: string) => {
     setActiveFilter(filter);
     setFilteredPlaces(
-      filter === '모두' ? places : places.filter(place => place.tag === filter),
+      filter === '전체' ? places : places.filter(place => place.tag === filter),
     );
+  
+    try {
+      let url = 'http://13.125.53.226:8080/api/themes';
+      if (filter !== '전체') {
+        url += `/${filter.toLowerCase()}/places`; // 필터 값에 따른 API 호출
+      } else {
+        url += `/places`; // '전체' 선택 시 모든 장소 조회
+      }
+  
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+  
+      const result = await response.json();
+      console.log(result);
+  
+      if (response.ok) {
+        const placesData = result.places; // places 배열에 접근
+
+        // 각각의 값들을 배열로 분리해서 상태로 저장
+        const placeNames = placesData.map((item: any) => item.placeName);
+        const placeIds = placesData.map((item: any) => item.placeId);
+        const longs = placesData.map((item: any) => item.longitude);
+        const lats = placesData.map((item: any) => item.latitude);
+
+        setPlaceNames(placeNames);
+        setPlaceIds(placeIds);
+        setPlaceLongitudes(longs);
+        setPlaceLatitudes(lats);
+
+        setFilteredPlaces(placesData); // 모든 장소로 업데이트
+      }
+    } catch (error) {
+      console.error('데이터 요청 실패:', error); // 에러 로그 출력
+    }
   };
+  
+  
 
   const handleBaggageFilterPress = async () => {
     setBaggageFilterActive(prevState => !prevState);
@@ -311,8 +279,68 @@ function ThemeScreen() {
     }
   };
 
-  const handlePlaceMarkerPress = (place: Place) => {
+  const handlePlaceMarkerPress = async (place: Place) => {
     setSelectedPlace(place);
+    const placeId = place.placeId;
+    console.log(placeId);
+    try{
+      const response = await fetch(
+        `http://13.125.53.226:8080/api/themes/place/${placeId}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      const result = await response.json();
+      console.log(result);
+      if (response.ok){
+        setPlaceDetail({
+          placeId: result.placeId,
+          themeId: result.themeId,
+          테마이름: result.테마이름,
+          위도: result.위도,
+          경도: result.경도,
+          장소명: result.장소명,
+          주소명: result.주소명,
+          이미지: result['이미지'] || null,
+          이미지2: result['이미지2'] || null,
+          이미지3: result['이미지3'] || null,
+          '영업시간': result['영업시간'] || null,
+          '홈페이지 URL': result['홈페이지 URL'] || null,
+          설명: result['설명'] || null,
+          평점: result['평점'] || null,
+          리뷰수: result['리뷰수'] || null,
+          가격: result['가격'] || null,
+          '비건 유형': result['비건 유형'] || null,
+          '음식 종류': result['음식 종류'] || null,
+          '방문 유형': result['방문 유형'] || null,
+          '실내외 유형': result['실내외 유형'] || null,
+          '카페 유형': result['카페 유형'] || null,
+          입장료: result['입장료'] || null,
+          '체크인 시간': result['체크인 시간'] || null,
+          '체크 아웃 시간': result['체크 아웃 시간'] || null,
+          숙박료: result['숙박료'] || null,
+          '영업 시작 시간': result['영업 시작 시간'] || null,
+          '영업 종료 시간': result['영업 종료 시간'] || null,
+          휴무일: result['휴무일'] || null,
+          '관람 시간': result['관람 시간'] || null,
+          비고: result['비고'] || null,
+          '이용 방법': result['이용 방법'] || null,
+          '수영장 유무': result['수영장 유무'] || null,
+          가격대: result['가격대'] || null,
+          '관련 링크': result['관련 링크'] || null,
+          '총 별점': result['총 별점'] || null, 
+        });
+        console.log("place: ",placeDetail);
+      }
+      else{
+        console.error('응답 오류:', result);
+      }
+    }catch (error) {
+      console.error('데이터 요청 실패:', error);
+    }
     bottomSheetRef.current?.snapToIndex(0);
   };
 
@@ -332,10 +360,8 @@ function ThemeScreen() {
       );
   
       const result = await response.json();
-      console.log(result);
       if (response.ok) {
         setBaggageDetail(result);  // 상태를 배열로 저장
-        console.log(result);
       }
        else {
         console.error('응답 오류:', result);
@@ -365,28 +391,36 @@ function ThemeScreen() {
 
   return (
     <GestureHandlerRootView style={styles.container}>
-      {location && (
+      {/* {initialRegion && ( */}
         <MapView
-          provider={PROVIDER_GOOGLE}
-          style={styles.map}
-          region={initialLocationSet ? location : undefined}
-          initialRegion={location}
-          showsUserLocation={true}>
-          {/* filteredPlaces 마커 */}
-          {filteredPlaces.map(place => (
-            <Marker
-              key={place.id}
-              coordinate={place.coordinate}
-              onPress={() => handlePlaceMarkerPress(place)}>
-              <View style={styles.markerContainer}>
-                <Image
-                  source={require('../../assets/images/map/theme-marker.png')}
-                  style={styles.themeMarker}
-                />
-              </View>
-              <Text style={styles.markerPlace}>{place.name}</Text>
-            </Marker>
-          ))}
+        provider={PROVIDER_GOOGLE}
+        style={styles.map}
+        initialRegion={{
+          latitude: initialRegion?.latitude ?? 37.5492,
+          longitude: initialRegion?.longitude ?? 126.9654, 
+          latitudeDelta: initialRegion?.latitudeDelta ?? 0.005,
+          longitudeDelta: initialRegion?.longitudeDelta ?? 0.005,
+          }}
+        region={region} 
+        showsUserLocation={true}>
+            {filteredPlaces.map((place, index) => (
+          <Marker
+            key={index}
+            coordinate={{
+            latitude: place.latitude,
+            longitude: place.longitude,
+          }}
+          onPress={() => {handlePlaceMarkerPress(place)}}
+        >
+           <View style={styles.markerContainer}>
+            <Image
+              source={require('../../assets/images/map/theme-marker.png')}
+              style={styles.themeMarker}
+            />
+          </View>
+          <Text style={styles.markerPlace}>{place.placeName}</Text>
+        </Marker>
+       ))}
 
           {/* baggageData 마커 */}
           {baggageFilterActive == true &&
@@ -400,7 +434,7 @@ function ThemeScreen() {
                 onPress={() => handleBaggageMarkerPress(item)}>
                 <View style={styles.markerContainer}>
                   <Image
-                    source={require('../../assets/images/map/theme-marker.png')}
+                    source={require('../../assets/images/map/baggages-marker.png')}
                     style={styles.themeMarker}
                   />
                 </View>
@@ -408,7 +442,7 @@ function ThemeScreen() {
               </Marker>
             ))}
         </MapView>
-      )}
+      
 
       {errorMessage && (
         <View style={styles.errorContainer}>
@@ -524,136 +558,137 @@ function ThemeScreen() {
         enablePanDownToClose={true}
         onChange={handleBottomSheetChange}>
         {/* selectedPlace 관련 렌더링 */}
-        {selectedPlace && (
-          <View style={styles.bottomSheetContainer}>
-            {/* Collapsed 상태일 때 */}
-            {bottomSheetIndex === 0 && (
-              <>
-                <View style={styles.bottomSheetTitleContainerCollapsed}>
-                  <Text style={styles.bottomSheetTitleCollapsed}>
-                    {selectedPlace.name}
-                  </Text>
-                  <View style={styles.bottomSheetButtonContainer}>
-                    <TouchableOpacity
-                      style={styles.bottomSheetButton}
-                      onPress={handleVisitedPress}>
-                      <Image
-                        source={
-                          isVisitedActive
-                            ? require('../../assets/images/map/visited-active.png')
-                            : require('../../assets/images/map/visited-inactive.png')
-                        }
-                        style={styles.bottomSheetVisitedButton}
-                      />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.bottomSheetButton}
-                      onPress={handleLikesPress}>
-                      <Image
-                        source={
-                          isLikesActive
-                            ? require('../../assets/images/map/likes-active.png')
-                            : require('../../assets/images/map/likes-inactive.png')
-                        }
-                        style={styles.bottomSheetLikesButton}
-                      />
-                    </TouchableOpacity>
-                  </View>
-                  <View style={styles.bottomSheetAddressContainerCollapsed}>
-                    <Text style={styles.bottomSheetAddress}>
-                      {selectedPlace.address}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.bottomSheetDescriptionContainer}>
-                  <Image
-                    source={require('../../assets/images/map/example-image.png')}
-                    style={styles.bottomSheetImageContainerCollapsed}
-                  />
-                  <Text style={styles.bottomSheetDescription}>
-                    {selectedPlace.description}
-                  </Text>
-                </View>
-              </>
-            )}
-
-            {/* Expanded 상태일 때 */}
-            {bottomSheetIndex === 1 && (
-              <ScrollView>
-                <View style={styles.bottomSheetTitleContainerExpand}>
-                  <Text style={styles.bottomSheetTitleExpand}>
-                    {selectedPlace.name}
-                  </Text>
-                  <View style={styles.bottomSheetButtonContainer}>
-                    <TouchableOpacity
-                      style={[
-                        styles.bottomSheetButton,
-                        isVisitedActive && {backgroundColor: '#e0e0e0'},
-                      ]}
-                      onPress={handleVisitedPress}>
-                      <Image
-                        source={
-                          isVisitedActive
-                            ? require('../../assets/images/map/visited-active.png')
-                            : require('../../assets/images/map/visited-inactive.png')
-                        }
-                        style={styles.bottomSheetVisitedButton}
-                      />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[
-                        styles.bottomSheetButton,
-                        isLikesActive && {backgroundColor: '#e0e0e0'},
-                      ]}
-                      onPress={handleLikesPress}>
-                      <Image
-                        source={
-                          isLikesActive
-                            ? require('../../assets/images/map/likes-active.png')
-                            : require('../../assets/images/map/likes-inactive.png')
-                        }
-                        style={styles.bottomSheetLikesButton}
-                      />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-
-                <View style={styles.bottomSheetAddressContainerExpand}>
-                  <Text style={styles.bottomSheetAddress}>
-                    {selectedPlace.address}
-                  </Text>
-                </View>
-
-                <Image
-                  source={require('../../assets/images/map/example-image.png')}
-                  style={styles.bottomSheetImageContainerExpand}
-                />
-
-                <View style={styles.bottomSheetListContainer}>
-                  <Text style={styles.bottomSheetListAddressTitle}>주소</Text>
-                  <Text style={styles.bottomSheetListAddress}>
-                    {selectedPlace.address}
-                  </Text>
-                  <Text style={styles.bottomSheetListHomepageTitle}>
-                    홈페이지
-                  </Text>
-                  <Text style={styles.bottomSheetListHomepage}>
-                    {selectedPlace.homepage}
-                  </Text>
-                  <Text style={styles.bottomSheetListContactTitle}>연락처</Text>
-                  <Text style={styles.bottomSheetListContact}>
-                    {selectedPlace.contact}
-                  </Text>
-                  <Text style={styles.bottomSheetListHourTitle}>이용시간</Text>
-                  <Text style={styles.bottomSheetListHour}>
-                    {selectedPlace.hour}
-                  </Text>
-                </View>
-              </ScrollView>
-            )}
+        {selectedPlace && placeDetail && (
+  <View style={styles.bottomSheetContainer}>
+    {/* Collapsed 상태일 때 */}
+    {bottomSheetIndex === 0 && (
+      <>
+        <View style={styles.bottomSheetTitleContainerCollapsed}>
+          <Text style={styles.bottomSheetTitleCollapsed}>
+            {placeDetail.장소명}
+          </Text>
+          <View style={styles.bottomSheetButtonContainer}>
+            <TouchableOpacity
+              style={styles.bottomSheetButton}
+              onPress={handleVisitedPress}>
+              <Image
+                source={
+                  isVisitedActive
+                    ? require('../../assets/images/map/visited-active.png')
+                    : require('../../assets/images/map/visited-inactive.png')
+                }
+                style={styles.bottomSheetVisitedButton}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.bottomSheetButton}
+              onPress={handleLikesPress}>
+              <Image
+                source={
+                  isLikesActive
+                    ? require('../../assets/images/map/likes-active.png')
+                    : require('../../assets/images/map/likes-inactive.png')
+                }
+                style={styles.bottomSheetLikesButton}
+              />
+            </TouchableOpacity>
           </View>
-        )}
+          <View style={styles.bottomSheetAddressContainerCollapsed}>
+            <Text style={styles.bottomSheetAddress}>
+              {placeDetail.주소명}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.bottomSheetDescriptionContainer}>
+        {placeDetail.이미지 ? (
+  <Image
+    source={{ uri: placeDetail.이미지 }}
+    style={styles.bottomSheetImageContainerCollapsed}
+  />
+) : (
+  <Text>No images</Text>
+)}
+        </View>
+      </>
+    )}
+
+    {/* Expanded 상태일 때 */}
+    {bottomSheetIndex === 1 && (
+       <ScrollView>
+       <View style={styles.bottomSheetTitleContainerExpand}>
+         <Text style={styles.bottomSheetTitleExpand}>
+           {placeDetail.장소명}
+         </Text>
+       </View>
+
+       {/* 주소, 영업시간 등 null 값을 체크하고 렌더링 */}
+       <View style={styles.bottomSheetListContainer}>
+         {placeDetail.주소명 && (
+           <>
+             <Text style={styles.bottomSheetListAddressTitle}>주소</Text>
+             <Text style={styles.bottomSheetListContent}>
+               {placeDetail.주소명}
+             </Text>
+           </>
+         )}
+         
+         {placeDetail['홈페이지 URL'] && (
+  <>
+    <Text style={styles.bottomSheetListHomepageTitle}>홈페이지</Text>
+    <TouchableOpacity onPress={() => placeDetail['홈페이지 URL'] && Linking.openURL(placeDetail['홈페이지 URL'])}>
+  <Text style={[styles.bottomSheetListHomepage, { color: 'blue', textDecorationLine: 'underline' }]}>
+    {placeDetail['홈페이지 URL'] || '홈페이지 없음'}
+  </Text>
+</TouchableOpacity>
+
+  </>
+)}
+
+         {placeDetail.설명 && (
+           <>
+             <Text style={styles.bottomSheetListTitle}>설명</Text>
+             <Text style={styles.bottomSheetListContent}>
+               {placeDetail.설명}
+             </Text>
+           </>
+         )}
+
+
+          {placeDetail.영업시간 && (
+           <>
+             <Text style={styles.bottomSheetListTitle}>이용시간</Text>
+             <Text style={styles.bottomSheetListContent}>
+               {placeDetail.영업시간}
+             </Text>
+           </>
+         )}
+
+        {placeDetail['평점'] !== undefined && (
+           <>
+             <Text style={styles.bottomSheetListTitle}>별점</Text>
+             <Text style={styles.bottomSheetListContent}>
+               {placeDetail['평점']}
+             </Text>
+           </>
+         )}
+
+         {/* 다른 필드들도 동일한 방식으로 처리 */}
+         {placeDetail.비고 && (
+           <>
+             <Text style={styles.bottomSheetListTitle}>비고</Text>
+             <Text style={styles.bottomSheetListContent}>
+               {placeDetail.비고}
+             </Text>
+           </>
+         )}
+
+       </View>
+     </ScrollView>
+   )}
+ </View>
+)}
+
 
         {/* selectedBaggage 관련 렌더링 */}
         {selectedBaggage && (
@@ -881,25 +916,15 @@ const styles = StyleSheet.create({
     fontSize: 20,
     marginTop: 20,
   },
-  bottomSheetListContactTitle: {
+  bottomSheetListTitle: {
     fontFamily: 'SBAggroM',
     fontSize: 20,
     marginTop: 20,
   },
-  bottomSheetListContact: {
+  bottomSheetListContent: {
     fontFamily: 'SBAggroL',
-    fontSize: 20,
-    marginTop: 20,
-  },
-  bottomSheetListHourTitle: {
-    fontFamily: 'SBAggroM',
-    fontSize: 20,
-    marginTop: 20,
-  },
-  bottomSheetListHour: {
-    fontFamily: 'AggroL',
-    fontSize: 20,
-    marginTop: 20,
+    fontSize: 18,
+    marginTop: 10,
   },
   baggagePlace:{
     fontSize: 20,
