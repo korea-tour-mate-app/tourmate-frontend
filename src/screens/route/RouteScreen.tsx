@@ -32,6 +32,25 @@ interface FindRestaurantsResponseDto {
   }[];
 }
 
+interface RestaurantDetails {
+  restaurantId: number; 
+  restaurantName: string | null;
+  priceLevel: number | null; 
+  totalRating: number | null; 
+  userRatingsTotal: number | null; 
+  formattedPhoneNumber: string | null; 
+  weekdayText: string | null; 
+  reviews: Review[] | null; 
+}
+
+interface Review {
+  author_name: string | null; 
+  language: string | null; 
+  rating: number | null; 
+  relative_time_description: string | null;
+  text: string | null; 
+  time: number | null; 
+}
 
 interface DayData {
   id: number;
@@ -169,11 +188,16 @@ const RouteScreen = () => {
   const [selectedDayIndex, setSelectedDayIndex] = useState(0); // 현재 선택된 일차 (0일차부터 시작)
   const [selectedLocation, setSelectedLocation] = useState({ latitude: 40.54523875839218, longitude: 126.977613738705 });
   const [routeInfoByDay, setRouteInfoByDay] = useState<{ [day: string]: Omit<RouteOptResponseDto, 'paths'> }>({});
-  const [mapPathsByDay, setMapPathsByDay] = useState<{ [day: string]: RouteOptResponseDto['paths'] }>({});
   const [restaurantsByDay, setRestaurantsByDay] = useState<{ [day: string]: RestaurantInfo[] }>({});
+  const [restaurantDetails, setRestaurantDetails] = useState<RestaurantDetails | null>(null);
+  const [isRestaurantSheetVisible, setRestaurantSheetVisible] = useState(false);
+
+  const [mapPathsByDay, setMapPathsByDay] = useState<{ [day: string]: RouteOptResponseDto['paths'] }>({});
 
   // const [selectedDay, setSelectedDay] = useState("1일차");
   const bottomSheetRef = useRef<BottomSheet>(null);
+  const restaurantSheetRef = useRef<BottomSheet>(null);
+
   const mapRef = useRef<MapView>(null);
   const [toggleState, setToggleState] = useState<{ [key: string]: boolean }>({});
   const [transportInfo, setTransportInfo] = useState<TransportInfo[][][]>([]);
@@ -4485,6 +4509,34 @@ const RouteScreen = () => {
     }
   }, [routeInfoByDay]); // routeInfoByDay가 변경될 때 실행
 
+  const fetchRestaurantDetails = async (restaurantId: number) => {
+    // 이미 데이터가 있는지 확인
+    if (restaurantDetails && restaurantDetails.restaurantId === restaurantId) {
+      setRestaurantSheetVisible(true); // 이미 데이터가 있으면 시트를 열기만 함
+      return;
+    }
+  
+    try {
+      const response = await axios.get<RestaurantDetails>(`http://13.125.53.226:8080/api/restaurants/${restaurantId}`);
+      console.log("음식점 리뷰 구하는 response:", JSON.stringify(response.data, null, 2)); // 2칸 들여쓰기하여 정렬 출력
+  
+      setRestaurantDetails(response.data);
+      setRestaurantSheetVisible(true);
+    } catch (error) {
+      console.error('Error fetching restaurant details:', error);
+      Alert.alert('Error', '음식점 정보를 불러오는 중 오류가 발생했습니다.');
+    }
+  };
+
+  const handleRestaurantMarkerPress = (restaurant: RestaurantInfo) => {
+    fetchRestaurantDetails(restaurant.restaurantId);
+  };
+
+  const handleRestaurantSheetClose = () => {
+    setRestaurantSheetVisible(false);
+    setRestaurantDetails(null);
+  };
+
   // 토글 상태 변경 함수  
   const toggleItem = (dayIndex: number, placeIndex: number) => {
     const toggleKey = `${dayIndex}-${placeIndex}`;    
@@ -5416,13 +5468,13 @@ const RouteScreen = () => {
           })),
         };
         
-        console.log("requestBody:", JSON.stringify(requestBody, null, 2));
+        // console.log("requestBody:", JSON.stringify(requestBody, null, 2));
         // API 호출하여 음식점 데이터 가져오기
         const response = await axios.post<FindRestaurantsResponseDto>(
           'http://13.125.53.226:8080/api/restaurants/list',
           requestBody
         );
-        console.log("response:", JSON.stringify(response.data, null, 2));
+        // console.log("response:", JSON.stringify(response.data, null, 2));
 
         // 각 Day별 음식점 데이터를 상태에 저장
         newRestaurantsByDay[dayKey] = response.data.locationsWithRestaurants.flatMap((location) => location.restaurants);
@@ -5491,6 +5543,7 @@ const RouteScreen = () => {
               }}
               title={`${index + 1}. ${place.name}`} // 순서와 장소명 함께 표시
               image={markerImage} // 마커 이미지 설정
+              zIndex={2} // 장소 마커의 zIndex 값을 높게 설정
             >
               <Callout>
                 <Text>{place.name || "Unnamed Place"}</Text>
@@ -5507,11 +5560,11 @@ const RouteScreen = () => {
               latitude: restaurant.res_latitude,
               longitude: restaurant.res_longitude,
             }}
+            onPress={() => handleRestaurantMarkerPress(restaurant)} // Marker 클릭 시 함수 호출
+            anchor={{ x: 0.5, y: 0.5 }} // 마커 중앙에 위치하도록 설정
             image={require('../../assets/images/route/restaurant_marker.png')} // 음식점 마커 이미지 설정
           >
-            <Callout>
-              <Text>{restaurant.res_name}</Text>
-            </Callout>
+            {/* Callout 제거 */}
           </Marker>
         ))}
 
@@ -5847,6 +5900,91 @@ const RouteScreen = () => {
           </View>
         </ScrollView>
       </BottomSheet>
+
+      {/* 음식점 정보 Bottom Sheet */}
+      {isRestaurantSheetVisible && (
+        <BottomSheet
+          ref={restaurantSheetRef}
+          index={2}
+          snapPoints={['10%', '25%', '50%', '90%']}
+          onClose={handleRestaurantSheetClose}
+        >
+          {/* 전체 스크롤이 가능하도록 ScrollView를 최상위에 위치시킴 */}
+          <ScrollView contentContainerStyle={styles.restaurantInfoContainer}>
+            {restaurantDetails && (
+              <>
+                {/* 이름 */}
+                {restaurantDetails.restaurantName && (
+                  <Text style={styles.restaurantName}>{restaurantDetails.restaurantName}</Text>
+                )}
+          
+                {/* 별점 및 리뷰 수 */}
+                {restaurantDetails.totalRating !== null && 
+                  restaurantDetails.userRatingsTotal !== null && 
+                  restaurantDetails.totalRating > 0 && 
+                  restaurantDetails.userRatingsTotal > 0 && (
+                  <Text style={styles.rating}>
+                    {/* 별점 텍스트 옆에 빨간색 별 아이콘 추가 */}
+                    <Text style={{ color: 'red', fontSize: 18 }}>★</Text> {/* 빨간색 별 아이콘 */}
+                    {` ${restaurantDetails.totalRating} (${restaurantDetails.userRatingsTotal})`}
+                  </Text>
+                )}
+          
+                {/* 전화번호 */}
+                {restaurantDetails.formattedPhoneNumber && (
+                  <Text>{restaurantDetails.formattedPhoneNumber}</Text>
+                )}
+          
+                {/* 영업시간 */}
+                {restaurantDetails.weekdayText && (
+                  <>
+                    <Text style={styles.openingHoursTitle}>영업시간</Text>
+                    <Text style={styles.openingHoursText}>{restaurantDetails.weekdayText}</Text>
+                  </>
+                )}
+          
+                {/* 리뷰 */}
+                {restaurantDetails.reviews && restaurantDetails.reviews.length > 0 && (
+                  <View style={styles.reviewsContainer}>
+                    {restaurantDetails.reviews.map((review, index) => (
+                      <View key={index} style={styles.review}>
+                        {/* 리뷰 작성자 이름 */}
+                        {review.author_name && (
+                          <Text style={styles.reviewAuthor}>{review.author_name}</Text>
+                        )}
+          
+                        {/* 별점 */}
+                        {review.rating !== null && review.rating > 0 && (
+                          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                          {/* 별 모양 */}
+                          <Text style={[styles.reviewRating, { color: '#FFD700' }]}>★</Text>
+                          {/* 별점 숫자 */}
+                          <Text style={[styles.reviewRating, { color: '#000000', marginLeft: 5 }]}>
+                            {review.rating}
+                          </Text>
+                        </View>
+                        )}
+          
+                        {/* 리뷰 내용 */}
+                        {review.text && <Text style={styles.reviewText}>{review.text}</Text>}
+          
+                        {/* 상대적 시간 */}
+                        {review.relative_time_description && (
+                          <Text>{review.relative_time_description}</Text>
+                        )}
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </>
+            )}
+            {/* X 버튼 */}
+            <TouchableOpacity style={styles.closeButton} onPress={handleRestaurantSheetClose}>
+              <Text style={styles.closeButtonText}>X</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </BottomSheet>
+      )}
     </GestureHandlerRootView>
   );
 };
@@ -5990,6 +6128,7 @@ const styles = StyleSheet.create({
   backButtonImage: {
     width: 30,
     height: 30,
+    paddingRight: 20
   },
   additionalText: {
     fontSize: 14,
@@ -6156,6 +6295,70 @@ const styles = StyleSheet.create({
     fontFamily: 'SBAggroL',
     marginTop: 10,
   },
+  restaurantInfoContainer: {
+    padding: 20,
+  },
+  restaurantName: {
+    fontSize: 24,
+    fontFamily: 'SBAggroM',
+    color: '#000000', // 검정색으로 설정
+  },
+  rating: {
+    fontSize: 18,
+    marginVertical: 10, // 총 별점과 다른 요소 사이의 간격 증가
+    color: '#000000', // 검정색으로 설정
+  },
+  openingHoursTitle: {
+    fontSize: 18,
+    fontFamily: 'SBAggroM',
+    color: '#000000', // 검정색으로 설정
+    marginTop: 20, // 영업시간 제목과 다른 요소 사이의 간격 증가
+  },
+  openingHoursText: {
+    fontSize: 16,
+    fontFamily: 'SBAggroL',
+    color: '#000000', // 검정색으로 설정
+    marginBottom: 20, // 영업시간 제목과 다른 요소 사이의 간격 증가
+  },
+  formattedPhoneNumber: {
+    fontSize: 16,
+    color: '#000000', // 검정색으로 설정
+    marginVertical: 10, // 전화번호와 다른 요소 사이의 간격 증가
+  },
+  reviewsContainer: {
+    marginTop: 20,
+  },
+  review: {
+    marginBottom: 35,
+    fontFamily: 'SBAggroL',
+    color: '#000000', // 검정색으로 설정  
+  },
+  reviewAuthor: {
+    fontSize: 16,
+    fontFamily: 'SBAggroM',
+    color: '#000000', // 검정색으로 설정
+  },
+  reviewRating: {
+    fontSize: 14,
+    color: '#FFD700',
+  },
+  reviewText: {
+    fontSize: 14,
+    fontFamily: 'SBAggroL',
+    color: '#000000', // 검정색으로 설정
+  },
+
+  closeButton: {
+    position: 'absolute',
+    top: 10,
+    right: 20,
+  },
+  closeButtonText: {
+    fontSize: 18,
+    fontFamily: 'SBAggroM',
+    color: '#000000', // 검정색으로 설정
+  },
+
   // capsuleRouteText: {
   //   position: 'absolute',   // 캡슐 위에 텍스트를 배치하기 위해 절대 위치 지정
   //   top: -25,               // 캡슐 위쪽에 위치시키기 위해 top을 -20으로 조정
