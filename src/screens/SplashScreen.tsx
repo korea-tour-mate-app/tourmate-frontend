@@ -124,7 +124,6 @@ const SplashScreen: React.FC = () => {
   
         const result = await response.json();8
         if (response.ok) {
-          await AsyncStorage.setItem('jwtToken', result.accessToken);
           navigation.navigate('Tabs'); // 로그인 성공 시 Tabs 화면으로 이동
         } else {
           Alert.alert('로그인 실패', result.message || '로그인에 실패하였습니다. 다시 시도해 주세요.');
@@ -145,11 +144,12 @@ const SplashScreen: React.FC = () => {
       if (result) {
         const { accessToken } = result;
         console.log(accessToken);
-        // idToken을 Authorization 헤더에 넣어 서버에 전송
+  
+        // 서버에 accessToken 전송
         const response = await fetch('http://13.125.53.226:8080/api/auth/google-login', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${accessToken}`, // idToken을 사용
+            'Authorization': `Bearer ${accessToken}`, // Google 로그인 후 받은 accessToken 사용
             'Content-Type': 'application/json',
           },
         });
@@ -157,6 +157,11 @@ const SplashScreen: React.FC = () => {
         if (!response.ok) {
           throw new Error('Failed to log in');
         }
+  
+        // 응답 데이터를 JSON으로 변환
+        const data = await response.json();
+        await AsyncStorage.setItem('jwtToken', data.accessToken);
+  
         setIsGoogleUser(true);
         navigation.navigate('Tabs'); // 로그인 성공 시 Tabs 화면으로 이동
       }
@@ -164,6 +169,7 @@ const SplashScreen: React.FC = () => {
       console.error('Error during Google login:', error);
     }
   };
+  
   
   
   const handleVerifyEmail = async () => {
