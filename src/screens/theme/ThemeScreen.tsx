@@ -3,11 +3,12 @@ import { StyleSheet, View,TouchableOpacity,Text, ScrollView, Dimensions, Image, 
 import MapView, {PROVIDER_GOOGLE, Marker, Region } from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
 import BottomSheet from '@gorhom/bottom-sheet';
-import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import {GestureHandlerRootView, HoverEffect} from 'react-native-gesture-handler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {request, PERMISSIONS, RESULTS} from 'react-native-permissions';
 import {useLanguage} from '../../components/LanguageProvider';
 import {translateText} from '../../utils/Translation';
+import { getProfileData } from 'react-native-calendars/src/Profiler';
 
 // 위치 및 장소 타입 정의
 interface LocationType {
@@ -101,8 +102,7 @@ function ThemeScreen() {
   const [location, setLocation] = useState<LocationType | undefined>();
   const [initialLocationSet, setInitialLocationSet] = useState(false);
   const [initialRegion, setInitialRegion] = useState<Region | undefined>(undefined); // 초기 위치를 undefined로 설정
-  const [region, setRegion] = useState<Region | undefined>(undefined); // 지역 상태 추가
-
+  const [region, setRegion] = useState<Region | undefined>(undefined); // 지역 상태 추가 
 
   // 필터 상태
   const [activeFilter, setActiveFilter] = useState<string>('');
@@ -122,7 +122,7 @@ function ThemeScreen() {
   const {language: globalLanguage} = useLanguage(); // 현재 언어 상태 가져오기
 
   // Place 관련 상태
-  const [placeNames, setPlaceNames] = useState([]);
+  const [placeNames, setPlaceNames] = useState<string[]>([]);
   const [placeIds, setPlaceIds] = useState([]);
   const [placeLatitudes, setPlaceLatitudes] = useState([]);
   const [placeLongitudes, setPlaceLongitudes] = useState([]);
@@ -132,7 +132,7 @@ function ThemeScreen() {
   // Visited Data 관련 상태
   const [visitedData, setVisitedData] = useState<Visited[]>([]);
   const [visitedPlaceId, setVisitedPlaceId] = useState([]);
-  const [visitedPlaceName, setVisitedPlaceName] = useState([]);
+  const [visitedPlaceName, setVisitedPlaceName] = useState<string[]>([]);
   const [visitedPlaceLocation, setVisitedPlaceLocation] = useState([]);
   const [visitedLatitudes, setVisitedLatitudes] = useState([]);
   const [visitedLongitudes, setVisitedLongitudes] = useState([]);
@@ -140,7 +140,7 @@ function ThemeScreen() {
   // Likes Data 관련 상태
   const [likesData, setLikesData] = useState<Likes[]>([]);
   const [likesPlaceId, setLikesPlaceId] = useState<string[] | null>(null);
-  const [likesPlaceName, setLikesPlaceName] = useState<string[] | null>(null);
+  const [likesPlaceName, setLikesPlaceName] = useState<string[]>([]);
   const [likesPlaceLocation, setLikesPlaceLocation] = useState<string[] | null>(null);
   const [likesLongitudes, setLikesLongitudes] = useState<number[] | null>(null);
   const [likesLatitudes, setLikesLatitudes] = useState<number[] | null>(null);  
@@ -148,13 +148,20 @@ function ThemeScreen() {
   // Baggage Data 관련 상태
   const [isBaggageDataFetched, setIsBaggageDataFetched] = useState(false);
   const [baggageData, setBaggageData] = useState<Baggage[]>([]);
-  const [parentNames, setParentNames] = useState([]);
+  const [parentNames, setParentNames] = useState<string[]>([]);
   const [baggageStorageIds, setBaggageStorageIds] = useState([]);
   const [lineNumbers, setLineNumbers] = useState([]);
   const [longitudes, setLongitudes] = useState([]);
   const [latitudes, setLatitudes] = useState([]);
   // Baggage Detail 관련 상태
   const [baggageDetail, setBaggageDetail] = useState<BaggageDetail[]>([]);
+
+  // Bottom Sheet 관련 상태
+  const [address, setAddress] = useState<string>('주소');
+  const [homepage, setHomepage] = useState<string>('홈페이지');
+  const [info, setInfo] = useState<string>('설명');
+  const [time, setTime] = useState<string>('이용시간');
+  const [rating, setRating] = useState<string>('별점');
 
   // 필터 단어 목록
   const filters = [
@@ -216,6 +223,39 @@ function ThemeScreen() {
     };
   
     fetchAndTranslateData();
+
+    const translateFilters = async () => {
+      const translated = await Promise.all(
+        filters.map(async (filter) => await translateText(filter,globalLanguage))
+      );
+      setTranslatedFilters(translated);
+    };
+
+    translateFilters();
+
+    const translateContent = async () => {
+      try {
+        const translatedAddress = await translateText('주소', globalLanguage);
+        setAddress(translatedAddress);
+
+        const translatedHomepage = await translateText('홈페이지', globalLanguage);
+        setHomepage(translatedHomepage);
+
+        const translatedInfo= await translateText('설명', globalLanguage);
+        setInfo(translatedInfo);
+
+        const translatedTime = await translateText('이용시간', globalLanguage);
+        setTime(translatedTime);
+
+        const translatedRating = await translateText('별점', globalLanguage);
+        setRating(translatedRating);
+
+
+      } catch (error) {
+        console.error('Translation Error:', error);
+      }
+    }
+    translateContent();
   }, [globalLanguage]);
 
   const [filteredPlaces, setFilteredPlaces] = useState(places);
@@ -246,24 +286,32 @@ function ThemeScreen() {
   
       if (response.ok) {
         const placesData = result.places; // places 배열에 접근
-
+  
         // 각각의 값들을 배열로 분리해서 상태로 저장
-        const placeNames = placesData.map((item: any) => item.placeName);
         const placeIds = placesData.map((item: any) => item.placeId);
         const longs = placesData.map((item: any) => item.longitude);
         const lats = placesData.map((item: any) => item.latitude);
-
-        setPlaceNames(placeNames);
+  
+        // 번역 작업
+        const placeNamesPromises = placesData.map(async (item: any) => {
+          const translatedName = await translateText(item.placeName, globalLanguage); // 번역된 장소 이름
+          return translatedName;
+        });
+  
+        const placeNames = await Promise.all(placeNamesPromises); // 모든 번역 결과를 기다림
+  
+        setPlaceNames(placeNames); // 번역된 장소 이름 상태 업데이트
         setPlaceIds(placeIds);
         setPlaceLongitudes(longs);
         setPlaceLatitudes(lats);
-
+  
         setFilteredPlaces(placesData); // 모든 장소로 업데이트
       }
     } catch (error) {
       console.error('데이터 요청 실패:', error); // 에러 로그 출력
     }
   };
+  
   
   const handleVisitedFilterPress = async () => {
     const jwtToken = await AsyncStorage.getItem('jwtToken'); // JWT 토큰 가져오기
@@ -283,15 +331,22 @@ function ThemeScreen() {
       if(response.ok){
         setVisitedData(result);
 
+          const placeName = result.map(async (item: any) => {
+            const translatedName = await translateText(item.placeName, globalLanguage);
+            return translatedName;
+          });
+    
+          // 모든 번역 결과를 기다립니다.
+          const placeNames = await Promise.all(placeName);
+
          // 각각의 값들을 배열로 분리해서 상태로 저장
          const placeId = result.map((item: any) => item.placeId);
-         const placeName = result.map((item: any) => item.placeName);
          const placeLocation = result.map((item: any) => item.placeLocation);
          const latitude = result.map((item: any) => item.latitude);
          const longitude = result.map((item: any) => item.longitude);
  
          setVisitedPlaceId(placeId);
-         setVisitedPlaceName(placeName);
+         setVisitedPlaceName(placeNames);
          setVisitedPlaceLocation(placeLocation);
          setVisitedLongitudes(longitude);
          setVisitedLatitudes(latitude);
@@ -316,40 +371,38 @@ const handleLikesFilterPress = async () => {
         },
       }
     );
-        // 응답 상태 코드 확인
-        if (!response.ok) {
-          const errorResponse = await response.json(); // 에러 메시지 텍스트 읽기
-          console.error('Error fetching likes:', errorResponse);
-          Alert.alert('Error', 'Unable to fetch likes data.');
-          return;
-        }
-    
+
+    // 응답 상태 코드 확인
+    if (!response.ok) {
+      const errorResponse = await response.json(); // 에러 메시지 텍스트 읽기
+      console.error('Error fetching likes:', errorResponse);
+      Alert.alert('Error', 'Unable to fetch likes data.');
+      return;
+    }
+
     const result = await response.json();
     if (response.ok) {
       setLikesData(result);
 
-      if (result.length === 0) {
-        // 응답이 빈 배열일 경우 null로 설정
-        setLikesPlaceId(null);
-        setLikesPlaceName(null);
-        setLikesPlaceLocation(null);
-        setLikesLongitudes(null);
-        setLikesLatitudes(null);
-      } else {
-        // 각각의 값들을 배열로 분리해서 상태로 저장
-        const placeId = result.map((item: any) => item.placeId);
-        const placeName = result.map((item: any) => item.placeName);
-        const placeLocation = result.map((item: any) => item.placeLocation);
-        const latitude = result.map((item: any) => item.latitude);
-        const longitude = result.map((item: any) => item.longitude);
+      // 각각의 값들을 배열로 분리해서 상태로 저장
+      const placeId = result.map((item: any) => item.placeId);
+      const latitude = result.map((item: any) => item.latitude);
+      const longitude = result.map((item: any) => item.longitude);
+      const placeLocation = result.map((item: any) => item.placeLocation);
 
-        setLikesPlaceId(placeId);
-        setLikesPlaceName(placeName);
-        setLikesPlaceLocation(placeLocation);
-        setLikesLongitudes(longitude);
-        setLikesLatitudes(latitude);
-        console.log("가져오기 성공");
-      }
+      const placeName = result.map(async (item: any) => {
+        const translatedName = await translateText(item.placeName, globalLanguage);
+        return translatedName;
+      });
+
+      // 모든 번역 결과를 기다립니다.
+      const placeNames = await Promise.all(placeName);
+
+      setLikesPlaceId(placeId);
+      setLikesPlaceName(placeNames); // 번역된 장소명 저장
+      setLikesPlaceLocation(placeLocation);
+      setLikesLongitudes(longitude);
+      setLikesLatitudes(latitude);
     }
   } catch (error) {
     console.error('Error:', error);
@@ -357,116 +410,136 @@ const handleLikesFilterPress = async () => {
   }
 };
 
+
   
-  const handleBaggageFilterPress = async () => {
-    setBaggageFilterActive(prevState => !prevState);
-    if (isBaggageDataFetched == true) {
-      return;
-    }
-    try {
-      const response = await fetch(
-        'http://13.125.53.226:8080/api/baggage/all-grouped',
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+const handleBaggageFilterPress = async () => {
+  setBaggageFilterActive(prevState => !prevState);
+  
+  if (isBaggageDataFetched === true) {
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      'http://13.125.53.226:8080/api/baggage/all-grouped',
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
         },
+      },
+    );
+
+    const result = await response.json();
+    if (response.ok) {
+      // 응답 데이터를 상태로 저장
+      setBaggageData(result);
+
+      const parentsPromises = result.map(async (item: any) => {
+        const translatedName = await translateText(item.parentName, globalLanguage);
+        return translatedName;
+      });
+
+      // 모든 번역 결과를 기다립니다.
+      const parents = await Promise.all(parentsPromises);
+      
+      const storageIds = result.map((item: any) => item.baggageStorageId);
+      const lines = result.map((item: any) => item.lineNumber);
+      const longs = result.map((item: any) => item.longitude);
+      const lats = result.map((item: any) => item.latitude);
+
+      setParentNames(parents); // 번역된 부모 이름 상태 업데이트
+      setBaggageStorageIds(storageIds);
+      setLineNumbers(lines);
+      setLongitudes(longs);
+      setLatitudes(lats);
+      
+      setIsBaggageDataFetched(true);
+    } else {
+      Alert.alert(
+        'Fail to get Data',
+        result.message || 'Contact to developers.',
       );
-
-      const result = await response.json();
-      if (response.ok) {
-        // 응답 데이터를 상태로 저장
-        setBaggageData(result);
-
-        // 각각의 값들을 배열로 분리해서 상태로 저장
-        const parents = result.map((item: any) => item.parentName);
-        const storageIds = result.map((item: any) => item.baggageStorageId);
-        const lines = result.map((item: any) => item.lineNumber);
-        const longs = result.map((item: any) => item.longitude);
-        const lats = result.map((item: any) => item.latitude);
-
-        setParentNames(parents);
-        setBaggageStorageIds(storageIds);
-        setLineNumbers(lines);
-        setLongitudes(longs);
-        setLatitudes(lats);
-
-        setIsBaggageDataFetched(true);
-      } else {
-        Alert.alert(
-          'Fail to get Data',
-          result.message || 'Contact to developers.',
-        );
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      Alert.alert('Fail to connect', '서버에 연결할 수 없습니다.');
     }
-  };
+  } catch (error) {
+    console.error('Error:', error);
+    Alert.alert('Fail to connect', '서버에 연결할 수 없습니다.');
+  }
+};
 
-  const handlePlaceMarkerPress = async (placeId: number) => {
-    console.log(placeId);
-    try{
-      const response = await fetch(
-        `http://13.125.53.226:8080/api/themes/place/${placeId}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-      const result = await response.json();
-      console.log(result);
-      if (response.ok){
-        setPlaceDetail({
-          placeId: result.placeId,
-          themeId: result.themeId,
-          테마이름: result.테마이름,
-          위도: result.위도,
-          경도: result.경도,
-          장소명: result.장소명,
-          주소명: result.주소명,
-          이미지: result['이미지'] || null,
-          이미지2: result['이미지2'] || null,
-          이미지3: result['이미지3'] || null,
-          '영업시간': result['영업시간'] || null,
-          '홈페이지 URL': result['홈페이지 URL'] || null,
-          설명: result['설명'] || null,
-          평점: result['평점'] || null,
-          리뷰수: result['리뷰수'] || null,
-          가격: result['가격'] || null,
-          '비건 유형': result['비건 유형'] || null,
-          '음식 종류': result['음식 종류'] || null,
-          '방문 유형': result['방문 유형'] || null,
-          '실내외 유형': result['실내외 유형'] || null,
-          '카페 유형': result['카페 유형'] || null,
-          입장료: result['입장료'] || null,
-          '체크인 시간': result['체크인 시간'] || null,
-          '체크 아웃 시간': result['체크 아웃 시간'] || null,
-          숙박료: result['숙박료'] || null,
-          '영업 시작 시간': result['영업 시작 시간'] || null,
-          '영업 종료 시간': result['영업 종료 시간'] || null,
-          휴무일: result['휴무일'] || null,
-          '관람 시간': result['관람 시간'] || null,
-          비고: result['비고'] || null,
-          '이용 방법': result['이용 방법'] || null,
-          '수영장 유무': result['수영장 유무'] || null,
-          가격대: result['가격대'] || null,
-          '관련 링크': result['관련 링크'] || null,
-          '총 별점': result['총 별점'] || null, 
-        });
-        console.log("place: ",placeDetail?.장소명);
+// parentNames가 업데이트될 때마다 로그 출력
+useEffect(() => {
+  console.log("최종:", parentNames);
+}, [parentNames]);
+
+
+const handlePlaceMarkerPress = async (placeId: number) => {
+  console.log(placeId);
+  try {
+    const response = await fetch(
+      `http://13.125.53.226:8080/api/themes/place/${placeId}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       }
-      else{
-        console.error('응답 오류:', result);
-      }
-    }catch (error) {
-      console.error('데이터 요청 실패:', error);
+    );
+
+    const result = await response.json();
+    console.log(result);
+    
+    if (response.ok) {
+      const translatedPlaceName = await translateText(result.장소명, globalLanguage); // 장소명 번역
+      const translatedLocation = await translateText(result.주소명, globalLanguage);
+
+      setPlaceDetail({
+        placeId: result.placeId,
+        themeId: result.themeId,
+        테마이름: result.테마이름,
+        위도: result.위도,
+        경도: result.경도,
+        장소명: translatedPlaceName,
+        주소명: translatedLocation,
+        이미지: result['이미지'] || null,
+        이미지2: result['이미지2'] || null,
+        이미지3: result['이미지3'] || null,
+        '영업시간': result['영업시간'] ? await translateText(result['영업시간'], globalLanguage) : null,
+        '홈페이지 URL': result['홈페이지 URL'] || null,
+        설명: result['설명'] ? await translateText(result['설명'], globalLanguage) : null,
+        평점: result['평점'] || null,
+        리뷰수: result['리뷰수'] || null,
+        가격: result['가격'], 
+        '비건 유형': result['비건 유형'] || null,
+        '음식 종류': result['음식 종류'] || null,
+        '방문 유형': result['방문 유형'] || null,
+        '실내외 유형': result['실내외 유형'] || null,
+        '카페 유형': result['카페 유형'] || null,
+        입장료: result['입장료'] ? await translateText(result['입장료'], globalLanguage) : null,
+        '체크인 시간': result['체크인 시간'] || null,
+        '체크 아웃 시간': result['체크 아웃 시간'] || null,
+        숙박료: result['숙박료'] || null,
+        '영업 시작 시간': result['영업 시작 시간'] ? await translateText(result['영업 시작 시간'],globalLanguage): null,
+        '영업 종료 시간': result['영업 종료 시간'] ? await translateText(result['영업 종료 시간'],globalLanguage): null,
+        휴무일: result['휴무일'] || null,
+        '관람 시간': result['관람 시간'] || null,
+        비고: result['비교'] ? await translateText(result['비고'], globalLanguage) : null,
+        '이용 방법': result['이용 방법'] || null,
+        '수영장 유무': result['수영장 유무'] || null,
+        가격대: result['가격대'] || null,
+        '관련 링크': result['관련 링크'] || null,
+        '총 별점': result['총 별점'] || null, 
+      });
+      console.log("place: ", translatedPlaceName);
+    } else {
+      console.error('응답 오류:', result);
     }
-    bottomSheetRef.current?.snapToIndex(0);
-  };
+  } catch (error) {
+    console.error('데이터 요청 실패:', error);
+  }
+  bottomSheetRef.current?.snapToIndex(0);
+};
+
 
   const handleBaggageMarkerPress = async (item: Baggage) => {
     setSelectedBaggage(item);
@@ -591,7 +664,7 @@ const handleLikesFilterPress = async () => {
               style={styles.themeMarker}
             />
           </View>
-          <Text style={styles.markerPlace}>{place.placeName}</Text>
+          <Text style={styles.markerPlace}>{placeNames[index]}</Text>
         </Marker>
        ))}
 
@@ -614,7 +687,7 @@ const handleLikesFilterPress = async () => {
             style={styles.themeMarker}
           />
         </View>
-        <Text style={styles.markerPlace}>{item.placeName}</Text>
+        <Text style={styles.markerPlace}>{visitedPlaceName[index]}</Text>
       </Marker>
     );
   })}
@@ -641,7 +714,7 @@ const handleLikesFilterPress = async () => {
             style={styles.themeMarker}
           />
         </View>
-        <Text style={styles.markerPlace}>{item.placeName}</Text>
+        <Text style={styles.markerPlace}>{likesPlaceName[index]}</Text>
       </Marker>
     );
   })}
@@ -663,8 +736,8 @@ const handleLikesFilterPress = async () => {
                     style={styles.themeMarker}
                   />
                 </View>
-                <Text style={styles.markerPlace}>{item.parentName}</Text>
-              </Marker>
+                <Text style={styles.markerPlace}>{parentNames[index]}</Text>
+                </Marker>
             ))}
         </MapView>
       
@@ -864,7 +937,7 @@ const handleLikesFilterPress = async () => {
        <View style={styles.bottomSheetListContainer}>
          {placeDetail.주소명 && (
            <>
-             <Text style={styles.bottomSheetListAddressTitle}>주소</Text>
+             <Text style={styles.bottomSheetListAddressTitle}>{address}</Text>
              <Text style={styles.bottomSheetListContent}>
                {placeDetail.주소명}
              </Text>
@@ -873,7 +946,7 @@ const handleLikesFilterPress = async () => {
          
          {placeDetail['홈페이지 URL'] && (
   <>
-    <Text style={styles.bottomSheetListHomepageTitle}>홈페이지</Text>
+    <Text style={styles.bottomSheetListHomepageTitle}>{homepage}</Text>
     <TouchableOpacity onPress={() => placeDetail['홈페이지 URL'] && Linking.openURL(placeDetail['홈페이지 URL'])}>
   <Text style={[styles.bottomSheetListHomepage, { color: 'blue', textDecorationLine: 'underline' }]}>
     {placeDetail['홈페이지 URL'] || '홈페이지 없음'}
@@ -885,7 +958,7 @@ const handleLikesFilterPress = async () => {
 
          {placeDetail.설명 && (
            <>
-             <Text style={styles.bottomSheetListTitle}>설명</Text>
+             <Text style={styles.bottomSheetListTitle}>{info}</Text>
              <Text style={styles.bottomSheetListContent}>
                {placeDetail.설명}
              </Text>
@@ -895,7 +968,7 @@ const handleLikesFilterPress = async () => {
 
           {placeDetail.영업시간 && (
            <>
-             <Text style={styles.bottomSheetListTitle}>이용시간</Text>
+             <Text style={styles.bottomSheetListTitle}>{time}</Text>
              <Text style={styles.bottomSheetListContent}>
                {placeDetail.영업시간}
              </Text>
@@ -904,37 +977,9 @@ const handleLikesFilterPress = async () => {
 
         {placeDetail['평점'] && (
            <>
-             <Text style={styles.bottomSheetListTitle}>별점</Text>
+             <Text style={styles.bottomSheetListTitle}>{rating}</Text>
              <Text style={styles.bottomSheetListContent}>
                {placeDetail['평점']}
-             </Text>
-           </>
-         )}
-
-         {/* 다른 필드들도 동일한 방식으로 처리 */}
-         {placeDetail.비고 && (
-           <>
-             <Text style={styles.bottomSheetListTitle}>비고</Text>
-             <Text style={styles.bottomSheetListContent}>
-               {placeDetail.비고}
-             </Text>
-           </>
-         )}
-
-        {placeDetail['영업 시작 시간'] && (
-           <>
-             <Text style={styles.bottomSheetListTitle}>영업 시작 시간</Text>
-             <Text style={styles.bottomSheetListContent}>
-               {placeDetail['영업 시작 시간']}
-             </Text>
-           </>
-         )}
-
-        {placeDetail['영업 종료 시간'] && (
-           <>
-             <Text style={styles.bottomSheetListTitle}>영업 종료 시간</Text>
-             <Text style={styles.bottomSheetListContent}>
-               {placeDetail['영업 종료 시간']}
              </Text>
            </>
          )}
