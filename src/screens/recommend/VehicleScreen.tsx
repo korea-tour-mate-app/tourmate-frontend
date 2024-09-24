@@ -20,12 +20,12 @@ const VehicleScreen: React.FC = () => {
 
   // 번역된 텍스트 상태
   const [questionText, setQuestionText] =
-    useState<string>('여행 예산에 대해 알려주세요!');
+    useState<string>('이동수단을 알려주세요!');
   const [info, setInfo] = useState<string>(
     '여행 시 이용하실 이동수단을 선택해주세요.',
   );
   const [valueOption1, setValueOption1] = useState<string>('대중교통');
-  const [valueOption2, setValueOption2] = useState<string>('자가용');
+  const [valueOption2, setValueOption2] = useState<string>('자동차');
   const [next, setNext] = useState<string>('여행경로 추천받기');
 
   const {language: globalLanguage} = useLanguage();
@@ -51,7 +51,7 @@ const VehicleScreen: React.FC = () => {
         );
         setValueOption1(translatedOption1);
 
-        const translatedOption2 = await translateText('자가용', globalLanguage);
+        const translatedOption2 = await translateText('자동차', globalLanguage);
         setValueOption2(translatedOption2);
 
         const translatedNext = await translateText(
@@ -108,7 +108,7 @@ const VehicleScreen: React.FC = () => {
           style={styles.backButton}
         />
       </TouchableOpacity>
-      <Text style={styles.question}>Q5.</Text>
+      <Text style={styles.question}>Q4.</Text>
       <Text style={styles.question}>{questionText}</Text>
 
       <View style={styles.rectangleContainer}>
@@ -177,14 +177,16 @@ const styles = StyleSheet.create({
   question: {
     paddingLeft: 10,
     paddingBottom: 2,
-    fontFamily: 'AggroM',
+    fontFamily: 'SBAggroM',
     fontSize: 24,
+    color: '#000000',
   },
   info: {
-    fontFamily: 'AggroL',
+    fontFamily: 'SBAggroL',
     fontSize: 18,
     marginTop: 20,
     marginBottom: 20,
+    color: '#000000',
   },
   cardContainer: {
     flexDirection: 'row',
@@ -198,7 +200,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   rectangle: {
-    width: '90%',
+    width: '95%',
     height: 65,
     borderRadius: 20,
     backgroundColor: 'white',
@@ -207,12 +209,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   card: {
-    width: '47%',
-    aspectRatio: 1,
-    borderRadius: 20,
+    width: 150,
+    height: 150,
+    borderRadius: 30,
     backgroundColor: 'white',
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    marginLeft: 13,
+    marginRight: 20,
     marginBottom: 20,
   },
   selectedCard: {
@@ -223,7 +227,7 @@ const styles = StyleSheet.create({
   },
   label: {
     marginTop: 10,
-    fontFamily: 'AggroL',
+    fontFamily: 'SBAggroL',
     fontSize: 18,
     color: '#000000',
   },
@@ -241,16 +245,17 @@ const styles = StyleSheet.create({
     left: 20,
   },
   nextText: {
-    fontFamily: 'AggroL',
+    fontFamily: 'SBAggroL',
     fontSize: 18,
   },
   caption: {
     textAlign: 'left',
     color: '#888',
     fontSize: 12,
-    fontFamily: 'AggroL',
-    marginBottom: 100,
+    fontFamily: 'SBAggroL',
+    marginBottom: 110,
     marginTop: 30,
+    marginLeft: 15,
   },
 });
 

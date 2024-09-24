@@ -223,20 +223,22 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   card: {
-    width: '47%',
-    aspectRatio: 1,
-    borderRadius: 20,
+    width: 150,
+    height: 150,
+    borderRadius: 30,
     backgroundColor: 'white',
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    marginLeft: 13,
+    marginRight: 20,
     marginBottom: 20,
   },
   selectedCard: {
     backgroundColor: '#0047A0',
   },
   icon: {
-    width: 50,
-    height: 50,
+    width: 70,
+    height: 70,
     resizeMode: 'contain',
   },
   label: {
@@ -268,8 +270,9 @@ const styles = StyleSheet.create({
     color: '#888',
     fontSize: 12,
     fontFamily: 'SBAggroL',
-    marginBottom: 100,
-    marginTop: -130
+    marginBottom: 40,
+    marginTop: 0,
+    marginLeft: 15,
   },
   multiLineLabelContainer: {
     alignItems: 'center', // 텍스트가 카드의 가운데 정렬되도록 설정
