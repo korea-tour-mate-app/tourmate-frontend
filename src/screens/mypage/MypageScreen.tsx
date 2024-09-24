@@ -87,7 +87,7 @@ const MyPageScreen = () => {
           const userInfo = await response.json();
           setUsername(userInfo.name);
         } catch (error) {
-          console.error('Error fetching user profile:', error);
+          console.error('Error fetching user profile:', error); 
         }
       } else {
         // 앱 자체 로그인 사용자의 경우

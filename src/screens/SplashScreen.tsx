@@ -124,6 +124,8 @@ const SplashScreen: React.FC = () => {
   
         const result = await response.json();8
         if (response.ok) {
+        await AsyncStorage.setItem('jwtToken', result.accessToken);
+        setIsGoogleUser(false);
           navigation.navigate('Tabs'); // 로그인 성공 시 Tabs 화면으로 이동
         } else {
           Alert.alert('로그인 실패', result.message || '로그인에 실패하였습니다. 다시 시도해 주세요.');
@@ -555,7 +557,7 @@ const SplashScreen: React.FC = () => {
               setShowSignUp(false);
               setShowLoginBox(true);
             }}>
-            <Text style={[styles.signUpText, {fontSize: platformFontSize(15)}]}>
+            <Text style={[styles.signUpText2, {fontSize: platformFontSize(15)}]}>
             Do you already have an account?
             </Text>
           </TouchableOpacity>
@@ -652,7 +654,13 @@ const styles = StyleSheet.create({
     color: '#0047A0',
     fontWeight: '300',
     fontFamily: 'SBAggroM',
-    marginTop: 10
+    marginTop: 10,
+  },
+  signUpText2: {
+    color: '#0047A0',
+    fontWeight: '300',
+    fontFamily: 'SBAggroM',
+    marginTop: 2,
   },
   signUpContainer: {
     width: '80%',
