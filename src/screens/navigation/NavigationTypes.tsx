@@ -8,7 +8,6 @@ export type RootStackParamList = {
   ThemeScreen: undefined;
   DayScreen: undefined;
   WithWhoScreen: undefined;
-  BudgetScreen: undefined;
   RecommendScreen: undefined;
   VehicleScreen: undefined;
   RouteScreen: undefined;

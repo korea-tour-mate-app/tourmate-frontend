@@ -13,10 +13,6 @@ interface SelectionContextProps {
   selectedWithWho: number;  
   setSelectedWithWho: (withWho: number) => void;
 
-  // 예산이 얼마나 될지
-  selectedBudget: number;  
-  setSelectedBudget: (budget: number) => void;
-
   // 어떤 교통수단 이용할지
   selectedVehicle: number;  
   setSelectedVehicle: (vehicle: number) => void;
@@ -30,8 +26,6 @@ const defaultSelectionContext: SelectionContextProps = {
   setSelectedDay: () => {},
   selectedWithWho: 0,
   setSelectedWithWho: () => {},
-  selectedBudget: 0,
-  setSelectedBudget: () => {},
   selectedVehicle: 0,
   setSelectedVehicle: () => {},
 };
@@ -43,7 +37,6 @@ export const SelectionProvider: React.FC<{ children: ReactNode }> = ({ children 
   const [selectedDay, setSelectedDay] = useState<Array<string | number>>(["24.10.1", "24.10.2", 3]);  // 초기값 설정
 
   const [selectedWithWho, setSelectedWithWho] = useState<number>(0);
-  const [selectedBudget, setSelectedBudget] = useState<number>(0);
   const [selectedVehicle, setSelectedVehicle] = useState<number>(0);
 
   return (
@@ -55,8 +48,6 @@ export const SelectionProvider: React.FC<{ children: ReactNode }> = ({ children 
         setSelectedDay,
         selectedWithWho,
         setSelectedWithWho,
-        selectedBudget,
-        setSelectedBudget,
         selectedVehicle,
         setSelectedVehicle,
       }}
