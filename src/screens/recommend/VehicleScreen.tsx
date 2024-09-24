@@ -67,27 +67,28 @@ const VehicleScreen: React.FC = () => {
     translateTexts();
   }, [globalLanguage]);
 
-  const handleSelect = (index: number, option: string) => {
-    // 선택된 인덱스를 setSelectedBudget에 저장
+  const handleSelect = async (index: number, option: string) => {
     setSelectedVehicle(index);
-
-    // 선택된 인덱스 업데이트
+  
     setSelectedOption(prevOption => (prevOption === option ? null : option));
-
+  
     if (selectedOption === option) {
       setSelectedOption(null);
-      setInfo('여행 시 이용하실 이동수단을 선택해주세요.');
+      const translatedInfo = await translateText('여행 시 이용하실 이동수단을 선택해주세요.', globalLanguage);
+      setInfo(translatedInfo);
     } else {
       setSelectedOption(option);
-
-      // 각 옵션에 따라 info 업데이트
+  
+      let translatedInfo = '';
       if (option === valueOption1) {
-        setInfo('버스나 지하철을 이용해요.');
+        translatedInfo = await translateText('버스나 지하철을 이용해요.', globalLanguage);
       } else if (option === valueOption2) {
-        setInfo('택시나 렌트카를 이용해요.');
+        translatedInfo = await translateText('택시나 렌트카를 이용해요.', globalLanguage);
       }
+      setInfo(translatedInfo);
     }
   };
+  
 
   const handleNext = () => {
     console.log('selectedVehicle:', selectedVehicle);
@@ -229,6 +230,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontFamily: 'SBAggroL',
     fontSize: 18,
+    textAlign: 'center',
     color: '#000000',
   },
   selectedLabel: {

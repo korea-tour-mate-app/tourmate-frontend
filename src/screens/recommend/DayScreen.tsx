@@ -7,6 +7,7 @@ import { RootStackNavigationProp } from '../navigation/navigationTypes';
 import { useLanguage } from '../../components/LanguageProvider';
 import { translateText } from '../../utils/Translation'; 
 import { useSelection } from '../../components/SelectionContext';
+import { ScrollView } from 'react-native';  // ScrollView 추가
 
 type DayScreenNavigationProp = RootStackNavigationProp<'DayScreen'>;
 
@@ -17,6 +18,7 @@ const DayScreen = () => {
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
 
+  const dynamicStyles = getDynamicStyles(globalLanguage); // 컴포넌트 내부에서 사용
   const [question, setQuestion] = useState<string>('언제 가시나요?');
   const [info, setInfo] = useState<string>('Tourmate와 함께 하는 여정은 최대 3일까지 가능합니다.');
   const [go, setGo] = useState<string>('가는 날');
@@ -215,11 +217,11 @@ const DayScreen = () => {
       />
       <View style={styles.selectedDatesRow}>
         <View style={styles.dateContainer}>
-          <Text style={styles.dateLabel}>{go}</Text>
+          <Text style={[dynamicStyles.dateLabel]}>{go}</Text>
           <Text style={styles.dateText}>{translatedStartDate}</Text>
         </View>
         <View style={styles.dateContainer}>
-          <Text style={styles.dateLabel}>{come}</Text>
+          <Text style={[dynamicStyles.dateLabel]}>{come}</Text>
           <Text style={styles.dateText}>{translatedEndDate}</Text>
         </View>
       </View>
@@ -272,12 +274,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
-  dateLabel: {
-    fontFamily: 'SBAggroL',
-    fontSize: 24,
-    marginBottom: 10,
-    color: '#000000',
-  },
+  // dateLabel: {
+  //   fontFamily: 'SBAggroL',
+  //   fontSize: 24,
+  //   marginBottom: 10,
+  //   color: '#000000',
+  // },
   dateText: {
     fontFamily: 'SBAggroL',
     fontSize: 18,
@@ -309,6 +311,15 @@ const styles = StyleSheet.create({
     color: '#0047A0',
     fontWeight: 'bold',
     textDecorationLine: 'underline',
+  },
+});
+
+const getDynamicStyles = (globalLanguage: string) => ({
+  dateLabel: {
+    fontFamily: 'SBAggroL',
+    fontSize: globalLanguage !== 'ko' ? 17 : 24, // ko가 아닐 때 18, ko일 때 24
+    marginBottom: 10,
+    color: '#000000',
   },
 });
 

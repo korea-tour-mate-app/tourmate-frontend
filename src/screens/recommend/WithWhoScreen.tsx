@@ -17,6 +17,7 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
   const navigation = useNavigation<WithWhoScreenNavigationProp>();
   const { language: globalLanguage } = useLanguage();
   const { selectedWithWho, setSelectedWithWho } = useSelection();  // 상태와 setter 함수 사용
+  const dynamicStyles = getDynamicStyles(globalLanguage); // 컴포넌트 내부에서 사용
 
   // 다중 선택을 위한 배열 상태
   const [selectedOptions, setSelectedOptions] = useState<number[]>([]);
@@ -29,6 +30,7 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
   const [children, setChildren] = useState<string>('자녀');
   const [couple, setCouple] = useState<string>('연인');
   const [group, setGroup] = useState<string>('친목 단체/모임');
+  const [next, setNext] = useState<string>('다음');
 
   useEffect(() => {
     const translateTexts = async () => {
@@ -51,8 +53,11 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
         const translatedCouple = await translateText('연인', globalLanguage);
         setCouple(translatedCouple);
 
-        const translatedGroup = await translateText('친목 단체/모임', globalLanguage);
+        const translatedGroup = await translateText('친목단체', globalLanguage);
         setGroup(translatedGroup);
+
+        const translatedNext = await translateText('다음', globalLanguage); // 추가된 부분
+        setNext(translatedNext); 
         
       } catch (error) {
         console.error('Translation Error:', error);
@@ -100,18 +105,25 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
         >
           <Image source={require('../../assets/images/themeIcon/who_parent.png')} style={styles.icon} />
           <Text style={[
-            styles.label,
+            dynamicStyles.label,
             selectedOptions.includes(0) && styles.selectedLabel,
-            { textAlign: 'center' }, // 중앙 정렬 추가
+            { textAlign: 'center', marginVertical: -7 }, // 중앙 정렬 추가
           ]}>
-            부모/조부모
+            {parent.split('/')[0]} {/* 부모/조부모 중 부모 부분 사용 */}
           </Text>
           <Text style={[
-            styles.label,
+            dynamicStyles.label,
             selectedOptions.includes(0) && styles.selectedLabel,
-            { textAlign: 'center' }, // 중앙 정렬 추가
+            { textAlign: 'center', marginVertical: -7 }, // 중앙 정렬 추가
           ]}>
-            형제자매
+            {parent.split('/')[1]} {/* 부모/조부모 중 조부모 부분 사용 */}
+          </Text>
+          <Text style={[
+            dynamicStyles.label,
+            selectedOptions.includes(0) && styles.selectedLabel,
+            { textAlign: 'center', marginVertical: -7, marginBottom: 4 }, // 중앙 정렬 추가
+          ]}>
+            {parent.split('/')[2]} {/* 부모/조부모 중 조부모 부분 사용 */}
           </Text>
         </TouchableOpacity>
 
@@ -124,7 +136,7 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
         >
           <Image source={require('../../assets/images/themeIcon/who_spouse.png')} style={styles.icon} />
           <Text style={[
-            styles.label,
+            dynamicStyles.label,
             selectedOptions.includes(1) && styles.selectedLabel,
           ]}>{spouse}</Text>
         </TouchableOpacity>
@@ -138,9 +150,15 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
         >
           <Image source={require('../../assets/images/themeIcon/who_friend.png')} style={styles.icon} />
           <Text style={[
-            styles.label,
+            dynamicStyles.label,
             selectedOptions.includes(2) && styles.selectedLabel,
-          ]}>{friend}</Text>
+            { textAlign: 'center', marginVertical: -7},
+          ]}>{friend.split('/')[0]}</Text>
+          <Text style={[
+            dynamicStyles.label,
+            selectedOptions.includes(2) && styles.selectedLabel,
+            { textAlign: 'center', marginVertical: -7 },
+          ]}>{friend.split('/')[1]}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -152,7 +170,7 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
         >
           <Image source={require('../../assets/images/themeIcon/who_daughter.png')} style={styles.icon} />
           <Text style={[
-            styles.label,
+            dynamicStyles.label,
             selectedOptions.includes(3) && styles.selectedLabel,
           ]}>{children}</Text>
         </TouchableOpacity>
@@ -166,7 +184,7 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
         >
           <Image source={require('../../assets/images/themeIcon/who_couple.png')} style={styles.icon} />
           <Text style={[
-            styles.label,
+            dynamicStyles.label,
             selectedOptions.includes(4) && styles.selectedLabel,
           ]}>{couple}</Text>
         </TouchableOpacity>
@@ -179,7 +197,7 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
         >
           <Image source={require('../../assets/images/themeIcon/who_group.png')} style={styles.icon} />
           <Text style={[
-            styles.label,
+            dynamicStyles.label,
             selectedOptions.includes(5) && styles.selectedLabel,
           ]}>{group}</Text>
         </TouchableOpacity>
@@ -196,7 +214,7 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
         onPress={handleNext}
         disabled={selectedOptions.length === 0} // 선택된 항목이 없으면 비활성화
       >
-        <Text style={styles.nextText}>다음</Text>
+        <Text style={styles.nextText}>{next}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -244,12 +262,6 @@ const styles = StyleSheet.create({
     height: 70,
     resizeMode: 'contain',
   },
-  label: {
-    marginTop: 10,
-    fontFamily: 'SBAggroL',
-    fontSize: 18,
-    color: '#000000',
-  },
   selectedLabel: {
     color: '#ffffff',
   },
@@ -290,5 +302,16 @@ const styles = StyleSheet.create({
     lineHeight: 22, // 줄 간격 조정
   },
 });
+
+const getDynamicStyles = (globalLanguage: string) => StyleSheet.create({
+  label: {
+    marginTop: 10,
+    fontFamily: 'SBAggroL',
+    fontSize: globalLanguage !== 'ko' ? 14 : 18,
+    color: '#000000',
+  },
+});
+
+
 
 export default WithWhoScreen;
