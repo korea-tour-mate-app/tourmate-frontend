@@ -72,7 +72,7 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
   const handleNext = () => {
     console.log('selectedWithWho:', selectedWithWho);
     if (selectedOption) {
-      navigation.navigate('BudgetScreen');
+      navigation.navigate('VehicleScreen');
     } else {
       Alert.alert('오류', '여행 인원을 선택해주세요.');
     }
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
   question: {
     paddingLeft: 10,
     paddingBottom: 2,
-    fontFamily: 'AggroM',
+    fontFamily: 'SBAggroM',
     fontSize: 24,
   },
   cardContainer: {
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
   },
   label: {
     marginTop: 10,
-    fontFamily: 'AggroL',
+    fontFamily: 'SBAggroL',
     fontSize: 18,
     color: '#000000',
   },
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
     left: 20,
   },
   nextText: {
-    fontFamily: 'AggroL',
+    fontFamily: 'SBAggroL',
     fontSize: 18,
     color: 'white'
   },
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     color: '#888',
     fontSize: 12,
-    fontFamily: 'AggroL',
+    fontFamily: 'SBAggroL',
     marginBottom: 100,
     marginTop: -130
   },

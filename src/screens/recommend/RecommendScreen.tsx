@@ -351,18 +351,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   question: {
-    fontFamily: 'AggroM',
+    fontFamily: 'SBAggroM',
     fontSize: 24,
+    color: '#000000',
   },
   content: {
-    fontFamily: 'AggroL',
+    fontFamily: 'SBAggroL',
     fontSize: 20,
     marginTop: 20,
     marginBottom: 20,
+    color: '#000000',
   },
   title: {
-    fontFamily: 'AggroL',
+    fontFamily: 'SBAggroL',
     fontSize: 18,
+    color: '#000000',
   },
   icon: {
     width: 70,
@@ -382,7 +385,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   nextText: {
-    fontFamily: 'AggroL',
+    fontFamily: 'SBAggroL',
     fontSize: 20,
     color: 'white',
   }

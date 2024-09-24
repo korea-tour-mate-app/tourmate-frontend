@@ -245,14 +245,16 @@ const styles = StyleSheet.create({
   question: {
     paddingLeft: 10,
     paddingBottom: 2,
-    fontFamily: 'AggroM',
+    fontFamily: 'SBAggroM',
     fontSize: 24,
+    color: '#000000',
   },
   title: {
     paddingLeft: 10,
-    fontFamily: 'AggroM',
+    fontFamily: 'SBAggroM',
     fontSize: 24,
     marginBottom: 20,
+    color: '#000000',
   },
   calendar: {
     marginBottom: 50,
@@ -269,13 +271,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   dateLabel: {
-    fontFamily: 'AggroL',
+    fontFamily: 'SBAggroL',
     fontSize: 24,
     marginBottom: 10,
+    color: '#000000',
   },
   dateText: {
-    fontFamily: 'AggroL',
+    fontFamily: 'SBAggroL',
     fontSize: 18,
+    color: '#000000',
   },
   nextButton: {
     padding: 15,
@@ -288,7 +292,7 @@ const styles = StyleSheet.create({
     left: 20,
   },
   nextText: {
-    fontFamily: 'AggroL',
+    fontFamily: 'SBAggroL',
     fontSize: 18,
     color: 'white',
   },
@@ -297,7 +301,7 @@ const styles = StyleSheet.create({
     color: '#0047A0',
     marginBottom: 20,
     textAlign: 'center',
-    fontFamily: 'AggroL',
+    fontFamily: 'SBAggroL',
   },
   highlightedText: {
     color: '#0047A0',
