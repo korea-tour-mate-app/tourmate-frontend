@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
     color: '#000000',
   },
   content: {
-    fontFamily: 'SBAggroL',
+    fontFamily: 'SBAggroM',
     fontSize: 20,
     marginTop: 20,
     marginBottom: 20,

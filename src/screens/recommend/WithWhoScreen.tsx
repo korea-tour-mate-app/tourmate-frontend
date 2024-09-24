@@ -22,12 +22,12 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
 
   // 번역된 텍스트 상태
   const [question, setQuestion] = useState<string>('누구와 여행을 떠나시나요?');
+  const [parent, setParent] = useState<string>('부모/조부모/형제자매');
   const [spouse, setSpouse] = useState<string>('배우자');
-  const [family, setFamily] = useState<string>('가족');
   const [friend, setFriend] = useState<string>('친구/동료');
   const [children, setChildren] = useState<string>('자녀');
-  const [lover, setLover] = useState<string>('연인');
-  const [club, setClub] = useState<string>('친목 단체/모임');
+  const [couple, setCouple] = useState<string>('연인');
+  const [group, setGroup] = useState<string>('친목 단체/모임');
 
   useEffect(() => {
     const translateTexts = async () => {
@@ -35,11 +35,11 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
         const translatedQuestion = await translateText('누구와 여행을 떠나시나요?', globalLanguage);
         setQuestion(translatedQuestion);
 
+        const translatedParent = await translateText('부모/조부모/형제자매', globalLanguage);
+        setParent(translatedParent);
+
         const translatedSpouse = await translateText('배우자', globalLanguage);
         setSpouse(translatedSpouse);
-
-        const translatedFamily = await translateText('가족', globalLanguage);
-        setFamily(translatedFamily);
 
         const translatedFriend = await translateText('친구/동료', globalLanguage);
         setFriend(translatedFriend);
@@ -47,11 +47,11 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
         const translatedChildren = await translateText('자녀', globalLanguage);
         setChildren(translatedChildren);
 
-        const translatedLover = await translateText('연인', globalLanguage);
-        setLover(translatedLover);
+        const translatedCouple = await translateText('연인', globalLanguage);
+        setCouple(translatedCouple);
 
-        const translatedClub = await translateText('친목 단체/모임', globalLanguage);
-        setClub(translatedClub);
+        const translatedGroup = await translateText('친목 단체/모임', globalLanguage);
+        setGroup(translatedGroup);
         
       } catch (error) {
         console.error('Translation Error:', error);
@@ -90,43 +90,39 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
         <TouchableOpacity
           style={[
             styles.card,
+            selectedOption === parent && styles.selectedCard,
+          ]}
+          onPress={() => handleSelect(0, parent)}
+        >
+          <Image source={require('../../assets/images/themeIcon/who_parent.png')} style={styles.icon} />
+          <Text style={[
+            styles.label,
+            selectedOption === parent && styles.selectedLabel,
+            { textAlign: 'center' }, // 중앙 정렬 추가
+          ]}>
+            부모/조부모
+          </Text>
+          <Text style={[
+            styles.label,
+            selectedOption === parent && styles.selectedLabel,
+            { textAlign: 'center' }, // 중앙 정렬 추가
+          ]}>
+            형제자매
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.card,
             selectedOption === spouse && styles.selectedCard,
           ]}
-          onPress={() => handleSelect(0, spouse)}
+          onPress={() => handleSelect(1, spouse)}
         >
           <Image source={require('../../assets/images/themeIcon/who_spouse.png')} style={styles.icon} />
           <Text style={[
             styles.label,
             selectedOption === spouse && styles.selectedLabel,
           ]}>{spouse}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.card,
-            selectedOption === family && styles.selectedCard,
-          ]}
-          onPress={() => handleSelect(1, family)}
-        >
-          <Image source={require('../../assets/images/themeIcon/who_daughter.png')} style={styles.icon} />
-          <Text style={[
-            styles.label,
-            selectedOption === family && styles.selectedLabel,
-          ]}>{family}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.card,
-            selectedOption === friend && styles.selectedCard,
-          ]}
-          onPress={() => handleSelect(2, friend)}
-        >
-          <Image source={require('../../assets/images/themeIcon/who_spouse.png')} style={styles.icon} />
-          <Text style={[
-            styles.label,
-            selectedOption === friend && styles.selectedLabel,
-          ]}>{friend}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -143,33 +139,48 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
           ]}>{children}</Text>
         </TouchableOpacity>
 
+
         <TouchableOpacity
           style={[
             styles.card,
-            selectedOption === lover && styles.selectedCard,
+            selectedOption === friend && styles.selectedCard,
           ]}
-          onPress={() => handleSelect(4, lover)}
+          onPress={() => handleSelect(2, friend)}
         >
-          <Image source={require('../../assets/images/themeIcon/who_spouse.png')} style={styles.icon} />
+          <Image source={require('../../assets/images/themeIcon/who_friend.png')} style={styles.icon} />
           <Text style={[
             styles.label,
-            selectedOption === lover && styles.selectedLabel,
-          ]}>{lover}</Text>
+            selectedOption === friend && styles.selectedLabel,
+          ]}>{friend}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[
             styles.card,
-            selectedOption === club && styles.selectedCard,
+            selectedOption === couple && styles.selectedCard,
           ]}
-          onPress={() => handleSelect(5, club)}
+          onPress={() => handleSelect(4, couple)}
         >
-          <Image source={require('../../assets/images/themeIcon/who_daughter.png')} style={styles.icon} />
+          <Image source={require('../../assets/images/themeIcon/who_couple.png')} style={styles.icon} />
           <Text style={[
             styles.label,
-            selectedOption === club && styles.selectedLabel,
-          ]}>{club}</Text>
+            selectedOption === couple && styles.selectedLabel,
+          ]}>{couple}</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.card,
+            selectedOption === group && styles.selectedCard,
+          ]}
+          onPress={() => handleSelect(5, group)}
+        >
+          <Image source={require('../../assets/images/themeIcon/who_group.png')} style={styles.icon} />
+          <Text style={[
+            styles.label,
+            selectedOption === group && styles.selectedLabel,
+          ]}>{group}</Text>
+        </TouchableOpacity>
+        
       </View>
 
       <Text style={styles.caption}>*사진출처 Microsoft Fluent Emoji – Color</Text>
@@ -203,6 +214,7 @@ const styles = StyleSheet.create({
     paddingBottom: 2,
     fontFamily: 'SBAggroM',
     fontSize: 24,
+    color: '#000000',
   },
   cardContainer: {
     flexDirection: 'row',
@@ -258,6 +270,18 @@ const styles = StyleSheet.create({
     fontFamily: 'SBAggroL',
     marginBottom: 100,
     marginTop: -130
+  },
+  multiLineLabelContainer: {
+    alignItems: 'center', // 텍스트가 카드의 가운데 정렬되도록 설정
+    justifyContent: 'center',
+  },
+  multiLineLabel: {
+    marginTop: 10,
+    fontFamily: 'SBAggroL',
+    fontSize: 16, // 적절한 폰트 크기 설정
+    color: '#000000',
+    textAlign: 'center', // 텍스트 중앙 정렬
+    lineHeight: 22, // 줄 간격 조정
   },
 });
 
