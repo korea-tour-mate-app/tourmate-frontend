@@ -210,6 +210,8 @@ const DayScreen = () => {
         markedDates={getMarkedDates()}
         style={[styles.calendar, { borderRadius: 30, backgroundColor: 'transparent' }]}
         markingType={'period'}
+        minDate={format(new Date(), 'yyyy-MM-dd')}  // 오늘 날짜로 최소 선택 날짜 설정
+
       />
       <View style={styles.selectedDatesRow}>
         <View style={styles.dateContainer}>
