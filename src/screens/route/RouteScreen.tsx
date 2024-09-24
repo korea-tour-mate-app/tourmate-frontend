@@ -4409,6 +4409,157 @@ const RouteScreen = () => {
     ]
   }
 
+  const routeDataByThemes: { [key: string]: any[] } = {
+    '1-8': [
+      // [1, 8] (역사, 쇼핑) 테마에 대한 경로 데이터
+      { 
+        // Day 1
+        startName: "라인프렌즈 스퀘어 성수",
+        startX: "127.042411",
+        startY: "37.546875",
+        startTime: "202408251200",
+        endName: "롯데월드",
+        endX: "127.098120",
+        endY: "37.511134",
+        viaPoints: []
+      },
+      { 
+        // Day 2
+        startName: "국립고궁박물관",
+        startX: "126.974835",
+        startY: "37.576563",
+        startTime: "202408251200",
+        endName: "북촌 한옥마을",
+        endX: "126.984813",
+        endY: "37.581768",
+        viaPoints: [
+          { viaPointId: "1", viaPointName: "덕수궁", viaX: "126.974895", viaY: "37.565564" },
+          { viaPointId: "2", viaPointName: "신세계백화점 강남점", viaX: "126.943500", viaY: "37.559900" }
+        ]
+      },
+      { 
+        // Day 3
+        startName: "아이파크몰 용산점",
+        startX: "126.98900",
+        startY: "37.504500",
+        startTime: "202408251200",
+        endName: "IFC몰",
+        endX: "126.92590",
+        endY: "37.525600",
+        viaPoints: [
+          { viaPointId: "1", viaPointName: "인사 센트럴 뮤지엄", viaX: "126.98407", viaY: "37.574397" }
+        ]
+      }
+    ],
+    '0-7-10': [
+      // [2, 10, 7] (K-POP, 캠핑, 문화시설) 테마에 대한 경로 데이터
+      { 
+        // Day 1
+        startName: "소품공장",
+        startX: "126.935344",
+        startY: "37.552262",
+        startTime: "202408251200",
+        endName: "YG 엔터테인먼트",
+        endX: "126.914343",
+        endY: "37.548322",
+        viaPoints: [
+          { viaPointId: "1", viaPointName: "난지 캠핑장", viaX: "126.879900", viaY: "37.569100" }
+        ]
+      },
+      { 
+        // Day 2
+        startName: "노을 캠핑장",
+        startX: "127.033700",
+        startY: "37.516500",
+        startTime: "202408251200",
+        endName: "코엑스 아쿠아리움",
+        endX: "127.058708",
+        endY: "37.513301",
+        viaPoints: []
+      },
+      { 
+        // Day 3
+        startName: "리움미술관",
+        startX: "126.999117",
+        startY: "37.538337",
+        startTime: "202408251200",
+        endName: "인사 센트럴 뮤지엄",
+        endX: "126.984070",
+        endY: "37.574397",
+        viaPoints: [
+          { viaPointId: "1", viaPointName: "덕수궁 돌담길", viaX: "126.975665", viaY: "37.564977" },
+          { viaPointId: "2", viaPointName: "아이파크몰 용산점", viaX: "126.989000", viaY: "37.504500" },
+        ]
+      },
+    ],
+    '2-10': [
+      { 
+        // Day 1
+        startName: "올림픽 공원",
+        startX: "127.1208128",
+        startY: "37.520534",
+        startTime: "202408251200",
+        endName: "봉은사",
+        endX: "127.0573793",
+        endY: "37.5149094",
+        viaPoints: [
+          { viaPointId: "1", viaPointName: "강변 스파랜드", viaX: "127.0915512", viaY: "37.5348227" }
+        ]
+      },
+      { 
+        // Day 2
+        startName: "인사 센트럴 뮤지엄",
+        startX: "126.9833476",
+        startY: "37.5745546",
+        startTime: "202408251200",
+        endName: "창경궁",
+        endX: "126.9951999",
+        endY: "37.579417",
+        viaPoints: []
+      }
+    ],
+    '0-1-3-5': [
+      { 
+        // Day 1
+        startName: "덕수궁",
+        startX: "126.9751543",
+        startY: "37.5658436",
+        startTime: "202408251200",
+        endName: "남산공원 N서울타워",
+        endX: "126.9881860",
+        endY: "37.5513461",
+        viaPoints: [
+          { viaPointId: "1", viaPointName: "동묘공원", viaX: "127.0183381", viaY: "37.5731618" },
+          { viaPointId: "2", viaPointName: "동대문 디자인 플라자", viaX: "127.0092343", viaY: "37.5666701" }
+        ]
+      },
+      { 
+        // Day 2
+        startName: "롯데월드",
+        startX: "127.0981742",
+        startY: "37.5112716",
+        startTime: "202408261200",
+        endName: "잠실종합운동장 잠실야구장",
+        endX: "127.0719118",
+        endY: "37.5124621",
+        viaPoints: []
+      },
+      { 
+        // Day 3
+        startName: "더 현대 서울",
+        startX: "126.9282960",
+        startY: "37.5261773",
+        startTime: "202408271200",
+        endName: "YG 엔터테인먼트",
+        endX: "126.9077908",
+        endY: "37.5490944",
+        viaPoints: [
+          { viaPointId: "1", viaPointName: "타임스퀘어", viaX: "126.9033332", viaY: "37.5171551" }
+        ]
+      }
+    ],
+  };
+
   // SelectionContext에서 값 가져오기
   const {
     selectedThemes,
@@ -4434,48 +4585,42 @@ const RouteScreen = () => {
       const newRouteInfoByDay: { [day: string]: Omit<RouteOptResponseDto, 'paths'> } = {};
       const newMapPathsByDay: { [day: string]: RouteOptResponseDto['paths'] } = {};
 
+      // 선택된 테마 배열을 문자열로 변환하여 키 생성
+      const selectedThemesKey = selectedThemes.sort((a, b) => a - b).join('-');
+
+      // 선택된 테마에 해당하는 경로 데이터 가져오기
+      let selectedRouteData = routeDataByThemes[selectedThemesKey];
+
+      // 선택된 테마에 해당하는 경로 데이터가 없을 경우 기본 경로 데이터 설정
+      if (!selectedRouteData) {
+        console.log('선택된 테마에 해당하는 경로 데이터가 없습니다. 기본 경로를 사용합니다.');
+        selectedRouteData = routeDataByThemes['0-1-3-5']; // 기본 경로 데이터 설정
+      }
       // 각 날짜에 대해 API 호출
       for (let i = 0; i < dayCount; i++) {
-        // TODO 데이터는 모델API에서 받아오는 걸로 나중에 수정
+        // routeDataByThemes에서 해당 날짜의 데이터를 가져옴
+        const routeDataForDay = selectedRouteData[i];
+        if (!routeDataForDay) {
+          console.log(`Day ${i + 1}에 대한 경로 데이터가 없습니다.`);
+          continue;
+        }
         const requestBody = {
-          startName: "숭례문", // ex. modelData[i][startName] 형태
-          startX: "126.975208",
-          startY: "37.561004",
-          startTime: "202408251200",
-          endName: "운현궁",
-          endX: "126.985512",
-          endY: "37.574385",
-          viaPoints: [
-            { viaPointId: "test01", viaPointName: "경복궁", viaX: "126.976889", viaY: "37.579617" },
-            { viaPointId: "test02", viaPointName: "창덕궁", viaX: "126.991898", viaY: "37.579620" },
-            { viaPointId: "test03", viaPointName: "남산서울타워", viaX: "126.988205", viaY: "37.551169" }
-          ]
+          startName: routeDataForDay.startName,
+          startX: routeDataForDay.startX,
+          startY: routeDataForDay.startY,
+          startTime: routeDataForDay.startTime,
+          endName: routeDataForDay.endName,
+          endX: routeDataForDay.endX,
+          endY: routeDataForDay.endY,
+          viaPoints: routeDataForDay.viaPoints,
         };
 
+        // 실제 API 호출 부분
         const response = await axios.post('http://13.125.53.226:8080/api/tmap/optimize-route', requestBody);
-      
-        let route_response;  // let을 사용하여 나중에 값을 할당할 수 있도록 함
+        
+        console.log('API Response:', JSON.stringify(response.data, null, 2));
 
-        switch (i) {
-          case 0:
-            route_response = response1;
-            break;
-          case 1:
-            route_response = response2;
-            break;
-          case 2:
-            route_response = response3;
-            break;
-          default:
-            route_response = response1;
-        }
-
-        // if (!isMounted) return; // 컴포넌트가 언마운트된 경우 종료
-        // console.log(`Day ${i + 1} route data:`, response.data);
-        console.log(`Day ${i + 1} route data:`, route_response);
-
-        const { totalDistance, totalTime, totalFare, visitPlaces, paths } = route_response;
-        // const { totalDistance, totalTime, totalFare, visitPlaces, paths } = response;
+        const { totalDistance, totalTime, totalFare, visitPlaces, paths } = response.data;
 
         const dayKey = `Day ${i + 1}`;
 
