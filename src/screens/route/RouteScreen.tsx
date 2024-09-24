@@ -1752,7 +1752,7 @@ const RouteScreen = () => {
         "name": "[0] 동대문디자인플라자"
       }
     ]
-  } 
+  }
   
   const response3 = {
     "totalDistance": "5816",
@@ -4414,7 +4414,6 @@ const RouteScreen = () => {
     selectedThemes,
     selectedDay: contextSelectedDay,
     selectedWithWho,
-    selectedBudget,
     selectedVehicle
   } = useSelection();
 
@@ -4422,9 +4421,8 @@ const RouteScreen = () => {
     console.log('Selected Themes:', selectedThemes);
     console.log('Selected Day:', contextSelectedDay);
     console.log('Selected WithWho:', selectedWithWho);
-    console.log('Selected Budget:', selectedBudget);
     console.log('Selected Vehicle:', selectedVehicle);
-  }, [selectedThemes, contextSelectedDay, selectedWithWho, selectedBudget, selectedVehicle]);
+  }, [selectedThemes, contextSelectedDay, selectedWithWho, selectedVehicle]);
 
   const dayCount = Number(contextSelectedDay.at(-1)); // 며칠동안 여행을 가는지
   // const dayCount = contextSelectedDay[contextSelectedDay.length - 1]; // 같은 표현 // 마지막 값으로 여행 일 수 계산
@@ -4439,22 +4437,22 @@ const RouteScreen = () => {
       // 각 날짜에 대해 API 호출
       for (let i = 0; i < dayCount; i++) {
         // TODO 데이터는 모델API에서 받아오는 걸로 나중에 수정
-        // const requestBody = {
-        //   startName: "숭례문", // ex. modelData[i][startName] 형태
-        //   startX: "126.975208",
-        //   startY: "37.561004",
-        //   startTime: "202408251200",
-        //   endName: "운현궁",
-        //   endX: "126.985512",
-        //   endY: "37.574385",
-        //   viaPoints: [
-        //     { viaPointId: "test01", viaPointName: "경복궁", viaX: "126.976889", viaY: "37.579617" },
-        //     { viaPointId: "test02", viaPointName: "창덕궁", viaX: "126.991898", viaY: "37.579620" },
-        //     { viaPointId: "test03", viaPointName: "남산서울타워", viaX: "126.988205", viaY: "37.551169" }
-        //   ]
-        // };
+        const requestBody = {
+          startName: "숭례문", // ex. modelData[i][startName] 형태
+          startX: "126.975208",
+          startY: "37.561004",
+          startTime: "202408251200",
+          endName: "운현궁",
+          endX: "126.985512",
+          endY: "37.574385",
+          viaPoints: [
+            { viaPointId: "test01", viaPointName: "경복궁", viaX: "126.976889", viaY: "37.579617" },
+            { viaPointId: "test02", viaPointName: "창덕궁", viaX: "126.991898", viaY: "37.579620" },
+            { viaPointId: "test03", viaPointName: "남산서울타워", viaX: "126.988205", viaY: "37.551169" }
+          ]
+        };
 
-        // const response = await axios.post('http://10.0.2.2:8080/api/tmap/optimize-route', requestBody);
+        const response = await axios.post('http://13.125.53.226:8080/api/tmap/optimize-route', requestBody);
       
         let route_response;  // let을 사용하여 나중에 값을 할당할 수 있도록 함
 
@@ -5567,114 +5565,129 @@ const RouteScreen = () => {
             {/* Callout 제거 */}
           </Marker>
         ))}
+  
+        {/* 자동차 선택 시 경로 그리기 */}
+        {selectedVehicle === 1 &&
+          mapPathsByDay[`Day ${selectedDayIndex + 1}`]?.map((path, index) => (
+            <Polyline
+              key={`car-path-${index}`}
+              coordinates={path.coordinates.map(([latitude, longitude]) => ({
+                latitude,
+                longitude,
+              }))}
+              strokeColor="#0047A0"  // 경로 색상
+              strokeWidth={4}  // 경로 두께
+            />
+          ))
+        }
 
-        {/* 경로 표시 */}
-        {transportInfo[selectedDayIndex]?.map((placeInfo, placeIndex) => {
-          const toggleKey = `${selectedDayIndex}-${placeIndex}`;
+        {/* 경로 표시 - 대중교통일 때 */}
+        {selectedVehicle === 0 &&
+          transportInfo[selectedDayIndex]?.map((placeInfo, placeIndex) => {
+            const toggleKey = `${selectedDayIndex}-${placeIndex}`;
 
-          return (
-            toggleState[toggleKey] && (
-              <React.Fragment key={placeIndex}>
-                {placeInfo?.map((info, transportIndex) => (
-                  <React.Fragment key={`transport-${placeIndex}-${transportIndex}`}>
-                    {/* 정류장 마커 */}
-                    {info.passStopList?.map((station, stationIndex) => (
-                      <React.Fragment key={`station-marker-${placeIndex}-${stationIndex}`}>
-                        <Marker
-                          key={`station-marker-${placeIndex}-${stationIndex}`}
-                          coordinate={{
-                            latitude: (station.lat || 0) - 0.0002, 
-                            longitude: (station.lon || 0) - 0.0002,
-                          }}
-                          anchor={{ x: 0.5, y: 1 }} // 마커의 하단 중앙을 좌표에 맞춤
-                          icon={require('../../assets/images/route/station_marker_4.png')} // 고정된 이미지 설정
-                        >
-                          {/* 정류장 이름 표시 */}
-                          <View style={{ alignItems: 'center', marginTop: 20 }}>
-                            <Text>""</Text>
-                            <Text style={{ fontSize: 15, fontFamily: 'SBAggroL', color: '#000000' }}>
-                              {station.stationName || '정류장 이름'}
-                            </Text>
-                          </View>
-                        </Marker>
-
-                        {/* 두 번째 마커: 첫 번째 정류장일 때만 표시 */}
-                        {stationIndex === 0 && (
+            return (
+              toggleState[toggleKey] && (
+                <React.Fragment key={placeIndex}>
+                  {placeInfo?.map((info, transportIndex) => (
+                    <React.Fragment key={`transport-${placeIndex}-${transportIndex}`}>
+                      {/* 정류장 마커 */}
+                      {info.passStopList?.map((station, stationIndex) => (
+                        <React.Fragment key={`station-marker-${placeIndex}-${stationIndex}`}>
                           <Marker
-                          coordinate={{
-                            latitude: (station.lat || 0) - 0.0007, // 약간 아래에 위치
-                            longitude: (station.lon || 0),
-                          }}
-                          anchor={{ x: 0.5, y: 1 }}
-                        >
-                          {/* 말풍선 형태로 View를 스타일링 */}
-                          <View
-                            style={{
-                              backgroundColor: info.routeColor ? `#${info.routeColor.replace('#', '')}` : '#FF6347', // routeColor 적용
-                              paddingVertical: 5,
-                              paddingHorizontal: 10,
-                              borderRadius: 15,
-                              position: 'relative',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              minWidth: 70, // 적절한 넓이 설정
+                            key={`station-marker-${placeIndex}-${stationIndex}`}
+                            coordinate={{
+                              latitude: (station.lat || 0) - 0.0002, 
+                              longitude: (station.lon || 0) - 0.0002,
                             }}
+                            anchor={{ x: 0.5, y: 1 }} // 마커의 하단 중앙을 좌표에 맞춤
+                            icon={require('../../assets/images/route/station_marker_4.png')} // 고정된 이미지 설정
                           >
-                            {/* 텍스트 표시 */}
-                            <Text style={{ color: '#ffffff', fontSize: 16, fontWeight: 'bold' }}>
-                              {info.route || 'Route 정보'}
-                            </Text>
-                          </View>
-                        </Marker>
-                        )}
-                      </React.Fragment>
-                    ))}
-              
-                    {/* Polyline 경로 */}
-                    {info.mode === 'WALK' && info.steps ? (
-                      // WALK일 때는 steps로 경로 표시
-                      info.steps.map((step, stepIndex) => (
-                        <Polyline
-                          key={`walk-line-${placeIndex}-${stepIndex}`}
-                          coordinates={
-                            step.linestring
-                              ?.filter(coord => coord.latitude !== undefined && coord.longitude !== undefined) // 좌표가 존재하는지 필터링
-                              .map(coord => ({
-                                latitude: coord.latitude || 0, // 기본값을 0으로 설정
-                                longitude: coord.longitude || 0, // 기본값을 0으로 설정
-                              })) || []
-                          }
-                          strokeColor='#000000'
-                          strokeWidth={4}
-                          lineDashPattern={[2, 10]} // 점선 패턴 (선길이, 간격)
-                          zIndex={0}
-                        />
-                      ))
-                    ) : (
-                      // 다른 교통수단일 때는 passShape로 경로 표시
-                      info.passShape && info.passShape.length > 0 && (
-                        <Polyline
-                          coordinates={
-                            info.passShape
-                              ?.filter(coord => coord.latitude !== undefined && coord.longitude !== undefined) // 좌표가 undefined가 아닌 값만 필터링
-                              .map(coord => ({
-                                latitude: coord.latitude || 0, // 기본값을 0으로 설정
-                                longitude: coord.longitude || 0, // 기본값을 0으로 설정
-                              })) || []  // 기본적으로 빈 배열을 반환하여 오류 방지
-                          }
-                          strokeColor={info.routeColor ? `#${info.routeColor.replace('#', '')}` : '#0047A0'}
-                          strokeWidth={4}
-                          zIndex={0}
-                        />
-                      )
-                    )}
-                  </React.Fragment>
-                ))}
-              </React.Fragment>
-            )
-          );
-        })}
-        
+                            {/* 정류장 이름 표시 */}
+                            <View style={{ alignItems: 'center', marginTop: 20 }}>
+                              <Text>""</Text>
+                              <Text style={{ fontSize: 15, fontFamily: 'SBAggroL', color: '#000000' }}>
+                                {station.stationName || '정류장 이름'}
+                              </Text>
+                            </View>
+                          </Marker>
+
+                          {/* 두 번째 마커: 첫 번째 정류장일 때만 표시 */}
+                          {stationIndex === 0 && (
+                            <Marker
+                            coordinate={{
+                              latitude: (station.lat || 0) - 0.0007, // 약간 아래에 위치
+                              longitude: (station.lon || 0),
+                            }}
+                            anchor={{ x: 0.5, y: 1 }}
+                          >
+                            {/* 말풍선 형태로 View를 스타일링 */}
+                            <View
+                              style={{
+                                backgroundColor: info.routeColor ? `#${info.routeColor.replace('#', '')}` : '#FF6347', // routeColor 적용
+                                paddingVertical: 5,
+                                paddingHorizontal: 10,
+                                borderRadius: 15,
+                                position: 'relative',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                minWidth: 70, // 적절한 넓이 설정
+                              }}
+                            >
+                              {/* 텍스트 표시 */}
+                              <Text style={{ color: '#ffffff', fontSize: 16, fontWeight: 'bold' }}>
+                                {info.route || 'Route 정보'}
+                              </Text>
+                            </View>
+                          </Marker>
+                          )}
+                        </React.Fragment>
+                      ))}
+                
+                      {/* Polyline 경로 */}
+                      {info.mode === 'WALK' && info.steps ? (
+                        // WALK일 때는 steps로 경로 표시
+                        info.steps.map((step, stepIndex) => (
+                          <Polyline
+                            key={`walk-line-${placeIndex}-${stepIndex}`}
+                            coordinates={
+                              step.linestring
+                                ?.filter(coord => coord.latitude !== undefined && coord.longitude !== undefined) // 좌표가 존재하는지 필터링
+                                .map(coord => ({
+                                  latitude: coord.latitude || 0, // 기본값을 0으로 설정
+                                  longitude: coord.longitude || 0, // 기본값을 0으로 설정
+                                })) || []
+                            }
+                            strokeColor='#000000'
+                            strokeWidth={4}
+                            lineDashPattern={[2, 10]} // 점선 패턴 (선길이, 간격)
+                            zIndex={0}
+                          />
+                        ))
+                      ) : (
+                        // 다른 교통수단일 때는 passShape로 경로 표시
+                        info.passShape && info.passShape.length > 0 && (
+                          <Polyline
+                            coordinates={
+                              info.passShape
+                                ?.filter(coord => coord.latitude !== undefined && coord.longitude !== undefined) // 좌표가 undefined가 아닌 값만 필터링
+                                .map(coord => ({
+                                  latitude: coord.latitude || 0, // 기본값을 0으로 설정
+                                  longitude: coord.longitude || 0, // 기본값을 0으로 설정
+                                })) || []  // 기본적으로 빈 배열을 반환하여 오류 방지
+                            }
+                            strokeColor={info.routeColor ? `#${info.routeColor.replace('#', '')}` : '#0047A0'}
+                            strokeWidth={4}
+                            zIndex={0}
+                          />
+                        )
+                      )}
+                    </React.Fragment>
+                  ))}
+                </React.Fragment>
+              )
+            );
+        })} 
       </MapView>
 
 
@@ -5762,125 +5775,145 @@ const RouteScreen = () => {
                           </Text>
                         </View>
                         {/* 토글 상태가 true일 때만 추가 정보 표시 */}
-                        {toggleState[toggleKey] && transportInfo[selectedDayIndex]?.[index] && (
-                          <View style={styles.expandedContent}>
-                            {/* transportInfo가 빈 배열이거나 경우도 체크 */}
-                            {Array.isArray(transportInfo[selectedDayIndex]?.[index]) && transportInfo[selectedDayIndex]?.[index].length === 0 ? (
-                              <Text style={styles.noTransportInfoText}>대중교통 정보가 없습니다.</Text>
-                            ) : (
-                              <>
-                                {/* 추가 정보들 */}
-                                {/* 첫 번째 줄 */}
-                                <Text style={styles.transportTimeText}>
-                                  {`총 소요시간: ${Math.floor((transportInfo[selectedDayIndex]?.[index]?.[0]?.totalTime ?? 0) / 60)}m, 대중교통 요금: ${transportInfo[selectedDayIndex]?.[index]?.[0]?.totalFare ?? 0}원`}
-                                </Text>
+                        {toggleState[toggleKey] && (
+                          <>
+                          {selectedVehicle === 0 && transportInfo[selectedDayIndex]?.[index] && (      
+                            <View style={styles.expandedContent}>
+                              {/* transportInfo가 빈 배열이거나 경우도 체크 */}
+                              {Array.isArray(transportInfo[selectedDayIndex]?.[index]) && transportInfo[selectedDayIndex]?.[index].length === 0 ? (
+                                <Text style={styles.noTransportInfoText}>대중교통 정보가 없습니다.</Text>
+                              ) : (
+                                <>
+                                  {/* 추가 정보들 */}
+                                  {/* 첫 번째 줄 */}
+                                  <Text style={styles.transportTimeText}>
+                                    {`총 소요시간: ${Math.floor((transportInfo[selectedDayIndex]?.[index]?.[0]?.totalTime ?? 0) / 60)}m, 대중교통 요금: ${transportInfo[selectedDayIndex]?.[index]?.[0]?.totalFare ?? 0}원`}
+                                  </Text>
 
-                                {/* 두 번째 줄 */}
-                                <Text style={styles.transportTimeText}>
-                                  {`환승 횟수: ${transportInfo[selectedDayIndex]?.[index]?.[0]?.transferCount ?? 0}번, 총 보행시간: ${Math.floor((transportInfo[selectedDayIndex]?.[index]?.[0]?.totalWalkTime ?? 0) / 60)}m`}
-                                </Text>
+                                  {/* 두 번째 줄 */}
+                                  <Text style={styles.transportTimeText}>
+                                    {`환승 횟수: ${transportInfo[selectedDayIndex]?.[index]?.[0]?.transferCount ?? 0}번, 총 보행시간: ${Math.floor((transportInfo[selectedDayIndex]?.[index]?.[0]?.totalWalkTime ?? 0) / 60)}m`}
+                                  </Text>
 
-                                {/* 세 번째 줄 */}
-                                {/* 교통수단에 따른 캡슐 형태의 정보 표시 */}
-                                <View style={styles.capsuleGroup}>
-                                  {transportInfo[selectedDayIndex]?.[index]?.map((info: TransportInfo, subIndex: number) => {
-                                    const totalSectionTime = transportInfo[selectedDayIndex][index]
-                                      .reduce((sum, current) => sum + (current.sectionTime ?? 0), 0); // 전체 시간 합계 계산
-                                    const totalCapsuleWidth = 280; // 고정된 전체 타임캡슐 너비 (px 단위)
-                                    const sectionWidth = ((info.sectionTime ?? 0) / totalSectionTime) * totalCapsuleWidth; // 각 구간의 비율에 따른 실제 너비 계산 (숫자형 값)
+                                  {/* 세 번째 줄 */}
+                                  {/* 교통수단에 따른 캡슐 형태의 정보 표시 */}
+                                  <View style={styles.capsuleGroup}>
+                                    {transportInfo[selectedDayIndex]?.[index]?.map((info: TransportInfo, subIndex: number) => {
+                                      const totalSectionTime = transportInfo[selectedDayIndex][index]
+                                        .reduce((sum, current) => sum + (current.sectionTime ?? 0), 0); // 전체 시간 합계 계산
+                                      const totalCapsuleWidth = 280; // 고정된 전체 타임캡슐 너비 (px 단위)
+                                      const sectionWidth = ((info.sectionTime ?? 0) / totalSectionTime) * totalCapsuleWidth; // 각 구간의 비율에 따른 실제 너비 계산 (숫자형 값)
 
-                                    return (
-                                      <View key={subIndex} style={[styles.capsuleContainer, { width: sectionWidth }]}>
-                                        {info.mode !== 'WALK' ? (
-                                          // WALK가 아닌 경우, 캡슐 모양 표시
-                                          <View
-                                            style={[
-                                              styles.capsule,
-                                              {
-                                                width: sectionWidth,
-                                                borderRadius:20,
-                                                height: 35,
-                                                backgroundColor: info.routeColor
-                                                  ? `#${info.routeColor?.replace(' ', '')}` // routeColor가 있으면 적용
-                                                  : '#0A0A0A', // routeColor가 없으면 기본값 #0A0A0A
-                                              },
-                                            ]}
-                                          >
-                                            <Text
-                                              style={styles.capsuleText}
-                                            >
-                                              {`${Math.floor((info.sectionTime ?? 0) / 60)}m`} {/* 분으로 변환 */}
-                                            </Text>
-                                          </View>
-                                        ) : (
-                                          // WALK인 경우, 캡슐은 표시하지 않고 시간만 텍스트로 표시
-                                          <Text style={styles.walkTimeText}>
-                                            {`${Math.floor((info.sectionTime ?? 0) / 60)}m`}
-                                          </Text>
-                                        )}
-                                        {/* 각 교통수단의 정가운데에 route 표시 */}
-                                        {/* {info.mode !== 'WALK' && (
-                                          <Text style={styles.capsuleRouteText}>
-                                            {`BUS ${info.route}`}
-                                          </Text>
-                                        )} */}
-                                      </View>
-                                    );
-                                  })}
-                                </View>
-
-                                {/* 네 번째 줄 */}
-                                {/* 출발지와 도착지 정보를 반복적으로 표시 */}
-                                <View style={styles.stopsGroup}>
-                                  {/* 세로선 추가 */}
-                                  <View style={styles.transport_verticalLine} />
-
-                                  {transportInfo[selectedDayIndex]?.[index]?.map((info: TransportInfo, subIndex: number) => {
-                                    // WALK가 아닌 경우에만 출발지와 도착지를 표시
-                                    if (info.mode !== 'WALK') {
                                       return (
-                                        <View key={subIndex}>
-                                          <Text style={[styles.stopText, {marginBottom: 15, fontFamily: 'SBAggroM'}]}>{`${info.mode} ${info.route}`}</Text>
-                                          {/* 출발지 표시 */}
-                                          <View style={styles.stopContainer}>
-                                            <View style={styles.stopDotContainer}>
-                                              <View
-                                                style={[
-                                                  styles.stopDot,
-                                                  {
-                                                    backgroundColor: `#${info.routeColor?.replace('#', '') || 'B0ADAD'}`,  // BUS 또는 SUBWAY인 경우 색깔 적용, 없으면 기본값
-                                                  },
-                                                ]}
-                                              />
+                                        <View key={subIndex} style={[styles.capsuleContainer, { width: sectionWidth }]}>
+                                          {info.mode !== 'WALK' ? (
+                                            // WALK가 아닌 경우, 캡슐 모양 표시
+                                            <View
+                                              style={[
+                                                styles.capsule,
+                                                {
+                                                  width: sectionWidth,
+                                                  borderRadius:20,
+                                                  height: 35,
+                                                  backgroundColor: info.routeColor
+                                                    ? `#${info.routeColor?.replace(' ', '')}` // routeColor가 있으면 적용
+                                                    : '#0A0A0A', // routeColor가 없으면 기본값 #0A0A0A
+                                                },
+                                              ]}
+                                            >
+                                              <Text
+                                                style={styles.capsuleText}
+                                              >
+                                                {`${Math.floor((info.sectionTime ?? 0) / 60)}m`} {/* 분으로 변환 */}
+                                              </Text>
                                             </View>
-                                            {/* 동그라미 옆에 route 표시 후 출발지 표시 */}
-                                            <Text style={styles.stopText}>{`${info.startLocation?.name} 승차`}</Text>
-                                          </View>
-
-                                          {/* 도착지 표시 */}
-                                          <View style={styles.stopContainer}>
-                                            <View style={styles.stopDotContainer}>
-                                              <View
-                                                style={[
-                                                  styles.stopDot,
-                                                  {
-                                                    backgroundColor: `#${info.routeColor?.replace('#', '') || 'B0ADAD'}`,  // BUS 또는 SUBWAY인 경우 색깔 적용, 없으면 기본값
-                                                  },
-                                                ]}
-                                              />
-                                            </View>
-                                            {/* 동그라미 옆에 route 표시 후 도착지 표시 */}
-                                            <Text style={styles.stopText}>{`${info.endLocation?.name} 하차`}</Text>
-                                          </View>
+                                          ) : (
+                                            // WALK인 경우, 캡슐은 표시하지 않고 시간만 텍스트로 표시
+                                            <Text style={styles.walkTimeText}>
+                                              {`${Math.floor((info.sectionTime ?? 0) / 60)}m`}
+                                            </Text>
+                                          )}
+                                          {/* 각 교통수단의 정가운데에 route 표시 */}
+                                          {/* {info.mode !== 'WALK' && (
+                                            <Text style={styles.capsuleRouteText}>
+                                              {`BUS ${info.route}`}
+                                            </Text>
+                                          )} */}
                                         </View>
                                       );
-                                    }
-                                    return null;  // WALK일 경우 아무것도 반환하지 않음
-                                  })}
-                                </View>
-                              </>
-                            )}
-                          </View>
+                                    })}
+                                  </View>
+
+                                  {/* 네 번째 줄 */}
+                                  {/* 출발지와 도착지 정보를 반복적으로 표시 */}
+                                  <View style={styles.stopsGroup}>
+                                    {/* 세로선 추가 */}
+                                    <View style={styles.transport_verticalLine} />
+
+                                    {transportInfo[selectedDayIndex]?.[index]?.map((info: TransportInfo, subIndex: number) => {
+                                      // WALK가 아닌 경우에만 출발지와 도착지를 표시
+                                      if (info.mode !== 'WALK') {
+                                        return (
+                                          <View key={subIndex}>
+                                            <Text style={[styles.stopText, {marginBottom: 15, fontFamily: 'SBAggroM'}]}>{`${info.mode} ${info.route}`}</Text>
+                                            {/* 출발지 표시 */}
+                                            <View style={styles.stopContainer}>
+                                              <View style={styles.stopDotContainer}>
+                                                <View
+                                                  style={[
+                                                    styles.stopDot,
+                                                    {
+                                                      backgroundColor: `#${info.routeColor?.replace('#', '') || 'B0ADAD'}`,  // BUS 또는 SUBWAY인 경우 색깔 적용, 없으면 기본값
+                                                    },
+                                                  ]}
+                                                />
+                                              </View>
+                                              {/* 동그라미 옆에 route 표시 후 출발지 표시 */}
+                                              <Text style={styles.stopText}>{`${info.startLocation?.name} 승차`}</Text>
+                                            </View>
+
+                                            {/* 도착지 표시 */}
+                                            <View style={styles.stopContainer}>
+                                              <View style={styles.stopDotContainer}>
+                                                <View
+                                                  style={[
+                                                    styles.stopDot,
+                                                    {
+                                                      backgroundColor: `#${info.routeColor?.replace('#', '') || 'B0ADAD'}`,  // BUS 또는 SUBWAY인 경우 색깔 적용, 없으면 기본값
+                                                    },
+                                                  ]}
+                                                />
+                                              </View>
+                                              {/* 동그라미 옆에 route 표시 후 도착지 표시 */}
+                                              <Text style={styles.stopText}>{`${info.endLocation?.name} 하차`}</Text>
+                                            </View>
+                                          </View>
+                                        );
+                                      }
+                                      return null;  // WALK일 경우 아무것도 반환하지 않음
+                                    })}
+                                  </View>
+                                </>
+                              )}
+                            </View>
+                          )}
+
+                          {/* 자동차 정보일 때 */}
+                          {selectedVehicle === 1 && (
+                            <View style={[styles.expandedContent, { paddingVertical: 10 }]}>
+                              {/* 자동차 경로 정보에 단위 표시 */}
+                              <Text style={styles.transportTimeText}>
+                                {`총 거리 : ${(parseFloat(routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.totalDistance) / 1000).toFixed(1)} km,  `}
+                              </Text>
+                              <Text style={styles.transportTimeText}>
+                                {`총 시간 : ${(parseFloat(routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.totalTime) / 60).toFixed(0)} 분,  `}
+                              </Text>
+                              <Text style={styles.transportTimeText}>
+                                {`총 요금 : ${routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.totalFare} 원`}
+                              </Text>
+                            </View>
+                          )}
+                          </>
                         )}
                       </TouchableOpacity>
                     </View>
