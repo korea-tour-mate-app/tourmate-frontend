@@ -4,6 +4,7 @@ import MapView, {PROVIDER_GOOGLE, Marker, Region } from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
 import BottomSheet from '@gorhom/bottom-sheet';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {request, PERMISSIONS, RESULTS} from 'react-native-permissions';
 import {useLanguage} from '../../components/LanguageProvider';
 import {translateText} from '../../utils/Translation';
@@ -62,6 +63,22 @@ interface PlaceDetail{
   '총 별점': number | null; 
 }
 
+interface Visited{
+  placeId: number;
+  placeName: string;
+  placeLocation: string;
+  longitude: number;
+  latitude: number;
+}
+
+interface Likes{
+  placeId: number;
+  placeName: string;
+  placeLocation: string;
+  longitude: number;
+  latitude: number;
+}
+
 interface Baggage {
   parentName: string;
   baggageStorageId: number;
@@ -88,7 +105,7 @@ function ThemeScreen() {
 
 
   // 필터 상태
-  const [activeFilter, setActiveFilter] = useState<string>('전체');
+  const [activeFilter, setActiveFilter] = useState<string>('');
   const [places, setPlaces] = useState<Place[]>([]); // 장소 데이터 상태 관리
   const [visitedFilterActive, setVisitedFilterActive] = useState(false);
   const [likesFilterActive, setLikesFilterActive] = useState(false);
@@ -103,6 +120,7 @@ function ThemeScreen() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const bottomSheetRef = React.useRef<BottomSheet>(null);
   const {language: globalLanguage} = useLanguage(); // 현재 언어 상태 가져오기
+
   // Place 관련 상태
   const [placeNames, setPlaceNames] = useState([]);
   const [placeIds, setPlaceIds] = useState([]);
@@ -110,6 +128,23 @@ function ThemeScreen() {
   const [placeLongitudes, setPlaceLongitudes] = useState([]);
   // Place Detail 관련 상태
   const [placeDetail, setPlaceDetail] = useState<PlaceDetail | null>(null);
+
+  // Visited Data 관련 상태
+  const [visitedData, setVisitedData] = useState<Visited[]>([]);
+  const [visitedPlaceId, setVisitedPlaceId] = useState([]);
+  const [visitedPlaceName, setVisitedPlaceName] = useState([]);
+  const [visitedPlaceLocation, setVisitedPlaceLocation] = useState([]);
+  const [visitedLatitudes, setVisitedLatitudes] = useState([]);
+  const [visitedLongitudes, setVisitedLongitudes] = useState([]);
+
+  // Likes Data 관련 상태
+  const [likesData, setLikesData] = useState<Likes[]>([]);
+  const [likesPlaceId, setLikesPlaceId] = useState<string[] | null>(null);
+  const [likesPlaceName, setLikesPlaceName] = useState<string[] | null>(null);
+  const [likesPlaceLocation, setLikesPlaceLocation] = useState<string[] | null>(null);
+  const [likesLongitudes, setLikesLongitudes] = useState<number[] | null>(null);
+  const [likesLatitudes, setLikesLatitudes] = useState<number[] | null>(null);  
+
   // Baggage Data 관련 상태
   const [isBaggageDataFetched, setIsBaggageDataFetched] = useState(false);
   const [baggageData, setBaggageData] = useState<Baggage[]>([]);
@@ -161,8 +196,8 @@ function ThemeScreen() {
             const userLocation = {
               latitude: position.coords.latitude,
               longitude: position.coords.longitude,
-              latitudeDelta: 0.004,
-              longitudeDelta: 0.004,
+              latitudeDelta: 0.005,
+              longitudeDelta: 0.005,
             };
             setLocation(userLocation);
             setInitialRegion(userLocation); // 초기 위치 설정
@@ -230,8 +265,99 @@ function ThemeScreen() {
     }
   };
   
-  
+  const handleVisitedFilterPress = async () => {
+    const jwtToken = await AsyncStorage.getItem('jwtToken'); // JWT 토큰 가져오기
+    try{
+      const response = await fetch(
+        'http://13.125.53.226:8080/api/visited',
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${jwtToken}`,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
 
+      const result = await response.json();
+      if(response.ok){
+        setVisitedData(result);
+
+         // 각각의 값들을 배열로 분리해서 상태로 저장
+         const placeId = result.map((item: any) => item.placeId);
+         const placeName = result.map((item: any) => item.placeName);
+         const placeLocation = result.map((item: any) => item.placeLocation);
+         const latitude = result.map((item: any) => item.latitude);
+         const longitude = result.map((item: any) => item.longitude);
+ 
+         setVisitedPlaceId(placeId);
+         setVisitedPlaceName(placeName);
+         setVisitedPlaceLocation(placeLocation);
+         setVisitedLongitudes(longitude);
+         setVisitedLatitudes(latitude);
+      }
+  }catch (error) {
+    console.error('Error:', error);
+    Alert.alert('Fail to connect', '서버에 연결할 수 없습니다.');
+  }
+};
+
+const handleLikesFilterPress = async () => {
+  const jwtToken = await AsyncStorage.getItem('jwtToken'); // JWT 토큰 가져오기
+  console.log(jwtToken);
+  try {
+    const response = await fetch(
+      'http://13.125.53.226:8080/api/likes',
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${jwtToken}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+        // 응답 상태 코드 확인
+        if (!response.ok) {
+          const errorResponse = await response.json(); // 에러 메시지 텍스트 읽기
+          console.error('Error fetching likes:', errorResponse);
+          Alert.alert('Error', 'Unable to fetch likes data.');
+          return;
+        }
+    
+    const result = await response.json();
+    if (response.ok) {
+      setLikesData(result);
+
+      if (result.length === 0) {
+        // 응답이 빈 배열일 경우 null로 설정
+        setLikesPlaceId(null);
+        setLikesPlaceName(null);
+        setLikesPlaceLocation(null);
+        setLikesLongitudes(null);
+        setLikesLatitudes(null);
+      } else {
+        // 각각의 값들을 배열로 분리해서 상태로 저장
+        const placeId = result.map((item: any) => item.placeId);
+        const placeName = result.map((item: any) => item.placeName);
+        const placeLocation = result.map((item: any) => item.placeLocation);
+        const latitude = result.map((item: any) => item.latitude);
+        const longitude = result.map((item: any) => item.longitude);
+
+        setLikesPlaceId(placeId);
+        setLikesPlaceName(placeName);
+        setLikesPlaceLocation(placeLocation);
+        setLikesLongitudes(longitude);
+        setLikesLatitudes(latitude);
+        console.log("가져오기 성공");
+      }
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    Alert.alert('Fail to connect', '서버에 연결할 수 없습니다.');
+  }
+};
+
+  
   const handleBaggageFilterPress = async () => {
     setBaggageFilterActive(prevState => !prevState);
     if (isBaggageDataFetched == true) {
@@ -279,9 +405,7 @@ function ThemeScreen() {
     }
   };
 
-  const handlePlaceMarkerPress = async (place: Place) => {
-    setSelectedPlace(place);
-    const placeId = place.placeId;
+  const handlePlaceMarkerPress = async (placeId: number) => {
     console.log(placeId);
     try{
       const response = await fetch(
@@ -333,7 +457,7 @@ function ThemeScreen() {
           '관련 링크': result['관련 링크'] || null,
           '총 별점': result['총 별점'] || null, 
         });
-        console.log("place: ",placeDetail);
+        console.log("place: ",placeDetail?.장소명);
       }
       else{
         console.error('응답 오류:', result);
@@ -347,7 +471,6 @@ function ThemeScreen() {
   const handleBaggageMarkerPress = async (item: Baggage) => {
     setSelectedBaggage(item);
     const stationName = item.parentName;
-    console.log(stationName);
     try {
       const response = await fetch(
         `http://13.125.53.226:8080/api/baggage/station/${stationName}`, 
@@ -374,12 +497,63 @@ function ThemeScreen() {
   };
   
 
-  const handleVisitedPress = () => {
+  const handleVisitedPress = async(place: PlaceDetail) => {
     setIsVisitedActive(prevState => !prevState);
+    const jwtToken = await AsyncStorage.getItem('jwtToken'); // JWT 토큰 가져오기
+    console.log("token", jwtToken);
+    const placeId = place.placeId;
+    try{
+      const response = await fetch(
+        `http://13.125.53.226:8080/api/visited/${placeId}`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${jwtToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+          // 응답 상태를 확인하고 로그로 출력 (필요한 경우)
+    if (response.ok) {
+      console.log('Visited 성공');
+      await handleVisitedFilterPress(); // 최신 좋아요 목록 가져오기
+    } else {
+      console.error('Visited 실패', response.status);
+    }
+    }catch(error){
+      console.error('fail to connect', error);
+    }
+
   };
 
-  const handleLikesPress = () => {
+  const handleLikesPress = async(place: PlaceDetail) => {
     setIsLikesActive(prevState => !prevState);
+    const jwtToken = await AsyncStorage.getItem('jwtToken'); // JWT 토큰 가져오기
+    console.log("token", jwtToken);
+    const placeId = place.placeId;
+    try{
+      const response = await fetch(
+        `http://13.125.53.226:8080/api/likes/${placeId}`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${jwtToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+          // 응답 상태를 확인하고 로그로 출력 (필요한 경우)
+    if (response.ok) {
+      console.log('Like 성공');
+      await handleLikesFilterPress(); // 최신 좋아요 목록 가져오기
+    } else {
+      console.error('Like 실패', response.status);
+    }
+
+    }catch(error){
+      console.error('fail to connect', error);
+    }
   };
 
   const handleBottomSheetChange = useCallback((index: number) => {
@@ -391,7 +565,6 @@ function ThemeScreen() {
 
   return (
     <GestureHandlerRootView style={styles.container}>
-      {/* {initialRegion && ( */}
         <MapView
         provider={PROVIDER_GOOGLE}
         style={styles.map}
@@ -410,7 +583,7 @@ function ThemeScreen() {
             latitude: place.latitude,
             longitude: place.longitude,
           }}
-          onPress={() => {handlePlaceMarkerPress(place)}}
+          onPress={() => {handlePlaceMarkerPress(place.placeId)}}
         >
            <View style={styles.markerContainer}>
             <Image
@@ -421,6 +594,58 @@ function ThemeScreen() {
           <Text style={styles.markerPlace}>{place.placeName}</Text>
         </Marker>
        ))}
+
+      {/* visitedData 마커 */}
+      {visitedFilterActive === true &&
+  visitedData.map((item, index) => {
+
+    return (
+      <Marker
+        key={index}
+        coordinate={{
+          latitude: item.latitude,
+          longitude: item.longitude,
+        }}
+        onPress={() => {handlePlaceMarkerPress(item.placeId)}}
+      >
+        <View style={styles.markerContainer}>
+          <Image
+            source={require('../../assets/images/map/visited-marker.png')}
+            style={styles.themeMarker}
+          />
+        </View>
+        <Text style={styles.markerPlace}>{item.placeName}</Text>
+      </Marker>
+    );
+  })}
+
+            {/* likesData 마커 */}
+            {likesFilterActive == true &&
+            likesData.map((item, index) => {
+            console.log(item);
+            console.log(item.latitude);
+         return (
+           <Marker
+            key={index}
+            coordinate={{
+            latitude: item.latitude,
+            longitude: item.longitude,
+          }}
+          onPress={() => {
+            handlePlaceMarkerPress(item.placeId); // Place 객체 전달
+        }}
+      >
+        <View style={styles.markerContainer}>
+          <Image
+            source={require('../../assets/images/map/likes-marker.png')}
+            style={styles.themeMarker}
+          />
+        </View>
+        <Text style={styles.markerPlace}>{item.placeName}</Text>
+      </Marker>
+    );
+  })}
+
 
           {/* baggageData 마커 */}
           {baggageFilterActive == true &&
@@ -482,7 +707,10 @@ function ThemeScreen() {
     styles.buttonVisited,
     visitedFilterActive && {backgroundColor: '#02BC7D'},
   ]}
-  onPress={() => setVisitedFilterActive(prevState => !prevState)}
+  onPress={() => {
+    handleVisitedFilterPress(); // 방문 필터 함수 호출
+    setVisitedFilterActive(prevState => !prevState); // 상태 토글
+  }}
 >
   <Text
     style={[
@@ -495,7 +723,7 @@ function ThemeScreen() {
   
   <Image
     source={
-      visitedFilterActive
+      visitedFilterActive 
         ? require('../../assets/images/map/visited-filter.png')
         : require('../../assets/images/map/visited-active.png')
        }
@@ -509,7 +737,10 @@ function ThemeScreen() {
             styles.buttonLikes,
             likesFilterActive && {backgroundColor: '#FF344C'},
           ]}
-          onPress={() => setLikesFilterActive(prevState => !prevState)}>
+          onPress={() => {
+            handleLikesFilterPress(); // 방문 필터 함수 호출
+            setLikesFilterActive(prevState => !prevState); // 상태 토글
+          }}>
           <Text
             style={[
               styles.buttonText,
@@ -558,7 +789,7 @@ function ThemeScreen() {
         enablePanDownToClose={true}
         onChange={handleBottomSheetChange}>
         {/* selectedPlace 관련 렌더링 */}
-        {selectedPlace && placeDetail && (
+        { placeDetail && (
   <View style={styles.bottomSheetContainer}>
     {/* Collapsed 상태일 때 */}
     {bottomSheetIndex === 0 && (
@@ -570,10 +801,13 @@ function ThemeScreen() {
           <View style={styles.bottomSheetButtonContainer}>
             <TouchableOpacity
               style={styles.bottomSheetButton}
-              onPress={handleVisitedPress}>
+              onPress={async () => {
+                await handleVisitedPress(placeDetail); // 장소 정보를 서버에 저장
+                await handleVisitedFilterPress();
+                }}>
               <Image
                 source={
-                  isVisitedActive
+                  visitedData.some(item => item.placeId === placeDetail.placeId)
                     ? require('../../assets/images/map/visited-active.png')
                     : require('../../assets/images/map/visited-inactive.png')
                 }
@@ -582,16 +816,20 @@ function ThemeScreen() {
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.bottomSheetButton}
-              onPress={handleLikesPress}>
-              <Image
-                source={
-                  isLikesActive
-                    ? require('../../assets/images/map/likes-active.png')
-                    : require('../../assets/images/map/likes-inactive.png')
-                }
-                style={styles.bottomSheetLikesButton}
-              />
-            </TouchableOpacity>
+              onPress={async () => {
+                await handleLikesPress(placeDetail); // 장소 정보를 서버에 저장
+                await handleLikesFilterPress(); // 저장된 장소 목록 가져오기
+              }}>
+          <Image
+            source={
+            likesData.some(item => item.placeId === placeDetail.placeId) 
+            ? require('../../assets/images/map/likes-active.png')
+            : require('../../assets/images/map/likes-inactive.png')
+          }
+          style={styles.bottomSheetLikesButton}
+        />
+        </TouchableOpacity>
+
           </View>
           <View style={styles.bottomSheetAddressContainerCollapsed}>
             <Text style={styles.bottomSheetAddress}>
@@ -664,7 +902,7 @@ function ThemeScreen() {
            </>
          )}
 
-        {placeDetail['평점'] !== undefined && (
+        {placeDetail['평점'] && (
            <>
              <Text style={styles.bottomSheetListTitle}>별점</Text>
              <Text style={styles.bottomSheetListContent}>
@@ -679,6 +917,24 @@ function ThemeScreen() {
              <Text style={styles.bottomSheetListTitle}>비고</Text>
              <Text style={styles.bottomSheetListContent}>
                {placeDetail.비고}
+             </Text>
+           </>
+         )}
+
+        {placeDetail['영업 시작 시간'] && (
+           <>
+             <Text style={styles.bottomSheetListTitle}>영업 시작 시간</Text>
+             <Text style={styles.bottomSheetListContent}>
+               {placeDetail['영업 시작 시간']}
+             </Text>
+           </>
+         )}
+
+        {placeDetail['영업 종료 시간'] && (
+           <>
+             <Text style={styles.bottomSheetListTitle}>영업 종료 시간</Text>
+             <Text style={styles.bottomSheetListContent}>
+               {placeDetail['영업 종료 시간']}
              </Text>
            </>
          )}

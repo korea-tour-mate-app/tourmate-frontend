@@ -25,7 +25,6 @@ const MyPageScreen = () => {
 
   const [changeHi, setChangeHi] = useState<string>('안녕하세요,');
   const [changePasswordText, setChangePasswordText] = useState<string>('비밀번호 변경');
-  const [myPlacesText, setMyPlacesText] = useState<string>('내가 가본 장소');
   const [languageSettingsText, setLanguageSettingsText] = useState<string>('언어 설정');
   const [logoutText, setLogoutText] = useState<string>('로그아웃');
 
@@ -44,9 +43,6 @@ const MyPageScreen = () => {
 
         const translatedPassword = await translateText('비밀번호 변경', globalLanguage);
         setChangePasswordText(translatedPassword);
-
-        const translatedPlaces = await translateText('내가 가본 장소', globalLanguage);
-        setMyPlacesText(translatedPlaces);
 
         const translatedLanguageSettings = await translateText('언어 설정', globalLanguage);
         setLanguageSettingsText(translatedLanguageSettings);
@@ -97,6 +93,7 @@ const MyPageScreen = () => {
         // 앱 자체 로그인 사용자의 경우
         try {
           const jwtToken = await AsyncStorage.getItem('jwtToken'); // JWT 토큰 가져오기
+          console.log("token", jwtToken);
           const response = await fetch('http://13.125.53.226:8080/api/auth/nickname', {
             method: 'GET',
             headers: {
@@ -169,23 +166,6 @@ const MyPageScreen = () => {
                 </Svg>
               </View>
 
-              <TouchableOpacity>
-                <Text style={styles.menu}>{myPlacesText}</Text>
-              </TouchableOpacity>
-              <View style={styles.dottedLineContainer}>
-                <Svg height="2" width="75%">
-                  <Line
-                    x1="0"
-                    y1="1"
-                    x2="100%"
-                    y2="1"
-                    stroke="black"
-                    strokeWidth="2"
-                    strokeDasharray="5,2"
-                  />
-                </Svg>
-              </View>
-
               <TouchableOpacity onPress={navigateToLanguageScreen}>
                 <Text style={styles.menu}>{languageSettingsText}</Text>
               </TouchableOpacity>
@@ -202,6 +182,7 @@ const MyPageScreen = () => {
                   />
                 </Svg>
               </View>
+
               <TouchableOpacity onPress={handleLogout}>
                 <Text style={styles.menu}>{logoutText}</Text>
               </TouchableOpacity>
@@ -218,6 +199,7 @@ const MyPageScreen = () => {
                   />
                 </Svg>
               </View>
+
             </View>
           </View>
         </View>
