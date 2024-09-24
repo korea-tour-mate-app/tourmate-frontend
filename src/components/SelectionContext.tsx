@@ -10,8 +10,8 @@ interface SelectionContextProps {
   setSelectedDay: (day: Array<string | number>) => void;
 
   // 누구와 함께 갈지
-  selectedWithWho: number;  
-  setSelectedWithWho: (withWho: number) => void;
+  selectedWithWho: number[];  
+  setSelectedWithWho: (withWho: number[]) => void; // 배열 타입으로 변경
 
   // 어떤 교통수단 이용할지
   selectedVehicle: number;  
@@ -24,7 +24,7 @@ const defaultSelectionContext: SelectionContextProps = {
   setSelectedThemes: () => {},
   selectedDay: ["24.10.1", "24.10.2", 2],  // 초기값 설정
   setSelectedDay: () => {},
-  selectedWithWho: 0,
+  selectedWithWho: [],
   setSelectedWithWho: () => {},
   selectedVehicle: 0,
   setSelectedVehicle: () => {},
@@ -35,8 +35,7 @@ export const SelectionContext = createContext<SelectionContextProps>(defaultSele
 export const SelectionProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [selectedThemes, setSelectedThemes] = useState<number[]>([]);  // 초기값 0, 1
   const [selectedDay, setSelectedDay] = useState<Array<string | number>>(["24.10.1", "24.10.2", 3]);  // 초기값 설정
-
-  const [selectedWithWho, setSelectedWithWho] = useState<number>(0);
+  const [selectedWithWho, setSelectedWithWho] = useState<number[]>([]); // number 배열 타입으로 변경
   const [selectedVehicle, setSelectedVehicle] = useState<number>(0);
 
   return (

@@ -18,7 +18,8 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
   const { language: globalLanguage } = useLanguage();
   const { selectedWithWho, setSelectedWithWho } = useSelection();  // 상태와 setter 함수 사용
 
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  // 다중 선택을 위한 배열 상태
+  const [selectedOptions, setSelectedOptions] = useState<number[]>([]);
 
   // 번역된 텍스트 상태
   const [question, setQuestion] = useState<string>('누구와 여행을 떠나시나요?');
@@ -61,17 +62,20 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
     translateTexts();
   }, [globalLanguage]);
 
-  const handleSelect = (index: number, option: string) => {
-    // 선택된 인덱스를 selectedWithWho에 저장
-    setSelectedWithWho(index);
+  // 다중 선택을 위한 handleSelect 함수
+  const handleSelect = (index: number) => {
+    // 선택된 인덱스를 selectedWithWho에 추가하거나 제거
+    const newSelectedOptions = selectedOptions.includes(index)
+      ? selectedOptions.filter(opt => opt !== index) // 이미 선택된 경우 제거
+      : [...selectedOptions, index]; // 선택되지 않은 경우 추가
 
-    // 선택된 인덱스 업데이트
-    setSelectedOption(prevOption => (prevOption === option ? null : option));
+    setSelectedOptions(newSelectedOptions); // 선택된 인덱스 상태 업데이트
+    setSelectedWithWho(newSelectedOptions); // 선택된 인덱스를 setSelectedWithWho에 업데이트
   };
 
   const handleNext = () => {
     console.log('selectedWithWho:', selectedWithWho);
-    if (selectedOption) {
+    if (selectedOptions.length > 0) { // 선택된 옵션이 있는지 확인
       navigation.navigate('VehicleScreen');
     } else {
       Alert.alert('오류', '여행 인원을 선택해주세요.');
@@ -90,21 +94,21 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
         <TouchableOpacity
           style={[
             styles.card,
-            selectedOption === parent && styles.selectedCard,
+            selectedOptions.includes(0) && styles.selectedCard, // 다중 선택 확인
           ]}
-          onPress={() => handleSelect(0, parent)}
+          onPress={() => handleSelect(0)}
         >
           <Image source={require('../../assets/images/themeIcon/who_parent.png')} style={styles.icon} />
           <Text style={[
             styles.label,
-            selectedOption === parent && styles.selectedLabel,
+            selectedOptions.includes(0) && styles.selectedLabel,
             { textAlign: 'center' }, // 중앙 정렬 추가
           ]}>
             부모/조부모
           </Text>
           <Text style={[
             styles.label,
-            selectedOption === parent && styles.selectedLabel,
+            selectedOptions.includes(0) && styles.selectedLabel,
             { textAlign: 'center' }, // 중앙 정렬 추가
           ]}>
             형제자매
@@ -114,70 +118,69 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
         <TouchableOpacity
           style={[
             styles.card,
-            selectedOption === spouse && styles.selectedCard,
+            selectedOptions.includes(1) && styles.selectedCard,
           ]}
-          onPress={() => handleSelect(1, spouse)}
+          onPress={() => handleSelect(1)}
         >
           <Image source={require('../../assets/images/themeIcon/who_spouse.png')} style={styles.icon} />
           <Text style={[
             styles.label,
-            selectedOption === spouse && styles.selectedLabel,
+            selectedOptions.includes(1) && styles.selectedLabel,
           ]}>{spouse}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[
             styles.card,
-            selectedOption === children && styles.selectedCard,
+            selectedOptions.includes(2) && styles.selectedCard,
           ]}
-          onPress={() => handleSelect(3, children)}
-        >
-          <Image source={require('../../assets/images/themeIcon/who_daughter.png')} style={styles.icon} />
-          <Text style={[
-            styles.label,
-            selectedOption === children && styles.selectedLabel,
-          ]}>{children}</Text>
-        </TouchableOpacity>
-
-
-        <TouchableOpacity
-          style={[
-            styles.card,
-            selectedOption === friend && styles.selectedCard,
-          ]}
-          onPress={() => handleSelect(2, friend)}
+          onPress={() => handleSelect(2)}
         >
           <Image source={require('../../assets/images/themeIcon/who_friend.png')} style={styles.icon} />
           <Text style={[
             styles.label,
-            selectedOption === friend && styles.selectedLabel,
+            selectedOptions.includes(2) && styles.selectedLabel,
           ]}>{friend}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[
             styles.card,
-            selectedOption === couple && styles.selectedCard,
+            selectedOptions.includes(3) && styles.selectedCard,
           ]}
-          onPress={() => handleSelect(4, couple)}
+          onPress={() => handleSelect(3)}
+        >
+          <Image source={require('../../assets/images/themeIcon/who_daughter.png')} style={styles.icon} />
+          <Text style={[
+            styles.label,
+            selectedOptions.includes(3) && styles.selectedLabel,
+          ]}>{children}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.card,
+            selectedOptions.includes(4) && styles.selectedCard,
+          ]}
+          onPress={() => handleSelect(4)}
         >
           <Image source={require('../../assets/images/themeIcon/who_couple.png')} style={styles.icon} />
           <Text style={[
             styles.label,
-            selectedOption === couple && styles.selectedLabel,
+            selectedOptions.includes(4) && styles.selectedLabel,
           ]}>{couple}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[
             styles.card,
-            selectedOption === group && styles.selectedCard,
+            selectedOptions.includes(5) && styles.selectedCard,
           ]}
-          onPress={() => handleSelect(5, group)}
+          onPress={() => handleSelect(5)}
         >
           <Image source={require('../../assets/images/themeIcon/who_group.png')} style={styles.icon} />
           <Text style={[
             styles.label,
-            selectedOption === group && styles.selectedLabel,
+            selectedOptions.includes(5) && styles.selectedLabel,
           ]}>{group}</Text>
         </TouchableOpacity>
         
@@ -188,10 +191,10 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
       <TouchableOpacity
         style={[
           styles.nextButton,
-          { backgroundColor: selectedOption ? '#0047A0' : '#D3D3D3' }
+          { backgroundColor: selectedOptions.length > 0 ? '#0047A0' : '#D3D3D3' }
         ]}
         onPress={handleNext}
-        disabled={!selectedOption}
+        disabled={selectedOptions.length === 0} // 선택된 항목이 없으면 비활성화
       >
         <Text style={styles.nextText}>다음</Text>
       </TouchableOpacity>
