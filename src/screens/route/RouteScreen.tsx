@@ -10,9 +10,53 @@ import { RootStackParamList } from '../navigation/navigationTypes';
 import axios from 'axios';
 import { ScrollView } from 'react-native-gesture-handler';
 import { REACT_TMAP_API_KEY } from '@env';
+import Modal from 'react-native-modal'; 
 
 type RouteScreenNavigationProp = StackNavigationProp<RootStackParamList, 'RouteScreen'>;
 type RouteScreenRouteProp = RouteProp<RootStackParamList, 'RouteScreen'>;
+
+// CustomAlertModal 타입 정의
+interface CustomAlertModalProps {
+  isVisible: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+}
+
+// CustomAlertModal 컴포넌트 생성
+const CustomAlertModal: React.FC<CustomAlertModalProps> = ({
+  isVisible,
+  onClose,
+  onConfirm,
+}) => {
+  return (
+    <Modal
+      isVisible={isVisible}
+      onBackdropPress={onClose}
+      onBackButtonPress={onClose}
+      backdropOpacity={0.5}
+      animationIn="zoomIn"
+      animationOut="zoomOut"
+    >
+      <View style={styles.modalContainer}>
+        <Text style={styles.modalTitle}>첫 화면으로 돌아가기</Text>
+        <Text style={styles.modalMessage1}>
+          현재 페이지를 나가시면 다시 볼 수 없습니다. 
+        </Text>
+        <Text style={styles.modalMessage}>
+          정말로 나가시겠습니까?
+        </Text>
+        <View style={styles.modalButtonContainer}>
+          <TouchableOpacity style={styles.modalCancelButton} onPress={onClose}>
+            <Text style={styles.modalCancelText}>취소</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.modalConfirmButton} onPress={onConfirm}>
+            <Text style={styles.modalConfirmText}>나가기</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+  );
+};
 
 interface RestaurantInfo {
   restaurantId: number;
@@ -184,6 +228,7 @@ interface Itinerary {
 
 const RouteScreen = () => {
   const navigation = useNavigation<RouteScreenNavigationProp>();
+  const [modalVisible, setModalVisible] = useState(false); // 모달 상태 추가
 
   // const [selectedDay, setSelectedDay] = useState("1일차");
   const [selectedDayIndex, setSelectedDayIndex] = useState(0); // 현재 선택된 일차 (0일차부터 시작)
@@ -15718,6 +15763,21 @@ const RouteScreen = () => {
     setRestaurantDetails(null);
   };
 
+  // 모달창 열기
+  const handleBackPress = () => {
+    setModalVisible(true);
+  };
+
+  // 모달창 닫기
+  const handleCloseModal = () => {
+    setModalVisible(false);
+  };
+
+  // 모달 확인 시 페이지 이동
+  const handleConfirm = () => {
+    setModalVisible(false);
+    navigation.navigate('Tabs'); // 나가기 버튼 클릭시 Tabs로 이동
+  };
   // 토글 상태 변경 함수  
   const toggleItem = (dayIndex: number, placeIndex: number) => {
     const toggleKey = `${dayIndex}-${placeIndex}`;    
@@ -16611,25 +16671,6 @@ const RouteScreen = () => {
     }
   };
 
-  // <- 화살표 버튼을 눌렀을 때 나가기 경고창 띄우기
-  const handleBackPress = () => {
-    Alert.alert(
-      '첫 화면으로 돌아가기',
-      '현재 페이지를 나가시면 다시 볼 수 없습니다. 나가시겠습니까?',
-      [
-        {
-          text: '취소',
-          style: 'cancel',
-        },
-        {
-          text: '나가기',
-          onPress: () => navigation.navigate('Tabs'), // 나가기 버튼 클릭시 Tabs로 이동
-        },
-      ],
-      { cancelable: true },
-    );
-  };
-
   const fetchRestaurantsData = async () => {
     try {
       const newRestaurantsByDay: { [day: string]: RestaurantInfo[] } = {};
@@ -16882,6 +16923,13 @@ const RouteScreen = () => {
       <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
         <Image source={require('../../assets/images/back_button3.png')} style={styles.backButtonImage} />
       </TouchableOpacity>
+      {/* CustomAlertModal 컴포넌트 추가 */}
+      <CustomAlertModal
+        isVisible={modalVisible}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirm}
+      />
+
       <BottomSheet ref={bottomSheetRef} index={2} snapPoints={['10%', '25%', '50%', '90%']}>
         {/* 1. Day1, Day2, Day3 버튼을 상단에 추가 */}
         <ScrollView contentContainerStyle={styles.bottomSheetContent}>
@@ -17576,7 +17624,70 @@ const styles = StyleSheet.create({
     fontFamily: 'SBAggroM',
     color: '#000000', // 검정색으로 설정
   },
-
+  // CustomAlertModal 스타일 추가
+  modalContainer: {
+    backgroundColor: '#FFF',
+    borderRadius: 30,
+    padding: 30,
+    alignItems: 'center',
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  modalCancelButton: {
+    flex: 1,
+    paddingTop: 10,
+    paddingBottom: 10,
+    paddingLeft: 5,
+    paddingRight: 5,
+    alignItems: 'center',
+    backgroundColor: '#DDDDDD',
+    borderRadius: 40,
+    marginRight: 20,
+  },
+  modalConfirmButton: {
+    flex: 1,
+    paddingTop: 10,
+    paddingBottom: 10,
+    paddingLeft: 5,
+    paddingRight: 5,
+    alignItems: 'center',
+    backgroundColor: '#0047A0',
+    borderRadius: 40,
+    marginLeft: 20,
+  },
+  modalCancelText: {
+    color: '#000000',
+    fontSize: 16,
+    fontFamily: 'SBAggroL'
+  },
+  modalConfirmText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontFamily: 'SBAggroL'
+  },
+  modalTitle: {
+    color: '#000000',
+    fontSize: 20,
+    marginTop: 10,
+    marginBottom: 15,
+    fontFamily: 'SBAggroM'
+  },
+  modalMessage: {
+    color: '#000000',
+    fontSize: 16,
+    textAlign: 'center',
+    marginBottom: 30,
+    fontFamily: 'SBAggroL'
+  },
+  modalMessage1: {
+    color: '#000000',
+    fontSize: 16,
+    textAlign: 'center',
+    fontFamily: 'SBAggroL'
+  },
   // capsuleRouteText: {
   //   position: 'absolute',   // 캡슐 위에 텍스트를 배치하기 위해 절대 위치 지정
   //   top: -25,               // 캡슐 위쪽에 위치시키기 위해 top을 -20으로 조정
