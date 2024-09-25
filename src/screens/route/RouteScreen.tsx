@@ -11,6 +11,8 @@ import axios from 'axios';
 import { ScrollView } from 'react-native-gesture-handler';
 import { REACT_TMAP_API_KEY } from '@env';
 import Modal from 'react-native-modal'; 
+import { useLanguage } from '../../components/LanguageProvider';
+import { translateText } from '../../utils/Translation';
 
 type RouteScreenNavigationProp = StackNavigationProp<RootStackParamList, 'RouteScreen'>;
 type RouteScreenRouteProp = RouteProp<RootStackParamList, 'RouteScreen'>;
@@ -21,42 +23,6 @@ interface CustomAlertModalProps {
   onClose: () => void;
   onConfirm: () => void;
 }
-
-// CustomAlertModal 컴포넌트 생성
-const CustomAlertModal: React.FC<CustomAlertModalProps> = ({
-  isVisible,
-  onClose,
-  onConfirm,
-}) => {
-  return (
-    <Modal
-      isVisible={isVisible}
-      onBackdropPress={onClose}
-      onBackButtonPress={onClose}
-      backdropOpacity={0.5}
-      animationIn="zoomIn"
-      animationOut="zoomOut"
-    >
-      <View style={styles.modalContainer}>
-        <Text style={styles.modalTitle}>첫 화면으로 돌아가기</Text>
-        <Text style={styles.modalMessage1}>
-          현재 페이지를 나가시면 다시 볼 수 없습니다. 
-        </Text>
-        <Text style={styles.modalMessage}>
-          정말로 나가시겠습니까?
-        </Text>
-        <View style={styles.modalButtonContainer}>
-          <TouchableOpacity style={styles.modalCancelButton} onPress={onClose}>
-            <Text style={styles.modalCancelText}>취소</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.modalConfirmButton} onPress={onConfirm}>
-            <Text style={styles.modalConfirmText}>나가기</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Modal>
-  );
-};
 
 interface RestaurantInfo {
   restaurantId: number;
@@ -79,7 +45,8 @@ interface FindRestaurantsResponseDto {
 interface RestaurantDetails {
   restaurantId: number; 
   restaurantName: string | null;
-  priceLevel: number | null; 
+  priceLevel: number | null; // 원본 가격대 숫자
+  priceLevelText?: string; // 번역된 가격대 텍스트 속성
   totalRating: number | null; 
   userRatingsTotal: number | null; 
   formattedPhoneNumber: string | null; 
@@ -247,6 +214,30 @@ const RouteScreen = () => {
   const mapRef = useRef<MapView>(null);
   const [toggleState, setToggleState] = useState<{ [key: string]: boolean }>({});
   const [transportInfo, setTransportInfo] = useState<TransportInfo[][][]>([]);
+  const {language: globalLanguage} = useLanguage();
+
+  // 번역된 텍스트를 저장할 상태
+  const [translatedLabels, setTranslatedLabels] = useState({
+    totalTime: '총 소요시간',
+    fare: '대중교통 요금',
+    transferCount: '환승 횟수',
+    totalWalkTime: '총 보행시간',
+    totalDistance: '총 거리',
+    totalDuration: '총 시간',
+    totalCost: '총 요금',
+    toggleOpen: '경로 보기',
+    toggleClosed: '경로 닫기',
+    minute: '분',
+    riding: '승차',
+    stopover: '하차',
+    noTransport: '대중교통 정보가 없습니다.',
+    opertatingTime: '영업시간',
+    goToHomeScreen: '첫 화면으로 돌아가기', 
+    exitWarningMessage1: '현재 페이지를 나가시면 다시 볼 수 없습니다.', 
+    exitWarningMessage2: '정말로 나가시겠습니까?', 
+    cancel: '취소', 
+    confirmExit: '나가기' 
+  });
 
   const response11 = {
     "totalDistance": "17342",
@@ -258,7 +249,7 @@ const RouteScreen = () => {
         "name": "신세계백화점 강남점",
         "latitude": 37.50449241,
         "longitude": 127.00364271,
-        "placeImgUrl": "https://tourmate-s3-bucket.s3.ap-northeast-2.amazonaws.com/%EB%9D%BC%EC%9D%B8%ED%94%84%EB%A0%8C%EC%A6%88+%EC%8A%A4%ED%80%98%EC%96%B4+%EC%84%B1%EC%88%98.png",
+        "placeImgUrl": "https://tourmate-s3-bucket.s3.ap-northeast-2.amazonaws.com/%EC%8B%A0%EC%84%B8%EA%B3%84%EB%B0%B1%ED%99%94%EC%A0%90+%EA%B0%95%EB%82%A8%EC%A0%90.png",
       },
       {
         "order": "1",
@@ -2622,7 +2613,7 @@ const RouteScreen = () => {
         "order": "0",
         "name": "북촌 한옥마을",
         "latitude": 37.5817692,
-        "longitude": 126.984813,
+        "longitude": 126.9849841,
         "placeImgUrl": "https://tourmate-s3-bucket.s3.ap-northeast-2.amazonaws.com/%EB%B6%81%EC%B4%8C+%ED%95%9C%EC%98%A5%EB%A7%88%EC%9D%84.png"
       },
       {
@@ -15578,11 +15569,101 @@ const RouteScreen = () => {
     console.log('Selected WithWho:', selectedWithWho);
     console.log('Selected Vehicle:', selectedVehicle);
   }, [selectedThemes, contextSelectedDay, selectedWithWho, selectedVehicle]);
+  // RouteScreen 컴포넌트 안에 useEffect 추가
 
-  const dayCount = Number(contextSelectedDay.at(-1)); // 며칠동안 여행을 가는지
-  // const dayCount = contextSelectedDay[contextSelectedDay.length - 1]; // 같은 표현 // 마지막 값으로 여행 일 수 계산
-  // console.log("여행일수는? ", dayCount);
-  // const dayCount = 1; // 일단 api 호출은 한번으로 고정
+  useEffect(() => {
+    const translateLabels = async () => {
+      const translatedTotalTime = await translateText('총 소요시간', globalLanguage);
+      const translatedFare = await translateText('대중교통 요금', globalLanguage);
+      const translatedTransferCount = await translateText('환승 횟수', globalLanguage);
+      const translatedTotalWalkTime = await translateText('총 보행시간', globalLanguage);
+      const translatedTotalDistance = await translateText('총 거리', globalLanguage);
+      const translatedTotalDuration = await translateText('총 시간', globalLanguage);
+      const translatedTotalCost = await translateText('총 요금', globalLanguage);
+      const translatedToggleOpen = await translateText('경로 보기', globalLanguage);
+      const translatedToggleClosed = await translateText('경로 닫기', globalLanguage);
+      const translatedMinute = await translateText('분', globalLanguage);
+      const translatedRiding = await translateText('승차', globalLanguage);
+      const translatedStopOver = await translateText('하차', globalLanguage);
+      const translatedNoTransport = await translateText('대중교통 정보가 없습니다.', globalLanguage);
+      const translatedOpertatingTime = await translateText('영업시간', globalLanguage);
+      const translatedGoToHomeScreen = await translateText('첫 화면으로 돌아가기', globalLanguage);
+      const translatedExitWarningMessage1 = await translateText('현재 페이지를 나가시면 다시 볼 수 없습니다.', globalLanguage);
+      const translatedExitWarningMessage2 = await translateText('정말로 나가시겠습니까?', globalLanguage);
+      const translatedCancel = await translateText('취소', globalLanguage);
+      const translatedConfirmExit = await translateText('나가기', globalLanguage);
+
+      setTranslatedLabels({
+        totalTime: translatedTotalTime,
+        fare: translatedFare,
+        transferCount: translatedTransferCount,
+        totalWalkTime: translatedTotalWalkTime,
+        totalDistance: translatedTotalDistance,
+        totalDuration: translatedTotalDuration,
+        totalCost: translatedTotalCost,
+        toggleOpen : translatedToggleOpen,
+        toggleClosed : translatedToggleClosed,
+        minute: translatedMinute,
+        riding:translatedRiding,
+        stopover: translatedStopOver,
+        noTransport: translatedNoTransport,
+        opertatingTime: translatedOpertatingTime,
+        goToHomeScreen: translatedGoToHomeScreen,
+        exitWarningMessage1: translatedExitWarningMessage1, 
+        exitWarningMessage2: translatedExitWarningMessage2,
+        cancel: translatedCancel,
+        confirmExit: translatedConfirmExit,
+      });
+    };
+
+    translateLabels();
+  }, [globalLanguage]);
+
+  // 기존 useEffect와의 관계 예시
+  useEffect(() => {
+    // 경로 데이터를 먼저 가져옴
+    fetchRouteDataForEachDay(); 
+  }, []); // 빈 배열로 설정하여 컴포넌트가 처음 마운트될 때만 실행
+    const dayCount = Number(contextSelectedDay.at(-1)); // 며칠동안 여행을 가는지
+    // const dayCount = contextSelectedDay[contextSelectedDay.length - 1]; // 같은 표현 // 마지막 값으로 여행 일 수 계산
+    // console.log("여행일수는? ", dayCount);
+    // const dayCount = 1; // 일단 api 호출은 한번으로 고정
+
+  // CustomAlertModal 컴포넌트 생성
+  const CustomAlertModal: React.FC<CustomAlertModalProps> = ({
+    isVisible,
+    onClose,
+    onConfirm,
+  }) => {
+    return (
+      <Modal
+        isVisible={isVisible}
+        onBackdropPress={onClose}
+        onBackButtonPress={onClose}
+        backdropOpacity={0.5}
+        animationIn="zoomIn"
+        animationOut="zoomOut"
+      >
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalTitle}>{translatedLabels.goToHomeScreen}</Text>
+          <Text style={styles.modalMessage1}>
+            {translatedLabels.exitWarningMessage1}
+          </Text>
+          <Text style={styles.modalMessage}>
+            {translatedLabels.exitWarningMessage2}
+          </Text>
+          <View style={styles.modalButtonContainer}>
+            <TouchableOpacity style={styles.modalCancelButton} onPress={onClose}>
+              <Text style={styles.modalCancelText}>{translatedLabels.cancel}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.modalConfirmButton} onPress={onConfirm}>
+              <Text style={styles.modalConfirmText}>{translatedLabels.confirmExit}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    );
+  };
 
   // 실제 시연에 사용할 함수 
   const fetchRouteDataForEachDay = async () => {
@@ -15660,11 +15741,19 @@ const RouteScreen = () => {
 
         const dayKey = `Day ${i + 1}`;
 
+        // 번역된 이름 가져오기
+        const translatedVisitPlaces = await Promise.all(
+          route_response.visitPlaces.map(async (place) => {
+            const translatedName = await translateText(place.name, globalLanguage);
+            return { ...place, name: translatedName };
+          })
+        );
+
         newRouteInfoByDay[dayKey] = { 
           totalDistance, 
           totalTime, 
           totalFare, 
-          visitPlaces: visitPlaces.map(place => ({
+          visitPlaces: translatedVisitPlaces.map(place => ({
             ...place,
             longitude: place.longitude ?? 0, // longitude가 undefined일 경우 0으로 설정
           })) 
@@ -15735,6 +15824,21 @@ const RouteScreen = () => {
     }
   }, [routeInfoByDay]); // routeInfoByDay가 변경될 때 실행
 
+  // 텍스트 번역 함수 호출
+  const getTranslatedPriceLevelText = async (priceLevel: number): Promise<string> => {
+    const priceText = priceLevelTextMap[priceLevel] || '알 수 없음';
+    return await translateText(priceText, globalLanguage);
+  };
+
+  // priceLevel에 따른 텍스트 설명 매핑
+  const priceLevelTextMap: { [key: number]: string } = {
+    0: '무료 또는 저렴한 가격대',
+    1: '저렴한 가격대',
+    2: '보통 가격대',
+    3: '약간 고가 가격대',
+    4: '럭셔리한 가격대'
+  };
+
   const fetchRestaurantDetails = async (restaurantId: number) => {
     // 이미 데이터가 있는지 확인
     if (restaurantDetails && restaurantDetails.restaurantId === restaurantId) {
@@ -15744,9 +15848,40 @@ const RouteScreen = () => {
   
     try {
       const response = await axios.get<RestaurantDetails>(`http://13.125.53.226:8080/api/restaurants/${restaurantId}`);
-      console.log("음식점 리뷰 구하는 response:", JSON.stringify(response.data, null, 2)); // 2칸 들여쓰기하여 정렬 출력
-  
-      setRestaurantDetails(response.data);
+      // console.log("음식점 리뷰 구하는 response:", JSON.stringify(response.data, null, 2)); // 2칸 들여쓰기하여 정렬 출력
+      const data = response.data;
+
+      // 번역 작업 수행
+      const translatedRestaurantName = globalLanguage === 'ko' ? data.restaurantName : await translateText(data.restaurantName || "", globalLanguage);
+      const translatedWeekdayText = data.weekdayText 
+        ? await Promise.all(data.weekdayText.split(',').map(async line => await translateText(line.trim(), globalLanguage)))
+        : [];
+
+      const translatedPriceLevelText = await getTranslatedPriceLevelText(data.priceLevel ?? -1);
+
+      // 리뷰가 null이 아닌 경우에만 번역 작업 수행
+      const translatedReviews = data.reviews
+        ? await Promise.all(
+            data.reviews.map(async review => ({
+              ...review,
+              author_name: globalLanguage === 'ko' ? review.author_name : await translateText(review.author_name || "", globalLanguage),
+              text: globalLanguage === 'ko' ? review.text : await translateText(review.text || "", globalLanguage),
+              relative_time_description: globalLanguage === 'ko' ? review.relative_time_description : await translateText(review.relative_time_description || "", globalLanguage),
+            }))
+          )
+        : null; // 리뷰가 null일 경우 null로 설정
+
+      // 번역된 데이터를 새로운 객체에 저장
+      const translatedDetails: RestaurantDetails = {
+        ...data,
+        restaurantName: translatedRestaurantName,
+        formattedPhoneNumber: data.formattedPhoneNumber, 
+        weekdayText: translatedWeekdayText.join(', '),
+        reviews: translatedReviews,
+        priceLevelText: translatedPriceLevelText,
+      };
+
+      setRestaurantDetails(translatedDetails); // 번역된 정보를 저장
       setRestaurantSheetVisible(true);
     } catch (error) {
       console.error('Error fetching restaurant details:', error);
@@ -15823,7 +15958,6 @@ const RouteScreen = () => {
       });
     }
   };
-
 
   // 개발하는 동안 편하게 사용하는 미리 로드된 대중교통 데이터셋
   const fetchTransportData2 = async (dayIndex: number, placeIndex: number) => {
@@ -16544,40 +16678,51 @@ const RouteScreen = () => {
       const newTransportInfo: TransportInfo[] = [];
   
       // 각 경로에 대한 정보를 TransportInfo로 변환
-      itineraries.forEach((itinerary) => {
+      for (const itinerary of itineraries) {
         const totalFare = itinerary.fare?.regular?.totalFare ?? 0;
         const totalWalkTime = itinerary.totalWalkTime ?? 0;
         const totalTime = itinerary.totalTime ?? 0;
         const transferCount = itinerary.transferCount ?? 0;
         const totalDistance = itinerary.totalDistance ?? 0;
   
-        itinerary.legs?.forEach((leg: Leg) => {
+        // `forEach`를 `for..of`로 변경하여 async/await 사용 가능하게 설정
+        for (const leg of itinerary.legs || []) {
+          // 각 필드를 번역 API로 번역
+          const startLocationName = await translateText(leg.start?.name || "-", globalLanguage);
+          const endLocationName = await translateText(leg.end?.name || "-", globalLanguage);
+          const routeName = await translateText(leg.route || '도보', globalLanguage);
+  
+          // passStopList 번역
+          const translatedPassStopList = await Promise.all(
+            (leg.passStopList?.stationList || []).map(async (station) => ({
+              index: station.index ?? 0,
+              stationName: await translateText(station.stationName || "-", globalLanguage),
+              lon: parseFloat(station.lon || "0"),
+              lat: parseFloat(station.lat || "0"),
+              stationID: station.stationID || "-",
+            }))
+          );
+  
           const transportDetails: TransportInfo = {
             mode: leg.mode || 'UNKNOWN',
-            route: leg.route || '도보',
+            route: routeName,
             routeColor: leg.routeColor || '#8A8F96',
-  
+      
             startLocation: {
-              name: leg.start?.name || "-",
+              name: startLocationName,
               lon: leg.start?.lon ?? 0,
               lat: leg.start?.lat ?? 0,
             },
             endLocation: {
-              name: leg.end?.name || "-",
+              name: endLocationName,
               lon: leg.end?.lon ?? 0,
               lat: leg.end?.lat ?? 0,
             },
             sectionTime: leg.sectionTime ?? 0,
-  
+      
             // WALK가 아닐 때는 passStopList로 처리
-            passStopList: leg.mode !== 'WALK' ? leg.passStopList?.stationList?.map((station) => ({
-              index: station.index ?? 0,
-              stationName: station.stationName || "-",
-              lon: parseFloat(station.lon || "0"),
-              lat: parseFloat(station.lat || "0"),
-              stationID: station.stationID || "-",
-            })) || [] : undefined,
-  
+            passStopList: leg.mode !== 'WALK' ? translatedPassStopList : undefined,
+      
             // WALK일 때는 steps 배열로 처리
             steps: leg.mode === 'WALK' ? leg.steps?.map(step => ({
               streetName: step.streetName,
@@ -16589,24 +16734,24 @@ const RouteScreen = () => {
                   })
                 : [],  // linestring이 없을 경우 빈 배열 반환
             })) : undefined,         
-  
+      
             passShape: leg.passShape?.linestring
               ? leg.passShape.linestring.split(" ").map((coord) => {
                 const [lon, lat] = coord.split(",");
                 return { latitude: parseFloat(lat), longitude: parseFloat(lon) };
               })
               : [],
-  
+      
             totalTime,
             totalFare,
             transferCount,
             totalDistance,
             totalWalkTime,
           };
-  
+      
           newTransportInfo.push(transportDetails);
-        });
-      });
+        }
+      }
   
       // 새롭게 얻은 교통 정보를 transportInfo 상태에 저장
       setTransportInfo((prevInfo) => {
@@ -16615,14 +16760,14 @@ const RouteScreen = () => {
         updatedInfo[dayIndex][placeIndex] = newTransportInfo;
         return updatedInfo;
       });
+  
       console.log("대중교통 가공된 API 응답", JSON.stringify(newTransportInfo, null, 2));
-
+  
     } catch (error) {
       console.error('Error fetching TMap transport data:', error);
     }
   };
   
-
   // 날짜 계산 함수
   const getCalculatedDate = (baseDate: string, index: number): string => {
     // baseDate는 "24.10.1" 형식이므로, 이를 분리해서 계산
@@ -16696,8 +16841,17 @@ const RouteScreen = () => {
         );
         // console.log("response:", JSON.stringify(response.data, null, 2));
 
+        const translatedRestaurants = await Promise.all(
+          response.data.locationsWithRestaurants.flatMap((location) =>
+            location.restaurants.map(async (restaurant) => {
+              const translatedName = await translateText(restaurant.res_name, globalLanguage);
+              return { ...restaurant, res_name: translatedName };
+            })
+          )
+        );
+        
         // 각 Day별 음식점 데이터를 상태에 저장
-        newRestaurantsByDay[dayKey] = response.data.locationsWithRestaurants.flatMap((location) => location.restaurants);
+        newRestaurantsByDay[dayKey] = translatedRestaurants;
       }
   
       setRestaurantsByDay(newRestaurantsByDay);
@@ -16721,6 +16875,8 @@ const RouteScreen = () => {
         }}
         showsUserLocation={true}
         showsMyLocationButton={false} // 현재 위치 버튼을 숨김
+
+        
       >
         {/* 장소 마커 찍기 */}
         {routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.visitPlaces?.map((place, index) => {
@@ -16774,7 +16930,7 @@ const RouteScreen = () => {
               <Callout tooltip={true} style={styles.callout}>
                 <View style={styles.customCallout}>
                   <Text
-                    style={[styles.calloutText, { flexWrap: 'wrap', width: 'auto', maxWidth: 300 }]}
+                    style={[styles.calloutText, { flexWrap: 'wrap', width: 'auto', maxWidth: 400 }]}
                     adjustsFontSizeToFit={false}
                   >
                     {place.name || "Unnamed Place"}
@@ -16972,7 +17128,6 @@ const RouteScreen = () => {
             ))}
           </View>
 
-
           {/* 2. 장소 리스트와 동그라미 마커 */}
           <View style={styles.timelineContainer}>
             {routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.visitPlaces?.map((place, index) => {
@@ -17027,7 +17182,7 @@ const RouteScreen = () => {
                             style={styles.transportIcon}
                           />
                           <Text style={styles.toggleButtonText}>
-                            {toggleState[toggleKey] ? 'v 경로 닫기' : '> 경로 보기'}
+                            {toggleState[toggleKey] ? `v ${translatedLabels.toggleClosed}` : `> ${translatedLabels.toggleOpen}`}
                           </Text>
                         </View>
                         {/* 토글 상태가 true일 때만 추가 정보 표시 */}
@@ -17042,13 +17197,15 @@ const RouteScreen = () => {
                                 <>
                                   {/* 추가 정보들 */}
                                   {/* 첫 번째 줄 */}
+                                  {/* 총 시간, 대중교통 요금 */}
                                   <Text style={styles.transportTimeText}>
-                                    {`총 소요시간: ${Math.floor((transportInfo[selectedDayIndex]?.[index]?.[0]?.totalTime ?? 0) / 60)}m, 대중교통 요금: ${transportInfo[selectedDayIndex]?.[index]?.[0]?.totalFare ?? 0}원`}
+                                    {`${translatedLabels.totalTime}: ${Math.floor((transportInfo[selectedDayIndex]?.[index]?.[0]?.totalTime ?? 0) / 60)} ${translatedLabels.minute}, ${translatedLabels.fare}: ₩${transportInfo[selectedDayIndex]?.[index]?.[0]?.totalFare ?? 0}`}
                                   </Text>
 
                                   {/* 두 번째 줄 */}
+                                  {/* 환승 횟수, 총 걷는 시간 */}
                                   <Text style={styles.transportTimeText}>
-                                    {`환승 횟수: ${transportInfo[selectedDayIndex]?.[index]?.[0]?.transferCount ?? 0}번, 총 보행시간: ${Math.floor((transportInfo[selectedDayIndex]?.[index]?.[0]?.totalWalkTime ?? 0) / 60)}m`}
+                                    {`${translatedLabels.transferCount}: ${transportInfo[selectedDayIndex]?.[index]?.[0]?.transferCount ?? 0}, ${translatedLabels.totalWalkTime}: ${Math.floor((transportInfo[selectedDayIndex]?.[index]?.[0]?.totalWalkTime ?? 0) / 60)} ${translatedLabels.minute}`}
                                   </Text>
 
                                   {/* 세 번째 줄 */}
@@ -17125,7 +17282,7 @@ const RouteScreen = () => {
                                                 />
                                               </View>
                                               {/* 동그라미 옆에 route 표시 후 출발지 표시 */}
-                                              <Text style={styles.stopText}>{`${info.startLocation?.name} 승차`}</Text>
+                                              <Text style={styles.stopText}>{`${info.startLocation?.name} ${translatedLabels.riding}`}</Text>
                                             </View>
 
                                             {/* 도착지 표시 */}
@@ -17141,7 +17298,7 @@ const RouteScreen = () => {
                                                 />
                                               </View>
                                               {/* 동그라미 옆에 route 표시 후 도착지 표시 */}
-                                              <Text style={styles.stopText}>{`${info.endLocation?.name} 하차`}</Text>
+                                              <Text style={styles.stopText}>{`${info.endLocation?.name} ${translatedLabels.stopover}`}</Text>
                                             </View>
                                           </View>
                                         );
@@ -17159,13 +17316,13 @@ const RouteScreen = () => {
                             <View style={[styles.expandedContent, { paddingVertical: 10 }]}>
                               {/* 자동차 경로 정보에 단위 표시 */}
                               <Text style={styles.transportTimeText}>
-                                {`총 거리 : ${(parseFloat(routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.totalDistance) / 1000).toFixed(1)} km `}
+                                {`${translatedLabels.totalDistance} : ${(parseFloat(routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.totalDistance) / 1000).toFixed(1)}km `}
                               </Text>
                               <Text style={styles.transportTimeText}>
-                                {`총 시간 : ${(parseFloat(routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.totalTime) / 60).toFixed(0)} 분  `}
+                                {`${translatedLabels.totalDuration} : ${(parseFloat(routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.totalTime) / 60).toFixed(0)} ${translatedLabels.minute} `}
                               </Text>
                               <Text style={styles.transportTimeText}>
-                                {`총 요금 : ${routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.totalFare} 원`}
+                                {`${translatedLabels.totalCost} : ₩${routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.totalFare}`}
                               </Text>
                             </View>
                           )}
@@ -17182,7 +17339,7 @@ const RouteScreen = () => {
           {/* 3. 선택된 날짜를 우측 하단에 표시 */}
           <View style={{ position: 'absolute', top: 85, right: 50 }}>
             {typeof contextSelectedDay[0] === 'string' && (
-              <Text style={{ color: '#000000', fontFamily: 'SBAggroM', fontSize: 12 }}>
+              <Text style={{ color: '#000000', fontFamily: 'SBAggroM', fontSize: 14 }}>
                 {getCalculatedDate(contextSelectedDay[0] as string, selectedDayIndex)}
               </Text>
             )}
@@ -17221,13 +17378,18 @@ const RouteScreen = () => {
           
                 {/* 전화번호 */}
                 {restaurantDetails.formattedPhoneNumber && (
-                  <Text>{restaurantDetails.formattedPhoneNumber}</Text>
+                  <Text style={styles.priceLevelText}>{restaurantDetails.formattedPhoneNumber}</Text>
+                )}
+
+                {/* 가격대 정보 */}
+                {restaurantDetails.priceLevelText !== null && (
+                  <Text style={styles.priceLevelText}>{restaurantDetails.priceLevelText}</Text>
                 )}
           
                 {/* 영업시간 */}
                 {restaurantDetails.weekdayText && (
                   <>
-                    <Text style={styles.openingHoursTitle}>영업시간</Text>
+                    <Text style={styles.openingHoursTitle}>{translatedLabels.opertatingTime}</Text>
                     {restaurantDetails.weekdayText.split(',').map((line, index) => (
                       <Text key={index} style={styles.openingHoursText}>
                         {line.trim()} {/* 각 줄을 trim으로 불필요한 공백 제거 */}
@@ -17352,11 +17514,15 @@ const styles = StyleSheet.create({
     marginBottom: 9,  // 두 줄 사이의 간격을 위해 추가
     color: '#000000',
     fontFamily: 'SBAggroL',
+    flexWrap: 'wrap',  // 줄바꿈 설정
+    maxWidth: 300,     // 최대 너비 설정
   },
   toggleButtonText: {
     fontSize: 18,
     color: '#000000',
     fontFamily: 'SBAggroM',
+    flexWrap: 'wrap',  // 줄바꿈 설정
+    maxWidth: 300,
   },
   emptySpace: {
     height: 50,
@@ -17535,6 +17701,8 @@ const styles = StyleSheet.create({
   },
   stopsGroup: {
     position: 'relative',  // 자식 요소의 절대 위치를 위해 설정
+    flexWrap: 'wrap',  // 줄바꿈 설정
+    maxWidth: 300,
   },
   stopContainer: {
     flexDirection: 'row',
@@ -17554,7 +17722,8 @@ const styles = StyleSheet.create({
   stopText: {
     fontSize: 14,
     color: '#000',
-    fontFamily: 'SBAggroL'
+    fontFamily: 'SBAggroL', 
+    maxWidth: 300
   },
   expandedLine: {
     height: 150, // 토글이 열렸을 때의 확장된 세로선 높이
@@ -17606,6 +17775,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginVertical: 10, // 총 별점과 다른 요소 사이의 간격 증가
     color: '#000000', // 검정색으로 설정
+  },
+  priceLevelText: {
+    fontFamily: 'SBAggroL',
+    color: '#000000',
+    fontSize: 15,
+    paddingBottom: 5,
   },
   openingHoursTitle: {
     fontSize: 20,
@@ -17662,7 +17837,7 @@ const styles = StyleSheet.create({
   modalContainer: {
     backgroundColor: '#FFF',
     borderRadius: 30,
-    padding: 30,
+    padding: 15,
     alignItems: 'center',
   },
   modalButtonContainer: {
@@ -17762,12 +17937,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginLeft: 50,
   },
-  arrowTriangle: {
-    width: 20,
-    height: 10,
-    marginTop: -1,
-    resizeMode: 'contain',
-  },
   arrowContainer: {
     alignItems: 'center', // 화살표 위치 중앙으로
     marginTop: -10, // 화살표 위치 조정
@@ -17782,5 +17951,6 @@ const styles = StyleSheet.create({
   //   fontFamily: 'SBAggroM', // 폰트 스타일 적용
   // },  
 });
+
 
 export default RouteScreen;
