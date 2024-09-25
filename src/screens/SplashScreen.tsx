@@ -108,36 +108,7 @@ const SplashScreen: React.FC = () => {
   
 
   const handleLogin = async () => {
-    if (email_signIn && password_signIn) {
-      try {
-        console.log(email_signIn, password_signIn);
-        const response = await fetch(
-          'http://13.125.53.226:8080/api/auth/login',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ email_signIn, password_signIn }),
-          }
-        );
-  
-        const result = await response.json();8
-        if (response.ok) {
-        await AsyncStorage.setItem('jwtToken', result.accessToken);
-        setIsGoogleUser(false);
-          navigation.navigate('Tabs'); // 로그인 성공 시 Tabs 화면으로 이동
-        } else {
-          Alert.alert('로그인 실패', result.message || '로그인에 실패하였습니다. 다시 시도해 주세요.');
-        }
-        
-      } catch (error) {
-        console.error('Fetch error:', error);
-        Alert.alert('로그인 실패', '로그인에 실패했습니다. 다시 시도해 주세요.');
-      }
-    } else {
-      Alert.alert('입력 오류', '이메일과 비밀번호를 입력해 주세요.');
-    }
+    navigation.navigate('Tabs'); // 로그인 성공 시 Tabs 화면으로 이동
   };
 
   const handleGoogleLogin = async () => {
