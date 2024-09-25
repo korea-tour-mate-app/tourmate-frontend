@@ -1,7 +1,7 @@
 import { Alert } from 'react-native';
 
 export const translateText = async (text: string, targetLang: string): Promise<string> => {
-  
+  console.log('들어온 문자열', text);
   // targetLang이 'ko'인 경우 원문 반환
   if (targetLang === 'ko') {
     return text;
@@ -36,8 +36,10 @@ export const translateText = async (text: string, targetLang: string): Promise<s
     }
 
     if (result && result.message && result.message.result && result.message.result.translatedText) {
+      console.log('결과: ', result.message.result.translatedText);
       return result.message.result.translatedText;
     } else {
+      console.log('결과: ', text);
       return text;
     }
   } catch (error) {

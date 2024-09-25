@@ -15824,6 +15824,7 @@ const RouteScreen = () => {
     }
   };
 
+
   // 개발하는 동안 편하게 사용하는 미리 로드된 대중교통 데이터셋
   const fetchTransportData2 = async (dayIndex: number, placeIndex: number) => {
     try {
@@ -16519,7 +16520,7 @@ const RouteScreen = () => {
         {
           headers: {
             'Content-Type': 'application/json',
-            'appKey': 'yLlPVKdAsO23YI6W4q72N1qSJupbvo5d6PLMte5C', // 실제 API 키
+            'appKey': '', // 실제 API 키
           },
         }
       );
@@ -16962,6 +16963,7 @@ const RouteScreen = () => {
               </TouchableOpacity>
             ))}
           </View>
+
 
           {/* 2. 장소 리스트와 동그라미 마커 */}
           <View style={styles.timelineContainer}>
@@ -17766,6 +17768,5 @@ const styles = StyleSheet.create({
   //   fontFamily: 'SBAggroM', // 폰트 스타일 적용
   // },  
 });
-
 
 export default RouteScreen;

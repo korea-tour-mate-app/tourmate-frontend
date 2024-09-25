@@ -5,6 +5,7 @@ import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-si
 import {useNavigation} from '@react-navigation/native';
 import {RootStackNavigationProp} from './navigation/navigationTypes';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {useAuth} from '../components/AuthProvider';
 
 
 const WEB_CLIENT_ID =
@@ -29,9 +30,11 @@ interface SplashScreenProps {
 const SplashScreen: React.FC = () => {
   const [selectedSplash, setSelectedSplash] = useState(null);
   const [showLoginBox, setShowLoginBox] = useState(false);
+  const [email_signIn, setEmail_signIn] = useState('');
+  const [password_signIn, setPassword_signIn] = useState('');
   const [showSignUp, setShowSignUp] = useState(false);
   const [email, setEmail] = useState('');
-  const [code, setCode] = useState(''); // 코드 상태
+  const [code, setCode] = useState(''); 
   const [isVerified, setIsVerified] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const windowWidth = Dimensions.get('window').width;
@@ -39,9 +42,9 @@ const SplashScreen: React.FC = () => {
   const navigation = useNavigation<RootStackNavigationProp<'SplashScreen'>>();
 
   const [nickname, setNickname] = useState('');
-  const [isCodeVerified, setIsCodeVerified] = useState(false);
   const [password, setPassword] = useState('');
-  const isSignupEnabled = nickname !== '' && isCodeVerified && password !== '';
+
+  const { isGoogleUser, setIsGoogleUser } = useAuth();
 
   useEffect(() => {
     GoogleSignin.configure({
@@ -66,24 +69,24 @@ const SplashScreen: React.FC = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const loginWithGoogle = async (): Promise<{idToken: string} | null> => {
+  const loginWithGoogle = async (): Promise<{ accessToken: string } | null> => {
     try {
       // Play Services가 설치되어 있는지 확인
       await GoogleSignin.hasPlayServices();
-
+  
       // 사용자 로그인
       const userInfo = await GoogleSignin.signIn();
-
-      // ID 토큰을 가져오기
+  
+      // accessToken을 가져오기
       const tokens = await GoogleSignin.getTokens();
-      const idToken = tokens.idToken;
-
-      if (idToken) {
+      const accessToken = tokens.accessToken;
+  
+      if (accessToken) {
         return {
-          idToken,
+          accessToken,
         };
       }
-
+  
       return null;
     } catch (error) {
       if (error instanceof Error) {
@@ -102,24 +105,27 @@ const SplashScreen: React.FC = () => {
       return null;
     }
   };
+  
 
   const handleLogin = async () => {
-    if (email && password) {
+    if (email_signIn && password_signIn) {
       try {
+        console.log(email_signIn, password_signIn);
         const response = await fetch(
-          'http://192.168.43.97:8080/api/auth/login',
+          'http://13.125.53.226:8080/api/auth/login',
           {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify({ email_signIn, password_signIn }),
           }
         );
   
-        const result = await response.json();
+        const result = await response.json();8
         if (response.ok) {
-          await AsyncStorage.setItem('jwtToken', result.token);
+        await AsyncStorage.setItem('jwtToken', result.accessToken);
+        setIsGoogleUser(false);
           navigation.navigate('Tabs'); // 로그인 성공 시 Tabs 화면으로 이동
         } else {
           Alert.alert('로그인 실패', result.message || '로그인에 실패하였습니다. 다시 시도해 주세요.');
@@ -135,13 +141,39 @@ const SplashScreen: React.FC = () => {
   };
 
   const handleGoogleLogin = async () => {
-    const result = await loginWithGoogle();
-    if (result) {
-      console.log(result.idToken); // ID 토큰을 콘솔에 출력합니다.
-      navigation.navigate('Tabs'); // 로그인 성공 시 Tabs 화면으로 이동
+    try {
+      const result = await loginWithGoogle();
+      if (result) {
+        const { accessToken } = result;
+        console.log(accessToken);
+  
+        // 서버에 accessToken 전송
+        const response = await fetch('http://13.125.53.226:8080/api/auth/google-login', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`, // Google 로그인 후 받은 accessToken 사용
+            'Content-Type': 'application/json',
+          },
+        });
+  
+        if (!response.ok) {
+          throw new Error('Failed to log in');
+        }
+  
+        // 응답 데이터를 JSON으로 변환
+        const data = await response.json();
+        await AsyncStorage.setItem('jwtToken', data.accessToken);
+  
+        setIsGoogleUser(true);
+        navigation.navigate('Tabs'); // 로그인 성공 시 Tabs 화면으로 이동
+      }
+    } catch (error) {
+      console.error('Error during Google login:', error);
     }
   };
-
+  
+  
+  
   const handleVerifyEmail = async () => {
     if (!email) {
       Alert.alert('이메일을 입력해주세요.');
@@ -149,9 +181,8 @@ const SplashScreen: React.FC = () => {
     }
     try {
       const response = await fetch(
-        'http://192.168.43.97:8080/api/auth/verify-email',
+        'http://13.125.53.226:8080/api/auth/verify-email',
         {
-          // 로컬 IP 주소 사용
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -182,9 +213,8 @@ const SplashScreen: React.FC = () => {
     }
     try {
       const response = await fetch(
-        'http://192.168.43.97:8080/api/auth/verify-code',
+        'http://13.125.53.226:8080/api/auth/verify-code',
         {
-          // 로컬 IP 주소 사용
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -209,7 +239,7 @@ const SplashScreen: React.FC = () => {
     if (nickname && email && password) {
       try {
         const response = await fetch(
-          'http://192.168.43.97:8080/api/auth/signup',
+          'http://13.125.53.226:8080/api/auth/signup',
           {
             method: 'POST',
             headers: {
@@ -286,19 +316,21 @@ const SplashScreen: React.FC = () => {
             {opacity: fadeAnim},
           ]}>
           <Text style={[styles.title, {fontSize: platformFontSize(25)}]}>
-            당신의 서울여행 동반자,
+            Your travel friend in Seoul,
           </Text>
           <Text style={[styles.titleBlue, {fontSize: platformFontSize(25)}]}>
-            TOURMATE<Text style={styles.title}>입니다.</Text>
+            TOURMATE.
           </Text>
           <Text style={[styles.content, {fontSize: platformFontSize(16)}]}>
-            회원 서비스 이용을 위해 로그인 해주세요.
+            Please log in to use our member services.
           </Text>
 
           <TextInput
             style={[styles.input, {fontSize: platformFontSize(20)}]}
             placeholder="Email"
+            value={email_signIn}
             placeholderTextColor="#7A7C7E"
+            onChangeText={setEmail_signIn}
           />
           <Svg height="2" width="75%">
             <Line
@@ -314,7 +346,9 @@ const SplashScreen: React.FC = () => {
           <TextInput
             style={[styles.input, {fontSize: platformFontSize(20)}]}
             placeholder="Password"
+            value={password_signIn}
             placeholderTextColor="#7A7C7E"
+            onChangeText={setPassword_signIn}
             secureTextEntry
           />
           <Svg height="2" width="75%">
@@ -335,7 +369,7 @@ const SplashScreen: React.FC = () => {
             ]}
             onPress={handleLogin}>
             <Text style={[styles.signInText, {fontSize: platformFontSize(20)}]}>
-              로그인
+              Login
             </Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={handleGoogleLogin}>
@@ -357,14 +391,14 @@ const SplashScreen: React.FC = () => {
               setShowLoginBox(false);
             }}>
             <Text style={[styles.signUpText, {fontSize: platformFontSize(15)}]}>
-              회원이 아니신가요?
+              Don't you have an account?
             </Text>
           </TouchableOpacity>
-          <Svg height="2" width="50%">
+          <Svg height="2" width="70%">
             <Line
               x1="0"
               y1="1"
-              x2={windowWidth * 0.5}
+              x2={windowWidth * 0.8}
               y2="1"
               stroke="#0047A0"
               strokeWidth="1.5"
@@ -376,17 +410,17 @@ const SplashScreen: React.FC = () => {
       {showSignUp && (
         <View style={[styles.signUpBox, platformSignUpBoxSize()]}>
           <Text style={[styles.title, {fontSize: platformFontSize(25)}]}>
-            처음이신가요?
+            Is this your first time?
           </Text>
           <Text style={[styles.content, {fontSize: platformFontSize(16)}]}>
-            TOURMATE는 회원 가입 후에
+            TOURMATE is available
           </Text>
           <Text style={[styles.content, {fontSize: platformFontSize(16)}]}>
-            이용해보실 수 있습니다.
+           after signing up for membership.
           </Text>
 
           <View
-            style={[styles.signUpContainer, {marginTop: platformSpacing(45)}]}>
+            style={[styles.signUpContainer, {marginTop: platformSpacing(30)}]}>
             <TextInput
               style={[styles.signUpInput, {fontSize: platformFontSize(17)}]}
               placeholder="Nickname"
@@ -406,8 +440,10 @@ const SplashScreen: React.FC = () => {
             </Svg>
           </View>
 
+          <Text style={{marginTop: platformSpacing(10)}}>Please put your email address</Text>
+          <Text>and get a code for authentication !</Text>
           <View
-            style={[styles.emailContainer, {marginTop: platformSpacing(27)}]}>
+            style={[styles.emailContainer, {marginTop: platformSpacing(10)}]}>
             <TextInput
               style={[styles.emailInput, {fontSize: platformFontSize(17)}]}
               placeholder="Email"
@@ -418,12 +454,12 @@ const SplashScreen: React.FC = () => {
             <TouchableOpacity
               style={[
                 styles.authButton,
-                {width: platformButtonSize(85), height: platformButtonSize(30)},
+                {width: platformButtonSize(60), height: platformButtonSize(30)},
               ]}
               onPress={handleVerifyEmail} // 버튼 클릭 시 이메일 전송 함수 호출
             >
               <Text style={[styles.auth, {fontSize: platformFontSize(12)}]}>
-                인증번호 받기
+                Send
               </Text>
             </TouchableOpacity>
           </View>
@@ -443,7 +479,7 @@ const SplashScreen: React.FC = () => {
             style={[styles.emailContainer, {marginTop: platformSpacing(27)}]}>
             <TextInput
               style={[styles.emailInput, {fontSize: platformFontSize(17)}]}
-              placeholder="Code(6 Characters)"
+              placeholder="Code (6 Characters)"
               placeholderTextColor="#7A7C7E"
               value={code}
               onChangeText={setCode} // 코드 상태 업데이트
@@ -456,7 +492,7 @@ const SplashScreen: React.FC = () => {
               onPress={handleVerifyCode} // 버튼 클릭 시 코드 검증 함수 호출
             >
               <Text style={[styles.auth, {fontSize: platformFontSize(12)}]}>
-                확인
+                Check
               </Text>
             </TouchableOpacity>
           </View>
@@ -472,17 +508,17 @@ const SplashScreen: React.FC = () => {
             />
           </Svg>
           <Text style={styles.verified}>
-            {isVerified ? '인증 완료!' : '인증을 완료해주세요'}
+            {isVerified ? 'Authenticated!' : 'Please complete the verification.'}
           </Text>
 
           <View
             style={[
               styles.passwordContainer,
-              {marginTop: platformSpacing(27)},
+              {marginTop: platformSpacing(10)},
             ]}>
             <TextInput
               style={[styles.passwordInput, {fontSize: platformFontSize(17)}]}
-              placeholder="Password(At least 6 characters)"
+              placeholder="Password (At least 6 characters)"
               value={password}
               placeholderTextColor="#7A7C7E"
               secureTextEntry
@@ -511,7 +547,7 @@ const SplashScreen: React.FC = () => {
             ]}
             onPress={handleSignUp}>
             <Text style={[styles.signInText, {fontSize: platformFontSize(20)}]}>
-              가입하기
+              Sign Up
             </Text>
           </TouchableOpacity>
 
@@ -521,15 +557,15 @@ const SplashScreen: React.FC = () => {
               setShowSignUp(false);
               setShowLoginBox(true);
             }}>
-            <Text style={[styles.signUpText, {fontSize: platformFontSize(15)}]}>
-              이미 회원이신가요?
+            <Text style={[styles.signUpText2, {fontSize: platformFontSize(15)}]}>
+            Do you already have an account?
             </Text>
           </TouchableOpacity>
-          <Svg height="2" width="50%">
+          <Svg height="2" width="70%">
             <Line
               x1="0"
               y1="1"
-              x2={windowWidth * 0.5}
+              x2={windowWidth * 0.8}
               y2="1"
               stroke="#0047A0"
               strokeWidth="1.5"
@@ -570,20 +606,20 @@ const styles = StyleSheet.create({
     paddingTop: 30,
   },
   title: {
-    fontFamily: 'fonts/SBAggroM',
+    fontFamily: 'SBAggroM',
     color: 'black',
     fontWeight: '300',
     textAlign: 'center',
     marginTop: 15,
   },
   titleBlue: {
-    fontFamily: 'fonts/SBAggroM',
+    fontFamily: 'SBAggroM',
     color: '#0047A0',
     fontWeight: '500',
     textAlign: 'center',
   },
   content: {
-    fontFamily: 'fonts/SBAggroL',
+    fontFamily: 'SBAggroL',
     color: 'black',
     textAlign: 'center',
     marginTop: 10,
@@ -592,8 +628,7 @@ const styles = StyleSheet.create({
     width: '75%',
     height: 50,
     marginTop: 30,
-    fontFamily: 'fonts/SBAggroL',
-    color: '#0047A0',
+    fontFamily: 'SBAggroL',
   },
   signIn: {
     backgroundColor: '#0047A0',
@@ -603,7 +638,7 @@ const styles = StyleSheet.create({
     marginTop: 36,
   },
   signInText: {
-    fontFamily: 'fonts/SBAggroL',
+    fontFamily: 'SBAggroL',
     color: 'white',
   },
   googleLogin: {
@@ -613,13 +648,19 @@ const styles = StyleSheet.create({
   signUp: {
     marginTop: 18,
     alignItems: 'center',
-    fontFamily: 'fonts/SBAggroL',
+    fontFamily: 'SBAggroL',
   },
   signUpText: {
     color: '#0047A0',
     fontWeight: '300',
-    fontFamily: 'fonts/SBAggroM',
-    marginTop: 70
+    fontFamily: 'SBAggroM',
+    marginTop: 10,
+  },
+  signUpText2: {
+    color: '#0047A0',
+    fontWeight: '300',
+    fontFamily: 'SBAggroM',
+    marginTop: 2,
   },
   signUpContainer: {
     width: '80%',
@@ -630,7 +671,7 @@ const styles = StyleSheet.create({
   signUpInput: {
     width: '100%',
     height: 50,
-    fontFamily: 'fonts/SBAggroL',
+    fontFamily: 'SBAggroL',
   },
   emailContainer: {
     width: '80%',
@@ -677,7 +718,7 @@ const styles = StyleSheet.create({
   passwordInput: {
     width: '100%',
     height: 50,
-    fontFamily: 'fonts/SBAggroL',
+    fontFamily: 'SBAggroL',
     fontWeight: '300',
     color: '#0047A0',
   },

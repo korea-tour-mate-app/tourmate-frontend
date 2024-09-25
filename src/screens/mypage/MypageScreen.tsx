@@ -6,6 +6,9 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '../navigation/NavigationTypes'; 
 import { useLanguage } from '../../components/LanguageProvider';
 import { translateText } from '../../utils/Translation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import {useAuth} from '../../components/AuthProvider';
 
 type MyPageScreenRouteProp = RouteProp<RootStackParamList, 'MyPageScreen'>;
 type MyPageScreenNavigationProp = StackNavigationProp<RootStackParamList, 'MyPageScreen'>;
@@ -15,13 +18,13 @@ const MyPageScreen = () => {
   const navigation = useNavigation<MyPageScreenNavigationProp>();
   const [currentDate, setCurrentDate] = useState<string>('');
   const [forceUpdate, setForceUpdate] = useState<boolean>(false);
+  const [username, setUsername] = useState<string>('');
+  const { isGoogleUser } = useAuth();
 
   const { language: globalLanguage, setLanguage: setGlobalLanguage } = useLanguage();
 
   const [changeHi, setChangeHi] = useState<string>('안녕하세요,');
   const [changePasswordText, setChangePasswordText] = useState<string>('비밀번호 변경');
-  const [myReviewsText, setMyReviewsText] = useState<string>('내 리뷰');
-  const [myPlacesText, setMyPlacesText] = useState<string>('내가 가본 장소');
   const [languageSettingsText, setLanguageSettingsText] = useState<string>('언어 설정');
   const [logoutText, setLogoutText] = useState<string>('로그아웃');
 
@@ -40,12 +43,6 @@ const MyPageScreen = () => {
 
         const translatedPassword = await translateText('비밀번호 변경', globalLanguage);
         setChangePasswordText(translatedPassword);
-
-        const translatedReviews = await translateText('내 리뷰', globalLanguage);
-        setMyReviewsText(translatedReviews);
-
-        const translatedPlaces = await translateText('내가 가본 장소', globalLanguage);
-        setMyPlacesText(translatedPlaces);
 
         const translatedLanguageSettings = await translateText('언어 설정', globalLanguage);
         setLanguageSettingsText(translatedLanguageSettings);
@@ -67,6 +64,61 @@ const MyPageScreen = () => {
     setCurrentDate(formattedDate);
   }, []);
 
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (isGoogleUser) {
+        // Google 로그인 사용자의 경우
+        try {
+          const tokens = await GoogleSignin.getTokens();
+          const accessToken = tokens.accessToken;
+
+          const response = await fetch('https://openidconnect.googleapis.com/v1/userinfo', {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to fetch user info');
+          }
+
+          const userInfo = await response.json();
+          setUsername(userInfo.name);
+        } catch (error) {
+          console.error('Error fetching user profile:', error); 
+        }
+      } else {
+        // 앱 자체 로그인 사용자의 경우
+        try {
+          const jwtToken = await AsyncStorage.getItem('jwtToken'); // JWT 토큰 가져오기
+          console.log("token", jwtToken);
+          const response = await fetch('http://13.125.53.226:8080/api/auth/nickname', {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${jwtToken}`, // 여기서 JWT 토큰을 설정해야 합니다.
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to fetch user nickname');
+          }
+
+          const nickname = await response.text(); // 닉네임 반환
+          setUsername(nickname);
+        } catch (error) {
+          console.error('Error fetching user nickname:', error);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, [isGoogleUser]);
+
+  
+
   const navigateToPasswordChange = () => {
     navigation.navigate('PasswordChangeScreen');
   };
@@ -79,12 +131,14 @@ const MyPageScreen = () => {
     navigation.navigate("SplashScreen");
   }
 
+  
+
   return (
     <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
       <View style={styles.container}>
         <View style={styles.userTextContainer}>
           <Text style={styles.userText}>{changeHi}</Text>
-          <Text style={styles.userText}>TOM</Text>
+          <Text style={styles.userText}>{username}</Text>
         </View>
         <View style={styles.redLine}>
           <Text style={styles.date}>{currentDate}</Text>
@@ -97,40 +151,6 @@ const MyPageScreen = () => {
             <View style={styles.menuContainer}>
               <TouchableOpacity onPress={navigateToPasswordChange}>
                 <Text style={styles.menu}>{changePasswordText}</Text>
-              </TouchableOpacity>
-              <View style={styles.dottedLineContainer}>
-                <Svg height="2" width="75%">
-                  <Line
-                    x1="0"
-                    y1="1"
-                    x2="100%"
-                    y2="1"
-                    stroke="black"
-                    strokeWidth="2"
-                    strokeDasharray="5,2"
-                  />
-                </Svg>
-              </View>
-
-              <TouchableOpacity>
-                <Text style={styles.menu}>{myReviewsText}</Text>
-              </TouchableOpacity>
-              <View style={styles.dottedLineContainer}>
-                <Svg height="2" width="75%">
-                  <Line
-                    x1="0"
-                    y1="1"
-                    x2="100%"
-                    y2="1"
-                    stroke="black"
-                    strokeWidth="2"
-                    strokeDasharray="5,2"
-                  />
-                </Svg>
-              </View>
-
-              <TouchableOpacity>
-                <Text style={styles.menu}>{myPlacesText}</Text>
               </TouchableOpacity>
               <View style={styles.dottedLineContainer}>
                 <Svg height="2" width="75%">
@@ -162,6 +182,7 @@ const MyPageScreen = () => {
                   />
                 </Svg>
               </View>
+
               <TouchableOpacity onPress={handleLogout}>
                 <Text style={styles.menu}>{logoutText}</Text>
               </TouchableOpacity>
@@ -178,6 +199,7 @@ const MyPageScreen = () => {
                   />
                 </Svg>
               </View>
+
             </View>
           </View>
         </View>

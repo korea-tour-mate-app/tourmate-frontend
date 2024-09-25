@@ -40,7 +40,7 @@ const RecommendScreen = () => {
   const { selectedThemes, setSelectedThemes } = useSelection();  // 상태와 setter 함수 사용
   // const [selectedThemes, setSelectedThemes] = useState<number[]>([]);
   const dynamicStyles = getDynamicStyles(globalLanguage); // 컴포넌트 내부에서 사용
-
+  
   const [question, setQuestion] = useState<string>('서울에서 어떤 여행 테마를 원하나요?');
   const [content, setContent] = useState<string>('원하는 테마를 모두 골라주세요.');
   const [next, setNext] = useState<string>('다음');

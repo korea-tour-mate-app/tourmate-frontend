@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, TextInput, View, TouchableOpacity, Image } from 'react-native';
+import { StyleSheet, Text, TextInput, View, TouchableOpacity, Image, Alert } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useLanguage } from '../../components/LanguageProvider';
 import { translateText } from '../../utils/Translation';
@@ -47,7 +47,22 @@ const PasswordChangeScreen= () => {
         <Text style={styles.inputTitle}>{changePassword}</Text>
         <TextInput style={styles.input} placeholder="   At least 8 characters" secureTextEntry />
 
-        <TouchableOpacity style={styles.checkButton} onPress={() => navigation.goBack()}>
+        <TouchableOpacity
+  style={styles.checkButton}
+  onPress={() => {
+    Alert.alert(
+      "Password Changed", // 제목
+      "Complete to change password.", // 메시지
+      [
+        {
+          text: "OK", // 버튼 텍스트
+          onPress: () => navigation.goBack(), // OK 버튼을 눌렀을 때 이전 화면으로 이동
+        },
+      ],
+      { cancelable: false } // 알림창 바깥을 눌러서 닫지 못하게 설정
+    );
+  }}
+>
           <Text style={styles.checkButtonText}>{confirm}</Text>
         </TouchableOpacity>
       </View>

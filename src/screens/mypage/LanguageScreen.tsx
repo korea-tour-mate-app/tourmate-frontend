@@ -2,11 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { ScrollView, StyleSheet, Text, View, TouchableOpacity, Image, Switch } from 'react-native';
 import { useLanguage } from '../../components/LanguageProvider';
 import { translateText } from '../../utils/Translation';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
+import { RootStackParamList } from '../navigation/NavigationTypes'; 
 import { RootTabParamList } from '../../components/BottomTabNavigator';
 
+type LanguageScreenRouteProp = RouteProp<RootStackParamList, 'LanguageScreen'>;
+type LanguageScreenNavigationProp = StackNavigationProp<RootStackParamList, 'LanguageScreen'>;
+
 const LanguageScreen: React.FC = () => {
-  const navigation = useNavigation<NavigationProp<RootTabParamList>>();
+  const route = useRoute<LanguageScreenRouteProp>();
+  const navigation = useNavigation<LanguageScreenNavigationProp>();
   const { language: globalLanguage, setLanguage } = useLanguage();
 
   // 토글 상태 관리를 위한 state
@@ -31,7 +37,7 @@ const LanguageScreen: React.FC = () => {
   const handleLanguageToggle = (newLang: string) => {
     setSelectedLanguage(newLang);
     setLanguage(newLang);
-    navigation.navigate('MyPage', { language: newLang }); 
+    navigation.navigate('MyPage', { language: newLang });; 
   };
 
   const renderLanguageOption = (language: string, label: string) => {
