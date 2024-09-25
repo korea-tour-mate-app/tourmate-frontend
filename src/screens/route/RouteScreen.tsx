@@ -24,42 +24,6 @@ interface CustomAlertModalProps {
   onConfirm: () => void;
 }
 
-// CustomAlertModal 컴포넌트 생성
-const CustomAlertModal: React.FC<CustomAlertModalProps> = ({
-  isVisible,
-  onClose,
-  onConfirm,
-}) => {
-  return (
-    <Modal
-      isVisible={isVisible}
-      onBackdropPress={onClose}
-      onBackButtonPress={onClose}
-      backdropOpacity={0.5}
-      animationIn="zoomIn"
-      animationOut="zoomOut"
-    >
-      <View style={styles.modalContainer}>
-        <Text style={styles.modalTitle}>첫 화면으로 돌아가기</Text>
-        <Text style={styles.modalMessage1}>
-          현재 페이지를 나가시면 다시 볼 수 없습니다. 
-        </Text>
-        <Text style={styles.modalMessage}>
-          정말로 나가시겠습니까?
-        </Text>
-        <View style={styles.modalButtonContainer}>
-          <TouchableOpacity style={styles.modalCancelButton} onPress={onClose}>
-            <Text style={styles.modalCancelText}>취소</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.modalConfirmButton} onPress={onConfirm}>
-            <Text style={styles.modalConfirmText}>나가기</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Modal>
-  );
-};
-
 interface RestaurantInfo {
   restaurantId: number;
   res_name: string;
@@ -2649,7 +2613,6 @@ const RouteScreen = () => {
         "order": "0",
         "name": "북촌 한옥마을",
         "latitude": 37.5817692,
-        "longitude": 126.984813,
         "placeImgUrl": "https://tourmate-s3-bucket.s3.ap-northeast-2.amazonaws.com/%EB%B6%81%EC%B4%8C+%ED%95%9C%EC%98%A5%EB%A7%88%EC%9D%84.png"
       },
       {
@@ -15655,15 +15618,51 @@ const RouteScreen = () => {
     translateLabels();
   }, [globalLanguage]);
 
-// 기존 useEffect와의 관계 예시
-useEffect(() => {
-  // 경로 데이터를 먼저 가져옴
-  fetchRouteDataForEachDay(); 
-}, []); // 빈 배열로 설정하여 컴포넌트가 처음 마운트될 때만 실행
-  const dayCount = Number(contextSelectedDay.at(-1)); // 며칠동안 여행을 가는지
-  // const dayCount = contextSelectedDay[contextSelectedDay.length - 1]; // 같은 표현 // 마지막 값으로 여행 일 수 계산
-  // console.log("여행일수는? ", dayCount);
-  // const dayCount = 1; // 일단 api 호출은 한번으로 고정
+  // 기존 useEffect와의 관계 예시
+  useEffect(() => {
+    // 경로 데이터를 먼저 가져옴
+    fetchRouteDataForEachDay(); 
+  }, []); // 빈 배열로 설정하여 컴포넌트가 처음 마운트될 때만 실행
+    const dayCount = Number(contextSelectedDay.at(-1)); // 며칠동안 여행을 가는지
+    // const dayCount = contextSelectedDay[contextSelectedDay.length - 1]; // 같은 표현 // 마지막 값으로 여행 일 수 계산
+    // console.log("여행일수는? ", dayCount);
+    // const dayCount = 1; // 일단 api 호출은 한번으로 고정
+
+  // CustomAlertModal 컴포넌트 생성
+  const CustomAlertModal: React.FC<CustomAlertModalProps> = ({
+    isVisible,
+    onClose,
+    onConfirm,
+  }) => {
+    return (
+      <Modal
+        isVisible={isVisible}
+        onBackdropPress={onClose}
+        onBackButtonPress={onClose}
+        backdropOpacity={0.5}
+        animationIn="zoomIn"
+        animationOut="zoomOut"
+      >
+        <View style={styles.modalContainer}>
+          <Text style={styles.modalTitle}>{translatedLabels.goToHomeScreen}</Text>
+          <Text style={styles.modalMessage1}>
+            {translatedLabels.exitWarningMessage1}
+          </Text>
+          <Text style={styles.modalMessage}>
+            {translatedLabels.exitWarningMessage2}
+          </Text>
+          <View style={styles.modalButtonContainer}>
+            <TouchableOpacity style={styles.modalCancelButton} onPress={onClose}>
+              <Text style={styles.modalCancelText}>{translatedLabels.cancel}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.modalConfirmButton} onPress={onConfirm}>
+              <Text style={styles.modalConfirmText}>{translatedLabels.confirmExit}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    );
+  };
 
   // 실제 시연에 사용할 함수 
   const fetchRouteDataForEachDay = async () => {
@@ -15744,7 +15743,7 @@ useEffect(() => {
         // 번역된 이름 가져오기
         const translatedVisitPlaces = await Promise.all(
           route_response.visitPlaces.map(async (place) => {
-            const translatedName = await translateText(place.name, 'en');
+            const translatedName = await translateText(place.name, globalLanguage);
             return { ...place, name: translatedName };
           })
         );
@@ -15827,7 +15826,7 @@ useEffect(() => {
   // 텍스트 번역 함수 호출
   const getTranslatedPriceLevelText = async (priceLevel: number): Promise<string> => {
     const priceText = priceLevelTextMap[priceLevel] || '알 수 없음';
-    return await translateText(priceText, 'en');
+    return await translateText(priceText, globalLanguage);
   };
 
   // priceLevel에 따른 텍스트 설명 매핑
@@ -15852,9 +15851,9 @@ useEffect(() => {
       const data = response.data;
 
       // 번역 작업 수행
-      const translatedRestaurantName = await translateText(data.restaurantName || "", 'en');
+      const translatedRestaurantName = globalLanguage === 'ko' ? data.restaurantName : await translateText(data.restaurantName || "", globalLanguage);
       const translatedWeekdayText = data.weekdayText 
-        ? await Promise.all(data.weekdayText.split(',').map(async line => await translateText(line.trim(), 'en')))
+        ? await Promise.all(data.weekdayText.split(',').map(async line => await translateText(line.trim(), globalLanguage)))
         : [];
 
       const translatedPriceLevelText = await getTranslatedPriceLevelText(data.priceLevel ?? -1);
@@ -15864,9 +15863,9 @@ useEffect(() => {
         ? await Promise.all(
             data.reviews.map(async review => ({
               ...review,
-              author_name: await translateText(review.author_name || "", 'en'),
-              text: await translateText(review.text || "", 'en'),
-              relative_time_description: await translateText(review.relative_time_description || "", 'en'),
+              author_name: globalLanguage === 'ko' ? review.author_name : await translateText(review.author_name || "", globalLanguage),
+              text: globalLanguage === 'ko' ? review.text : await translateText(review.text || "", globalLanguage),
+              relative_time_description: globalLanguage === 'ko' ? review.relative_time_description : await translateText(review.relative_time_description || "", globalLanguage),
             }))
           )
         : null; // 리뷰가 null일 경우 null로 설정
@@ -16688,15 +16687,15 @@ useEffect(() => {
         // `forEach`를 `for..of`로 변경하여 async/await 사용 가능하게 설정
         for (const leg of itinerary.legs || []) {
           // 각 필드를 번역 API로 번역
-          const startLocationName = await translateText(leg.start?.name || "-", 'en');
-          const endLocationName = await translateText(leg.end?.name || "-", 'en');
-          const routeName = await translateText(leg.route || '도보', 'en');
+          const startLocationName = await translateText(leg.start?.name || "-", globalLanguage);
+          const endLocationName = await translateText(leg.end?.name || "-", globalLanguage);
+          const routeName = await translateText(leg.route || '도보', globalLanguage);
   
           // passStopList 번역
           const translatedPassStopList = await Promise.all(
             (leg.passStopList?.stationList || []).map(async (station) => ({
               index: station.index ?? 0,
-              stationName: await translateText(station.stationName || "-", 'en'),
+              stationName: await translateText(station.stationName || "-", globalLanguage),
               lon: parseFloat(station.lon || "0"),
               lat: parseFloat(station.lat || "0"),
               stationID: station.stationID || "-",
@@ -16844,7 +16843,7 @@ useEffect(() => {
         const translatedRestaurants = await Promise.all(
           response.data.locationsWithRestaurants.flatMap((location) =>
             location.restaurants.map(async (restaurant) => {
-              const translatedName = await translateText(restaurant.res_name, 'en');
+              const translatedName = await translateText(restaurant.res_name, globalLanguage);
               return { ...restaurant, res_name: translatedName };
             })
           )
@@ -17378,7 +17377,7 @@ useEffect(() => {
                 {/* 영업시간 */}
                 {restaurantDetails.weekdayText && (
                   <>
-                    <Text style={styles.openingHoursTitle}>{translatedLabels.OpertatingTime}</Text>
+                    <Text style={styles.openingHoursTitle}>{translatedLabels.opertatingTime}</Text>
                     {restaurantDetails.weekdayText.split(',').map((line, index) => (
                       <Text key={index} style={styles.openingHoursText}>
                         {line.trim()} {/* 각 줄을 trim으로 불필요한 공백 제거 */}
@@ -17503,11 +17502,15 @@ const styles = StyleSheet.create({
     marginBottom: 9,  // 두 줄 사이의 간격을 위해 추가
     color: '#000000',
     fontFamily: 'SBAggroL',
+    flexWrap: 'wrap',  // 줄바꿈 설정
+    maxWidth: 300,     // 최대 너비 설정
   },
   toggleButtonText: {
     fontSize: 16,
     color: '#000000',
     fontFamily: 'SBAggroM',
+    flexWrap: 'wrap',  // 줄바꿈 설정
+    maxWidth: 300,
   },
   emptySpace: {
     height: 50,
@@ -17680,6 +17683,8 @@ const styles = StyleSheet.create({
   },
   stopsGroup: {
     position: 'relative',  // 자식 요소의 절대 위치를 위해 설정
+    flexWrap: 'wrap',  // 줄바꿈 설정
+    maxWidth: 300,
   },
   stopContainer: {
     flexDirection: 'row',
@@ -17699,7 +17704,8 @@ const styles = StyleSheet.create({
   stopText: {
     fontSize: 14,
     color: '#000',
-    fontFamily: 'SBAggroL'
+    fontFamily: 'SBAggroL', 
+    maxWidth: 300
   },
   expandedLine: {
     height: 150, // 토글이 열렸을 때의 확장된 세로선 높이
@@ -17813,7 +17819,7 @@ const styles = StyleSheet.create({
   modalContainer: {
     backgroundColor: '#FFF',
     borderRadius: 30,
-    padding: 20,
+    padding: 15,
     alignItems: 'center',
   },
   modalButtonContainer: {
@@ -17823,8 +17829,8 @@ const styles = StyleSheet.create({
   },
   modalCancelButton: {
     flex: 1,
-    paddingTop: 5,
-    paddingBottom: 5,
+    paddingTop: 10,
+    paddingBottom: 10,
     paddingLeft: 5,
     paddingRight: 5,
     alignItems: 'center',
@@ -17834,8 +17840,8 @@ const styles = StyleSheet.create({
   },
   modalConfirmButton: {
     flex: 1,
-    paddingTop: 5,
-    paddingBottom: 5,
+    paddingTop: 10,
+    paddingBottom: 10,
     paddingLeft: 5,
     paddingRight: 5,
     alignItems: 'center',
