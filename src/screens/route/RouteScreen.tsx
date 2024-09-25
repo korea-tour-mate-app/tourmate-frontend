@@ -4,7 +4,7 @@ import BottomSheet from '@gorhom/bottom-sheet';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useNavigation, RouteProp } from '@react-navigation/native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import MapView, { Marker, Polyline, Callout } from 'react-native-maps';
+import MapView, { PROVIDER_GOOGLE, Marker, Polyline, Callout } from 'react-native-maps';
 import { useSelection } from '../../components/SelectionContext';
 import { RootStackParamList } from '../navigation/navigationTypes';
 import axios from 'axios';
@@ -16520,7 +16520,7 @@ const RouteScreen = () => {
         {
           headers: {
             'Content-Type': 'application/json',
-            'appKey': '', // 실제 API 키
+            'appKey': 'yLlPVKdAsO23YI6W4q72N1qSJupbvo5d6PLMte5C', // 실제 API 키
           },
         }
       );
@@ -16712,6 +16712,7 @@ const RouteScreen = () => {
       <MapView
         ref={mapRef}
         style={StyleSheet.absoluteFillObject}
+        provider={PROVIDER_GOOGLE}
         initialRegion={{
           latitude: routeInfoByDay['Day 1']?.visitPlaces[0]?.latitude || 37.562004, // Day 1의 첫 번째 장소로 초기 지도 위치 설정
           longitude: routeInfoByDay['Day 1']?.visitPlaces[0]?.longitude || 126.975208,
@@ -16762,9 +16763,14 @@ const RouteScreen = () => {
                 longitude: parseFloat(place.longitude.toString()) || 0,
               }}
               title={`${index + 1}. ${place.name}`} // 순서와 장소명 함께 표시
-              image={markerImage} // 마커 이미지 설정
               zIndex={2} // 장소 마커의 zIndex 값을 높게 설정
             >
+               <View style={styles.markerContainer}>
+                  <Image
+                    source={markerImage}
+                    style={styles.themeMarker}
+                  />
+                </View>
               <Callout tooltip={true} style={styles.callout}>
                 <View style={styles.customCallout}>
                   <Text
@@ -16773,9 +16779,6 @@ const RouteScreen = () => {
                   >
                     {place.name || "Unnamed Place"}
                   </Text>
-                  <View style={styles.arrowContainer}> 
-                    <Image source={require('../../assets/images/arrow_triangle.png')} style={styles.arrowTriangle} />
-                  </View>
                 </View>
               </Callout>
             </Marker>
@@ -16792,8 +16795,13 @@ const RouteScreen = () => {
             }}
             onPress={() => handleRestaurantMarkerPress(restaurant)} // Marker 클릭 시 함수 호출
             anchor={{ x: 0.5, y: 0.5 }} // 마커 중앙에 위치하도록 설정
-            image={require('../../assets/images/route/restaurant_marker.png')} // 음식점 마커 이미지 설정
-          >
+            >
+            <View style={styles.markerContainer}>
+                  <Image
+                    source={require('../../assets/images/route/restaurant_marker.png')}
+                    style={styles.themeMarker}
+                  />
+                </View>
             {/* Callout 제거 */}
           </Marker>
         ))}
@@ -17288,7 +17296,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   dayButtonText: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#333',
     fontFamily: 'SBAggroM',
   },
@@ -17296,7 +17304,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#0047A0',
   },
   selectedDayText: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#fff',
     fontFamily: 'SBAggroM',
   },
@@ -17322,7 +17330,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   itemTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 5,
   },
@@ -17339,14 +17347,14 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   transportTimeText: {
-    fontSize: 14,
+    fontSize: 16,
     marginRight: 5,
     marginBottom: 9,  // 두 줄 사이의 간격을 위해 추가
     color: '#000000',
     fontFamily: 'SBAggroL',
   },
   toggleButtonText: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#000000',
     fontFamily: 'SBAggroM',
   },
@@ -17399,7 +17407,7 @@ const styles = StyleSheet.create({
   },
   placeNameText: {
     marginLeft: 10,
-    fontSize: 16,
+    fontSize: 20,
     fontFamily: 'SBAggroM',
     color: '#000000',
   },
@@ -17416,7 +17424,7 @@ const styles = StyleSheet.create({
     paddingRight: 20
   },
   additionalText: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#333',
     fontFamily: 'SBAggroM',
   },
@@ -17461,9 +17469,15 @@ const styles = StyleSheet.create({
     marginBottom: 10
   },
   markerContainer: {
-    width: 50,
-    alignItems: 'center',
+    width: 70,
+    height: 70,
     justifyContent: 'center',
+    alignItems: 'center',
+  },
+  themeMarker: {
+    width: 50,
+    height: 50,
+    resizeMode: 'contain',
   },
   transportToggleContainer: {
     flexDirection: 'column',
@@ -17574,7 +17588,7 @@ const styles = StyleSheet.create({
     overflow: 'visible' // 넘치는 콘텐츠가 보이도록 설정
   },  
   noTransportInfoText: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#000000', 
     textAlign: 'center',
     fontFamily: 'SBAggroL',
@@ -17594,20 +17608,20 @@ const styles = StyleSheet.create({
     color: '#000000', // 검정색으로 설정
   },
   openingHoursTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontFamily: 'SBAggroM',
     color: '#000000', // 검정색으로 설정
     marginTop: 20, // 영업시간 제목과 다른 요소 사이의 간격 증가
     marginBottom: 12, // 영업시간 제목과 다른 요소 사이의 간격 증가
   },
   openingHoursText: {
-    fontSize: 16,
+    fontSize: 18,
     fontFamily: 'SBAggroL',
     color: '#000000', // 검정색으로 설정
     marginBottom: 20, // 영업시간 제목과 다른 요소 사이의 간격 증가
   },
   formattedPhoneNumber: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#000000', // 검정색으로 설정
     marginVertical: 10, // 전화번호와 다른 요소 사이의 간격 증가
   },
@@ -17620,16 +17634,16 @@ const styles = StyleSheet.create({
     color: '#000000', // 검정색으로 설정  
   },
   reviewAuthor: {
-    fontSize: 18,
+    fontSize: 20,
     fontFamily: 'SBAggroM',
     color: '#000000', // 검정색으로 설정
   },
   reviewRating: {
-    fontSize: 15,
+    fontSize: 17,
     color: '#FFD700',
   },
   reviewText: {
-    fontSize: 16,
+    fontSize: 18,
     fontFamily: 'SBAggroL',
     color: '#000000', // 검정색으로 설정
   },
@@ -17640,7 +17654,7 @@ const styles = StyleSheet.create({
     right: 20,
   },
   closeButtonText: {
-    fontSize: 18,
+    fontSize: 20,
     fontFamily: 'SBAggroM',
     color: '#000000', // 검정색으로 설정
   },
@@ -17685,26 +17699,26 @@ const styles = StyleSheet.create({
   },
   modalConfirmText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 20,
     fontFamily: 'SBAggroL'
   },
   modalTitle: {
     color: '#000000',
-    fontSize: 20,
+    fontSize: 22,
     marginTop: 10,
     marginBottom: 15,
     fontFamily: 'SBAggroM'
   },
   modalMessage: {
     color: '#000000',
-    fontSize: 16,
+    fontSize: 18,
     textAlign: 'center',
     marginBottom: 30,
     fontFamily: 'SBAggroL'
   },
   modalMessage1: {
     color: '#000000',
-    fontSize: 16,
+    fontSize: 18,
     textAlign: 'center',
     fontFamily: 'SBAggroL'
   },
@@ -17721,7 +17735,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,          // 테두리 두께
   },
   calloutText: {
-    fontSize: 15,
+    fontSize: 17,
     color: '#000000',
     textAlign: 'center',
     fontFamily: 'SBAggroL'
