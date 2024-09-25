@@ -53,17 +53,8 @@ function AppNavigator() {
         name="WithWhoScreen" 
         component={WithWhoScreen} 
         options={{ headerShown: false }} 
-      />
-      <Stack.Screen 
-        name="BudgetScreen" 
-        component={BudgetScreen} 
-        options={{ headerShown: false }} 
-      />      
-      {/* <Stack.Screen 
-        name="RouteScreen" 
-        component={RouteScreen} 
-        options={{ headerShown: false }} 
-      /> */}
+      />     
+
       <Stack.Screen 
         name="MyPageScreen" 
         component={MypageScreen} 

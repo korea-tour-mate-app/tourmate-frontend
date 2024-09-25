@@ -34,13 +34,13 @@ type Props = {
   route: ThemeScreenRouteProp;
 };
 
-const ThemeScreen = () => {
+const RecommendScreen = () => {
   const navigation = useNavigation<RootStackNavigationProp<'ThemeScreen'>>();
   const { language: globalLanguage } = useLanguage();
-  // const { selectedThemes, setSelectedThemes } = useSelection();  // 상태와 setter 함수 사용
-  const [selectedThemes, setSelectedThemes] = useState<number[]>([]);
+  const { selectedThemes, setSelectedThemes } = useSelection();  // 상태와 setter 함수 사용
+  // const [selectedThemes, setSelectedThemes] = useState<number[]>([]);
+  const dynamicStyles = getDynamicStyles(globalLanguage); // 컴포넌트 내부에서 사용
   
-
   const [question, setQuestion] = useState<string>('서울에서 어떤 여행 테마를 원하나요?');
   const [content, setContent] = useState<string>('원하는 테마를 모두 골라주세요.');
   const [next, setNext] = useState<string>('다음');
@@ -107,7 +107,8 @@ const ThemeScreen = () => {
       image: require('../../assets/images/themeIcon/camping.png'),
     },
     spa: {
-      label: '온천/스파',
+      label: '온천',
+      subLabel: '스파', // subLabel에 '스파' 추가
       backgroundColor: '#ffffff',
       textColor: '#000000',
       image: require('../../assets/images/themeIcon/spa.png'),
@@ -118,7 +119,7 @@ const ThemeScreen = () => {
   // 한글 라벨을 담는 Text 인터페이스
   const textData: Texts = {
     kpop: { label: 'K-POP' },
-    palace: { label: '궁궐' },
+    palace: { label: '역사' },
     templeStay: { label: '템플스테이' },
     leisure: { label: '레저스포츠' },
     hotel: { label: '호캉스' },
@@ -128,7 +129,7 @@ const ThemeScreen = () => {
     handcraft: { label: '공방여행' },
     shopping: { label: '쇼핑' },
     camping: { label: '캠핑' },
-    spa: { label: '온천/스파' },
+    spa: { label: '온천', subLabel: '스파' },
   };
   
 
@@ -201,17 +202,25 @@ const ThemeScreen = () => {
       }
   };
 
+  // 기존 renderItem 메서드의 수정 후
   const renderItem = ({ item }: { item: { key: string; theme: Theme } }) => {
     return (
       <View style={styles.row}>
         <TouchableOpacity
-          style={[styles.rectangle, { backgroundColor: item.theme.backgroundColor }]}
+          style={[
+            styles.rectangle, { backgroundColor: item.theme.backgroundColor }]}
           onPress={() => handlePress(item.key as keyof Themes)}
         >
           <Image source={item.theme.image} style={styles.icon} resizeMode='contain' />
           <View style={styles.textContainer}>
-            <Text style={[styles.title, { color: item.theme.textColor }]}>{item.theme.label}</Text>
-            {item.theme.subLabel && <Text style={[styles.title, { color: item.theme.textColor }]}>{item.theme.subLabel}</Text>}
+            <Text style={[dynamicStyles.title, { color: item.theme.textColor }]}>
+              {item.theme.label}
+            </Text>
+            {item.theme.subLabel && (
+              <Text style={[dynamicStyles.subTitle, { color: item.theme.textColor }]}>
+                {item.theme.subLabel}
+              </Text>
+            )}
           </View>
         </TouchableOpacity>
       </View>
@@ -236,7 +245,16 @@ const ThemeScreen = () => {
         contentContainerStyle={styles.flatListContent}
         ListFooterComponent={
           <View style={styles.nextContainer}>
-            <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
+            <TouchableOpacity
+              style={[
+                styles.nextButton,
+                {
+                  backgroundColor: selectedThemes.length > 0 ? '#0047A0' : '#D3D3D3',
+                },
+              ]}
+              onPress={handleNext}
+              disabled={selectedThemes.length === 0} // 선택된 테마가 없으면 비활성화
+            >
               <Text style={styles.nextText}>{next}</Text>
             </TouchableOpacity>
           </View>
@@ -247,11 +265,13 @@ const ThemeScreen = () => {
 };
 
 
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
+    paddingTop: 20,
+    paddingBottom: 20,
+    paddingLeft: 30,
+    paddingRight: 30,
     marginTop: 80,
   },
   fixedContent: {
@@ -280,18 +300,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   question: {
-    fontFamily: 'AggroM',
+    fontFamily: 'SBAggroM',
     fontSize: 24,
+    color: '#000000',
   },
   content: {
-    fontFamily: 'AggroL',
+    fontFamily: 'SBAggroL',
     fontSize: 20,
     marginTop: 20,
     marginBottom: 20,
-  },
-  title: {
-    fontFamily: 'AggroL',
-    fontSize: 18,
+    color: '#000000',
   },
   icon: {
     width: 70,
@@ -303,18 +321,34 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   nextButton: {
-    width: 200,
-    height: 50,
+    width: '100%', // 전체 화면 너비로 설정
+    paddingVertical: 15, // 세로 padding을 사용하여 높이 설정
     backgroundColor: '#0047A0',
-    borderRadius: 50,
+    borderRadius: 10, // radius 조정
     alignItems: 'center',
     justifyContent: 'center',
+    marginVertical: 10, // 버튼 위아래 여백 추가
   },
   nextText: {
-    fontFamily: 'AggroL',
-    fontSize: 20,
+    fontFamily: 'SBAggroL',
+    fontSize: 18,
     color: 'white',
   }
 });
 
-export default ThemeScreen;
+const getDynamicStyles = (globalLanguage: string) => StyleSheet.create({
+  title: {
+    fontFamily: 'SBAggroL',
+    fontSize: globalLanguage !== 'ko' ? 15 : 18,
+    color: '#000000',
+  },
+  subTitle: {  // subLabel에 대한 스타일 추가
+    fontFamily: 'SBAggroL',
+    fontSize: globalLanguage !== 'ko' ? 14 : 18, 
+    color: '#000000',
+  },
+});
+
+
+
+export default RecommendScreen;

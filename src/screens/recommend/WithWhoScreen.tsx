@@ -17,17 +17,20 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
   const navigation = useNavigation<WithWhoScreenNavigationProp>();
   const { language: globalLanguage } = useLanguage();
   const { selectedWithWho, setSelectedWithWho } = useSelection();  // 상태와 setter 함수 사용
+  const dynamicStyles = getDynamicStyles(globalLanguage); // 컴포넌트 내부에서 사용
 
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  // 다중 선택을 위한 배열 상태
+  const [selectedOptions, setSelectedOptions] = useState<number[]>([]);
 
   // 번역된 텍스트 상태
   const [question, setQuestion] = useState<string>('누구와 여행을 떠나시나요?');
+  const [parent, setParent] = useState<string>('부모/조부모/형제자매');
   const [spouse, setSpouse] = useState<string>('배우자');
-  const [family, setFamily] = useState<string>('가족');
   const [friend, setFriend] = useState<string>('친구/동료');
   const [children, setChildren] = useState<string>('자녀');
-  const [lover, setLover] = useState<string>('연인');
-  const [club, setClub] = useState<string>('친목 단체/모임');
+  const [couple, setCouple] = useState<string>('연인');
+  const [group, setGroup] = useState<string>('친목 단체/모임');
+  const [next, setNext] = useState<string>('다음');
 
   useEffect(() => {
     const translateTexts = async () => {
@@ -35,11 +38,11 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
         const translatedQuestion = await translateText('누구와 여행을 떠나시나요?', globalLanguage);
         setQuestion(translatedQuestion);
 
+        const translatedParent = await translateText('부모/조부모/형제자매', globalLanguage);
+        setParent(translatedParent);
+
         const translatedSpouse = await translateText('배우자', globalLanguage);
         setSpouse(translatedSpouse);
-
-        const translatedFamily = await translateText('가족', globalLanguage);
-        setFamily(translatedFamily);
 
         const translatedFriend = await translateText('친구/동료', globalLanguage);
         setFriend(translatedFriend);
@@ -47,11 +50,14 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
         const translatedChildren = await translateText('자녀', globalLanguage);
         setChildren(translatedChildren);
 
-        const translatedLover = await translateText('연인', globalLanguage);
-        setLover(translatedLover);
+        const translatedCouple = await translateText('연인', globalLanguage);
+        setCouple(translatedCouple);
 
-        const translatedClub = await translateText('친목 단체/모임', globalLanguage);
-        setClub(translatedClub);
+        const translatedGroup = await translateText('친목단체', globalLanguage);
+        setGroup(translatedGroup);
+
+        const translatedNext = await translateText('다음', globalLanguage); // 추가된 부분
+        setNext(translatedNext); 
         
       } catch (error) {
         console.error('Translation Error:', error);
@@ -61,18 +67,21 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
     translateTexts();
   }, [globalLanguage]);
 
-  const handleSelect = (index: number, option: string) => {
-    // 선택된 인덱스를 selectedWithWho에 저장
-    setSelectedWithWho(index);
+  // 다중 선택을 위한 handleSelect 함수
+  const handleSelect = (index: number) => {
+    // 선택된 인덱스를 selectedWithWho에 추가하거나 제거
+    const newSelectedOptions = selectedOptions.includes(index)
+      ? selectedOptions.filter(opt => opt !== index) // 이미 선택된 경우 제거
+      : [...selectedOptions, index]; // 선택되지 않은 경우 추가
 
-    // 선택된 인덱스 업데이트
-    setSelectedOption(prevOption => (prevOption === option ? null : option));
+    setSelectedOptions(newSelectedOptions); // 선택된 인덱스 상태 업데이트
+    setSelectedWithWho(newSelectedOptions); // 선택된 인덱스를 setSelectedWithWho에 업데이트
   };
 
   const handleNext = () => {
     console.log('selectedWithWho:', selectedWithWho);
-    if (selectedOption) {
-      navigation.navigate('BudgetScreen');
+    if (selectedOptions.length > 0) { // 선택된 옵션이 있는지 확인
+      navigation.navigate('VehicleScreen');
     } else {
       Alert.alert('오류', '여행 인원을 선택해주세요.');
     }
@@ -90,86 +99,109 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
         <TouchableOpacity
           style={[
             styles.card,
-            selectedOption === spouse && styles.selectedCard,
+            selectedOptions.includes(0) && styles.selectedCard, // 다중 선택 확인
           ]}
-          onPress={() => handleSelect(0, spouse)}
+          onPress={() => handleSelect(0)}
+        >
+          <Image source={require('../../assets/images/themeIcon/who_parent.png')} style={styles.icon} />
+          <Text style={[
+            dynamicStyles.label,
+            selectedOptions.includes(0) && styles.selectedLabel,
+            { textAlign: 'center', marginVertical: -7 }, // 중앙 정렬 추가
+          ]}>
+            {parent.split('/')[0]} {/* 부모/조부모 중 부모 부분 사용 */}
+          </Text>
+          <Text style={[
+            dynamicStyles.label,
+            selectedOptions.includes(0) && styles.selectedLabel,
+            { textAlign: 'center', marginVertical: -7 }, // 중앙 정렬 추가
+          ]}>
+            {parent.split('/')[1]} {/* 부모/조부모 중 조부모 부분 사용 */}
+          </Text>
+          <Text style={[
+            dynamicStyles.label,
+            selectedOptions.includes(0) && styles.selectedLabel,
+            { textAlign: 'center', marginVertical: -7, marginBottom: 4 }, // 중앙 정렬 추가
+          ]}>
+            {parent.split('/')[2]} {/* 부모/조부모 중 조부모 부분 사용 */}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.card,
+            selectedOptions.includes(1) && styles.selectedCard,
+          ]}
+          onPress={() => handleSelect(1)}
         >
           <Image source={require('../../assets/images/themeIcon/who_spouse.png')} style={styles.icon} />
           <Text style={[
-            styles.label,
-            selectedOption === spouse && styles.selectedLabel,
+            dynamicStyles.label,
+            selectedOptions.includes(1) && styles.selectedLabel,
           ]}>{spouse}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[
             styles.card,
-            selectedOption === family && styles.selectedCard,
+            selectedOptions.includes(2) && styles.selectedCard,
           ]}
-          onPress={() => handleSelect(1, family)}
+          onPress={() => handleSelect(2)}
         >
-          <Image source={require('../../assets/images/themeIcon/who_daughter.png')} style={styles.icon} />
+          <Image source={require('../../assets/images/themeIcon/who_friend.png')} style={styles.icon} />
           <Text style={[
-            styles.label,
-            selectedOption === family && styles.selectedLabel,
-          ]}>{family}</Text>
+            dynamicStyles.label,
+            selectedOptions.includes(2) && styles.selectedLabel,
+            { textAlign: 'center', marginVertical: -7},
+          ]}>{friend.split('/')[0]}</Text>
+          <Text style={[
+            dynamicStyles.label,
+            selectedOptions.includes(2) && styles.selectedLabel,
+            { textAlign: 'center', marginVertical: -7 },
+          ]}>{friend.split('/')[1]}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[
             styles.card,
-            selectedOption === friend && styles.selectedCard,
+            selectedOptions.includes(3) && styles.selectedCard,
           ]}
-          onPress={() => handleSelect(2, friend)}
-        >
-          <Image source={require('../../assets/images/themeIcon/who_spouse.png')} style={styles.icon} />
-          <Text style={[
-            styles.label,
-            selectedOption === friend && styles.selectedLabel,
-          ]}>{friend}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.card,
-            selectedOption === children && styles.selectedCard,
-          ]}
-          onPress={() => handleSelect(3, children)}
+          onPress={() => handleSelect(3)}
         >
           <Image source={require('../../assets/images/themeIcon/who_daughter.png')} style={styles.icon} />
           <Text style={[
-            styles.label,
-            selectedOption === children && styles.selectedLabel,
+            dynamicStyles.label,
+            selectedOptions.includes(3) && styles.selectedLabel,
           ]}>{children}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[
             styles.card,
-            selectedOption === lover && styles.selectedCard,
+            selectedOptions.includes(4) && styles.selectedCard,
           ]}
-          onPress={() => handleSelect(4, lover)}
+          onPress={() => handleSelect(4)}
         >
-          <Image source={require('../../assets/images/themeIcon/who_spouse.png')} style={styles.icon} />
+          <Image source={require('../../assets/images/themeIcon/who_couple.png')} style={styles.icon} />
           <Text style={[
-            styles.label,
-            selectedOption === lover && styles.selectedLabel,
-          ]}>{lover}</Text>
+            dynamicStyles.label,
+            selectedOptions.includes(4) && styles.selectedLabel,
+          ]}>{couple}</Text>
         </TouchableOpacity>
-
         <TouchableOpacity
           style={[
             styles.card,
-            selectedOption === club && styles.selectedCard,
+            selectedOptions.includes(5) && styles.selectedCard,
           ]}
-          onPress={() => handleSelect(5, club)}
+          onPress={() => handleSelect(5)}
         >
-          <Image source={require('../../assets/images/themeIcon/who_daughter.png')} style={styles.icon} />
+          <Image source={require('../../assets/images/themeIcon/who_group.png')} style={styles.icon} />
           <Text style={[
-            styles.label,
-            selectedOption === club && styles.selectedLabel,
-          ]}>{club}</Text>
+            dynamicStyles.label,
+            selectedOptions.includes(5) && styles.selectedLabel,
+          ]}>{group}</Text>
         </TouchableOpacity>
+        
       </View>
 
       <Text style={styles.caption}>*사진출처 Microsoft Fluent Emoji – Color</Text>
@@ -177,12 +209,12 @@ const WithWhoScreen: React.FC<WithWhoScreenProps> = ({ route }) => {
       <TouchableOpacity
         style={[
           styles.nextButton,
-          { backgroundColor: selectedOption ? '#0047A0' : '#D3D3D3' }
+          { backgroundColor: selectedOptions.length > 0 ? '#0047A0' : '#D3D3D3' }
         ]}
         onPress={handleNext}
-        disabled={!selectedOption}
+        disabled={selectedOptions.length === 0} // 선택된 항목이 없으면 비활성화
       >
-        <Text style={styles.nextText}>다음</Text>
+        <Text style={styles.nextText}>{next}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -201,8 +233,9 @@ const styles = StyleSheet.create({
   question: {
     paddingLeft: 10,
     paddingBottom: 2,
-    fontFamily: 'AggroM',
+    fontFamily: 'SBAggroM',
     fontSize: 24,
+    color: '#000000',
   },
   cardContainer: {
     flexDirection: 'row',
@@ -211,27 +244,23 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   card: {
-    width: '47%',
-    aspectRatio: 1,
-    borderRadius: 20,
+    width: 150,
+    height: 150,
+    borderRadius: 30,
     backgroundColor: 'white',
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    marginLeft: 13,
+    marginRight: 20,
     marginBottom: 20,
   },
   selectedCard: {
     backgroundColor: '#0047A0',
   },
   icon: {
-    width: 50,
-    height: 50,
+    width: 70,
+    height: 70,
     resizeMode: 'contain',
-  },
-  label: {
-    marginTop: 10,
-    fontFamily: 'AggroL',
-    fontSize: 18,
-    color: '#000000',
   },
   selectedLabel: {
     color: '#ffffff',
@@ -247,7 +276,7 @@ const styles = StyleSheet.create({
     left: 20,
   },
   nextText: {
-    fontFamily: 'AggroL',
+    fontFamily: 'SBAggroL',
     fontSize: 18,
     color: 'white'
   },
@@ -255,10 +284,34 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     color: '#888',
     fontSize: 12,
-    fontFamily: 'AggroL',
-    marginBottom: 100,
-    marginTop: -130
+    fontFamily: 'SBAggroL',
+    marginBottom: 40,
+    marginTop: 0,
+    marginLeft: 15,
+  },
+  multiLineLabelContainer: {
+    alignItems: 'center', // 텍스트가 카드의 가운데 정렬되도록 설정
+    justifyContent: 'center',
+  },
+  multiLineLabel: {
+    marginTop: 10,
+    fontFamily: 'SBAggroL',
+    fontSize: 16, // 적절한 폰트 크기 설정
+    color: '#000000',
+    textAlign: 'center', // 텍스트 중앙 정렬
+    lineHeight: 22, // 줄 간격 조정
   },
 });
+
+const getDynamicStyles = (globalLanguage: string) => StyleSheet.create({
+  label: {
+    marginTop: 10,
+    fontFamily: 'SBAggroL',
+    fontSize: globalLanguage !== 'ko' ? 14 : 18,
+    color: '#000000',
+  },
+});
+
+
 
 export default WithWhoScreen;
