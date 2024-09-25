@@ -16712,9 +16712,9 @@ const RouteScreen = () => {
         ref={mapRef}
         style={StyleSheet.absoluteFillObject}
         initialRegion={{
-          latitude: 37.562004, // 초기 지도 위치
-          longitude: 126.975208,
-          latitudeDelta: 0.04,
+          latitude: routeInfoByDay['Day 1']?.visitPlaces[0]?.latitude || 37.562004, // Day 1의 첫 번째 장소로 초기 지도 위치 설정
+          longitude: routeInfoByDay['Day 1']?.visitPlaces[0]?.longitude || 126.975208,
+          latitudeDelta: 0.04, // 지도 확대하려면 0.01로 설정
           longitudeDelta: 0.04,
         }}
         showsUserLocation={true}
@@ -16752,7 +16752,7 @@ const RouteScreen = () => {
                 require('../../assets/images/route/marker/6_y.png');
               break;
           }
-
+          // console.log(place.placeImgUrl);
           return (
             <Marker
               key={index}
@@ -16764,8 +16764,18 @@ const RouteScreen = () => {
               image={markerImage} // 마커 이미지 설정
               zIndex={2} // 장소 마커의 zIndex 값을 높게 설정
             >
-              <Callout>
-                <Text>{place.name || "Unnamed Place"}</Text>
+              <Callout tooltip={true} style={styles.callout}>
+                <View style={styles.customCallout}>
+                  <Text
+                    style={[styles.calloutText, { flexWrap: 'wrap', width: 'auto', maxWidth: 300 }]}
+                    adjustsFontSizeToFit={false}
+                  >
+                    {place.name || "Unnamed Place"}
+                  </Text>
+                  <View style={styles.arrowContainer}> 
+                    <Image source={require('../../assets/images/arrow_triangle.png')} style={styles.arrowTriangle} />
+                  </View>
+                </View>
               </Callout>
             </Marker>
           );
@@ -16974,7 +16984,15 @@ const RouteScreen = () => {
                   <View style={[
                       styles.verticalLine,
                       toggleState[toggleKey] && styles.expandedVerticalLine,  // 토글 상태에 따라 세로선 높이 확장
-                    ]} />
+                  ]} />
+                  {/* 장소명과 토글 버튼 사이에 이미지 추가 */}
+                    {place.placeImgUrl && (
+                      <Image 
+                        source={{ uri: place.placeImgUrl }} 
+                        style={styles.placeImage} 
+                        onError={(error) => console.log('Image Load Error:', error.nativeEvent.error)} 
+                      />
+                  )}
                   {/* 2.2 마커 사이에 세로줄과 교통수단 아이콘 & 텍스트 & 토글 */}
                   {index < routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.visitPlaces?.length - 1 && (
                     <View style={[
@@ -17416,10 +17434,10 @@ const styles = StyleSheet.create({
   },
   verticalLine: {
     position: 'absolute',
-    top: '70%',  // 부모 요소의 상단부터 시작
+    top: '20%',  // 부모 요소의 상단부터 시작
     left: 24,    // X축에서 마커와 일치하는 위치 (필요에 따라 조정)
     width: 4,
-    height: 100,  
+    height: 200,  
     backgroundColor: '#B5B5B5',
     zIndex: -1,  // 마커 뒤로 배치
     transform: [{ translateY: -25 }],  // Y축에서 중앙 정렬을 위한 보정
@@ -17687,6 +17705,56 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     fontFamily: 'SBAggroL'
+  },
+  callout: {
+    borderRadius: 10,
+    padding: 0,
+  },
+  customCallout: {
+    backgroundColor: '#fff', // 배경색
+    borderRadius: 10,        // 모서리 둥글게
+    padding: 10,             // 패딩
+    maxWidth: 500,           // 최대 너비 설정
+    borderColor: '#ccc',     // 테두리 색상
+    borderWidth: 1,          // 테두리 두께
+  },
+  calloutText: {
+    fontSize: 15,
+    color: '#000000',
+    textAlign: 'center',
+    fontFamily: 'SBAggroL'
+  },
+  arrow: {
+    width: 0,
+    height: 0,
+    backgroundColor: 'transparent',
+    borderStyle: 'solid',
+    borderLeftWidth: 10,
+    borderRightWidth: 10,
+    borderTopWidth: 10,
+    borderLeftColor: 'transparent',
+    borderRightColor: 'transparent',
+    borderTopColor: '#fff',
+    alignSelf: 'center',
+    marginTop: -1,
+  },
+  placeImage: {
+    width: 160,
+    height: 110,
+    marginTop: 5, // 텍스트와 이미지 사이의 간격
+    resizeMode: 'stretch', // 이미지가 컴포넌트에 맞게 조정,
+    borderRadius: 10,
+    marginLeft: 50,
+  },
+  arrowTriangle: {
+    width: 20,
+    height: 10,
+    marginTop: -1,
+    resizeMode: 'contain',
+  },
+  arrowContainer: {
+    alignItems: 'center', // 화살표 위치 중앙으로
+    marginTop: -10, // 화살표 위치 조정
   },
   // capsuleRouteText: {
   //   position: 'absolute',   // 캡슐 위에 텍스트를 배치하기 위해 절대 위치 지정

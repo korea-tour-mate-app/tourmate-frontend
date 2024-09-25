@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
 const getDynamicStyles = (globalLanguage: string) => ({
   dateLabel: {
     fontFamily: 'SBAggroL',
-    fontSize: globalLanguage !== 'ko' ? 17 : 24, // ko가 아닐 때 18, ko일 때 24
+    fontSize: globalLanguage !== 'ko' ? 16 : 24, // ko가 아닐 때 18, ko일 때 24
     marginBottom: 10,
     color: '#000000',
   },
