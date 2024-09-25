@@ -249,7 +249,7 @@ const RouteScreen = () => {
         "name": "신세계백화점 강남점",
         "latitude": 37.50449241,
         "longitude": 127.00364271,
-        "placeImgUrl": "https://tourmate-s3-bucket.s3.ap-northeast-2.amazonaws.com/%EB%9D%BC%EC%9D%B8%ED%94%84%EB%A0%8C%EC%A6%88+%EC%8A%A4%ED%80%98%EC%96%B4+%EC%84%B1%EC%88%98.png",
+        "placeImgUrl": "https://tourmate-s3-bucket.s3.ap-northeast-2.amazonaws.com/%EC%8B%A0%EC%84%B8%EA%B3%84%EB%B0%B1%ED%99%94%EC%A0%90+%EA%B0%95%EB%82%A8%EC%A0%90.png",
       },
       {
         "order": "1",
@@ -2613,6 +2613,7 @@ const RouteScreen = () => {
         "order": "0",
         "name": "북촌 한옥마을",
         "latitude": 37.5817692,
+        "longitude": 126.9849841,
         "placeImgUrl": "https://tourmate-s3-bucket.s3.ap-northeast-2.amazonaws.com/%EB%B6%81%EC%B4%8C+%ED%95%9C%EC%98%A5%EB%A7%88%EC%9D%84.png"
       },
       {
