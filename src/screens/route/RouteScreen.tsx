@@ -266,7 +266,13 @@ const RouteScreen = () => {
     minute: '분',
     riding: '승차',
     stopover: '하차',
-    noTransport: '대중교통 정보가 없습니다.'
+    noTransport: '대중교통 정보가 없습니다.',
+    opertatingTime: '영업시간',
+    goToHomeScreen: '첫 화면으로 돌아가기', 
+    exitWarningMessage1: '현재 페이지를 나가시면 다시 볼 수 없습니다.', 
+    exitWarningMessage2: '정말로 나가시겠습니까?', 
+    cancel: '취소', 
+    confirmExit: '나가기' 
   });
 
   const response11 = {
@@ -15616,6 +15622,12 @@ const RouteScreen = () => {
       const translatedRiding = await translateText('승차', globalLanguage);
       const translatedStopOver = await translateText('하차', globalLanguage);
       const translatedNoTransport = await translateText('대중교통 정보가 없습니다.', globalLanguage);
+      const translatedOpertatingTime = await translateText('영업시간', globalLanguage);
+      const translatedGoToHomeScreen = await translateText('첫 화면으로 돌아가기', globalLanguage);
+      const translatedExitWarningMessage1 = await translateText('현재 페이지를 나가시면 다시 볼 수 없습니다.', globalLanguage);
+      const translatedExitWarningMessage2 = await translateText('정말로 나가시겠습니까?', globalLanguage);
+      const translatedCancel = await translateText('취소', globalLanguage);
+      const translatedConfirmExit = await translateText('나가기', globalLanguage);
 
       setTranslatedLabels({
         totalTime: translatedTotalTime,
@@ -15631,6 +15643,12 @@ const RouteScreen = () => {
         riding:translatedRiding,
         stopover: translatedStopOver,
         noTransport: translatedNoTransport,
+        opertatingTime: translatedOpertatingTime,
+        goToHomeScreen: translatedGoToHomeScreen,
+        exitWarningMessage1: translatedExitWarningMessage1, 
+        exitWarningMessage2: translatedExitWarningMessage2,
+        cancel: translatedCancel,
+        confirmExit: translatedConfirmExit,
       });
     };
 
@@ -15830,7 +15848,7 @@ useEffect(() => {
   
     try {
       const response = await axios.get<RestaurantDetails>(`http://13.125.53.226:8080/api/restaurants/${restaurantId}`);
-      console.log("음식점 리뷰 구하는 response:", JSON.stringify(response.data, null, 2)); // 2칸 들여쓰기하여 정렬 출력
+      // console.log("음식점 리뷰 구하는 response:", JSON.stringify(response.data, null, 2)); // 2칸 들여쓰기하여 정렬 출력
       const data = response.data;
 
       // 번역 작업 수행
@@ -15863,7 +15881,7 @@ useEffect(() => {
         priceLevelText: translatedPriceLevelText,
       };
 
-      setRestaurantDetails(response.data);
+      setRestaurantDetails(translatedDetails); // 번역된 정보를 저장
       setRestaurantSheetVisible(true);
     } catch (error) {
       console.error('Error fetching restaurant details:', error);
@@ -16856,6 +16874,8 @@ useEffect(() => {
         }}
         showsUserLocation={true}
         showsMyLocationButton={false} // 현재 위치 버튼을 숨김
+
+        
       >
         {/* 장소 마커 찍기 */}
         {routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.visitPlaces?.map((place, index) => {
@@ -17347,7 +17367,7 @@ useEffect(() => {
           
                 {/* 전화번호 */}
                 {restaurantDetails.formattedPhoneNumber && (
-                  <Text>{restaurantDetails.formattedPhoneNumber}</Text>
+                  <Text style={styles.priceLevelText}>{restaurantDetails.formattedPhoneNumber}</Text>
                 )}
 
                 {/* 가격대 정보 */}
@@ -17358,7 +17378,7 @@ useEffect(() => {
                 {/* 영업시간 */}
                 {restaurantDetails.weekdayText && (
                   <>
-                    <Text style={styles.openingHoursTitle}>영업시간</Text>
+                    <Text style={styles.openingHoursTitle}>{translatedLabels.OpertatingTime}</Text>
                     {restaurantDetails.weekdayText.split(',').map((line, index) => (
                       <Text key={index} style={styles.openingHoursText}>
                         {line.trim()} {/* 각 줄을 trim으로 불필요한 공백 제거 */}
@@ -17732,6 +17752,12 @@ const styles = StyleSheet.create({
     marginVertical: 10, // 총 별점과 다른 요소 사이의 간격 증가
     color: '#000000', // 검정색으로 설정
   },
+  priceLevelText: {
+    fontFamily: 'SBAggroL',
+    color: '#000000',
+    fontSize: 15,
+    paddingBottom: 5,
+  },
   openingHoursTitle: {
     fontSize: 18,
     fontFamily: 'SBAggroM',
@@ -17787,7 +17813,7 @@ const styles = StyleSheet.create({
   modalContainer: {
     backgroundColor: '#FFF',
     borderRadius: 30,
-    padding: 30,
+    padding: 20,
     alignItems: 'center',
   },
   modalButtonContainer: {
@@ -17797,8 +17823,8 @@ const styles = StyleSheet.create({
   },
   modalCancelButton: {
     flex: 1,
-    paddingTop: 10,
-    paddingBottom: 10,
+    paddingTop: 5,
+    paddingBottom: 5,
     paddingLeft: 5,
     paddingRight: 5,
     alignItems: 'center',
