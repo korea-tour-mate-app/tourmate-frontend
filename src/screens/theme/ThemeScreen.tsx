@@ -8,6 +8,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {request, PERMISSIONS, RESULTS} from 'react-native-permissions';
 import {useLanguage} from '../../components/LanguageProvider';
 import {translateText} from '../../utils/Translation';
+import { TextInput } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 
 // 위치 및 장소 타입 정의
 interface LocationType {
@@ -97,6 +99,17 @@ interface BaggageDetail{
   columnCount: number;
 }
 
+// ReviewResponseDto interface (리뷰 데이터의 인터페이스)
+interface ReviewResponseDto {
+  reviewId: number;
+  reviewDec: string;
+  rate: number;
+  reviewUrl1?: string;
+  reviewUrl2?: string;
+  reviewUrl3?: string;
+  isMyReview: boolean; // 내 리뷰 여부
+}
+
 function ThemeScreen() {
   const [location, setLocation] = useState<LocationType | undefined>();
   const [initialLocationSet, setInitialLocationSet] = useState(false);
@@ -163,6 +176,15 @@ function ThemeScreen() {
   const [info, setInfo] = useState<string>('설명');
   const [time, setTime] = useState<string>('이용시간');
   const [rating, setRating] = useState<string>('별점');
+  
+  // Review 관련 상태
+  const [reviews, setReviews] = useState<ReviewResponseDto[]>([]); // 리뷰 데이터 상태
+  const [isReviewModalVisible, setIsReviewModalVisible] = useState(false); // 리뷰 작성 모달 상태
+  const [newReview, setNewReview] = useState(''); // 새 리뷰 내용
+  const [newRating, setNewRating] = useState<number>(0); // 새 리뷰 평점
+  const [reviewImages, setReviewImages] = useState<string[]>([]); // 리뷰 이미지들
+  const [isMyReview, setIsMyReview] = useState(false); // 내 리뷰 여부
+  const [isVisited, setIsVisited] = useState(false); // 방문 여부
 
   // 필터 단어 목록
   const filters = [
@@ -643,9 +665,117 @@ const handlePlaceMarkerPress = async (placeId: number) => {
     }
   }, []);
 
+  // 리뷰 리스트 가져오기(내 방문 여부, 내 리뷰인지)
+  const getReviewsByPlaceId = async (placeId: number) => {
+    try {
+      const jwtToken = await AsyncStorage.getItem('jwtToken'); // JWT 토큰 가져오기
+      const response = await fetch(
+        `http://13.125.53.226:8080/api/place/${placeId}/reviews`,
+        {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${jwtToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+  
+      const result = await response.json();
+      if (response.ok) {
+        setReviews(result.reviews); // 리뷰 리스트 상태 업데이트
+        setIsVisited(result.visited); // 방문 여부 업데이트
+        setIsMyReview(result.reviews.some((review: ReviewResponseDto) => review.isMyReview)); // 내 리뷰 여부 확인
+      } else {
+        console.error('리뷰 조회 실패:', result);
+      }
+    } catch (error) {
+      console.error('리뷰 조회 중 오류 발생:', error);
+    }
+  };
+
+  // 리뷰 생성
+  const handleCreateReview = async (placeId: number) => {
+    try {
+      const jwtToken = await AsyncStorage.getItem('jwtToken');
+      const reviewRequestDto = JSON.stringify({
+        reviewDec: newReview,
+        rate: newRating,
+      });
+  
+      const formData = new FormData();
+      formData.append('reviewRequestDto', JSON.stringify(reviewRequestDto));
+      reviewImages.forEach((image, index) => {
+        formData.append('reviewImages', {
+          uri: image.uri,
+          name: `review-image-${index}.jpg`,
+          type: 'image/jpeg',
+        });
+      });
+  
+      const response = await fetch(
+        `http://13.125.53.226:8080/api/${placeId}/review`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${jwtToken}`,
+            'Content-Type': 'multipart/form-data',
+          },
+          body: formData,
+        }
+      );
+  
+      if (response.ok) {
+        setNewReview('');
+        setNewRating(0);
+        setReviewImages([]);
+        setIsReviewModalVisible(false);
+        if (placeDetail?.placeId !== undefined) {
+          await getReviewsByPlaceId(placeDetail.placeId); // 리뷰 리스트 갱신
+        }
+      } else {
+        console.error('리뷰 등록 실패:', response);
+      }
+    } catch (error) {
+      console.error('리뷰 등록 중 오류 발생:', error);
+    }
+  };
+  
+    // 리뷰 삭제
+  const handleDeleteReview = async (reviewId: number) => {
+    try {
+      const jwtToken = await AsyncStorage.getItem('jwtToken');
+      const response = await fetch(
+        `http://13.125.53.226:8080/api/review/${reviewId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${jwtToken}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+  
+      if (response.ok) {
+        await getReviewsByPlaceId(placeDetail?.placeId); // 리뷰 리스트 갱신
+      } else {
+        console.error('리뷰 삭제 실패:', response);
+      }
+    } catch (error) {
+      console.error('리뷰 삭제 중 오류 발생:', error);
+    }
+  };
+  
+  // Wrapper 함수 생성 
+  const handlePressCreateReview = () => {
+    if (placeDetail?.placeId !== undefined) {
+      handleCreateReview(placeDetail.placeId);
+    }
+  };
+
+
   return (
     <GestureHandlerRootView style={styles.container}>
-        <MapView
+      <MapView
         provider={PROVIDER_GOOGLE}
         style={styles.map}
         initialRegion={{
@@ -653,113 +783,117 @@ const handlePlaceMarkerPress = async (placeId: number) => {
           longitude: initialLongitude ?? 126.9644,
           latitudeDelta: initialRegion?.latitudeDelta ?? 0.005,
           longitudeDelta: initialRegion?.longitudeDelta ?? 0.005,
-          }}
-        region={region} 
-        showsUserLocation={true}>
-            {filteredPlaces.map((place, index) => (
+        }}
+        region={region}
+        showsUserLocation={true}
+      >
+        {filteredPlaces.map((place, index) => (
           <Marker
             key={index}
             coordinate={{
-            latitude: place.latitude,
-            longitude: place.longitude,
-          }}
-          onPress={() => {handlePlaceMarkerPress(place.placeId)}}
-        >
-           <View style={styles.markerContainer}>
-            <Image
-              source={require('../../assets/images/map/theme-marker.png')}
-              style={styles.themeMarker}
-            />
-          </View>
-          <Text style={styles.markerPlace}>{placeNames[index]}</Text>
-        </Marker>
-       ))}
-
-      {/* visitedData 마커 */}
-      {visitedFilterActive === true &&
-  visitedData.map((item, index) => {
-
-    return (
-      <Marker
-        key={index}
-        coordinate={{
-          latitude: item.latitude,
-          longitude: item.longitude,
-        }}
-        onPress={() => {handlePlaceMarkerPress(item.placeId)}}
-      >
-        <View style={styles.markerContainer}>
-          <Image
-            source={require('../../assets/images/map/visited-marker.png')}
-            style={styles.themeMarker}
-          />
-        </View>
-        <Text style={styles.markerPlace}>{visitedPlaceName[index]}</Text>
-      </Marker>
-    );
-  })}
-
-            {/* likesData 마커 */}
-            {likesFilterActive == true &&
-            likesData.map((item, index) => {
-            console.log(item);
-            console.log(item.latitude);
-         return (
-           <Marker
-            key={index}
-            coordinate={{
-            latitude: item.latitude,
-            longitude: item.longitude,
-          }}
-          onPress={() => {
-            handlePlaceMarkerPress(item.placeId); // Place 객체 전달
-        }}
-      >
-        <View style={styles.markerContainer}>
-          <Image
-            source={require('../../assets/images/map/likes-marker.png')}
-            style={styles.themeMarker}
-          />
-        </View>
-        <Text style={styles.markerPlace}>{likesPlaceName[index]}</Text>
-      </Marker>
-    );
-  })}
-
-
-          {/* baggageData 마커 */}
-          {baggageFilterActive == true &&
-            baggageData.map((item, index) => (
+              latitude: place.latitude,
+              longitude: place.longitude,
+            }}
+            onPress={() => {
+              handlePlaceMarkerPress(place.placeId);
+            }}
+          >
+            <View style={styles.markerContainer}>
+              <Image
+                source={require('../../assets/images/map/theme-marker.png')}
+                style={styles.themeMarker}
+              />
+            </View>
+            <Text style={styles.markerPlace}>{placeNames[index]}</Text>
+          </Marker>
+        ))}
+  
+        {/* visitedData 마커 */}
+        {visitedFilterActive === true &&
+          visitedData.map((item, index) => {
+            return (
               <Marker
                 key={index}
                 coordinate={{
                   latitude: item.latitude,
                   longitude: item.longitude,
                 }}
-                onPress={() => handleBaggageMarkerPress(item)}>
+                onPress={() => {
+                  handlePlaceMarkerPress(item.placeId);
+                }}
+              >
                 <View style={styles.markerContainer}>
                   <Image
-                    source={require('../../assets/images/map/baggages-marker.png')}
+                    source={require('../../assets/images/map/visited-marker.png')}
                     style={styles.themeMarker}
                   />
                 </View>
-                <Text style={styles.markerPlace}>{parentNames[index]}</Text>
-                </Marker>
-            ))}
-        </MapView>
-      
-
+                <Text style={styles.markerPlace}>{visitedPlaceName[index]}</Text>
+              </Marker>
+            );
+          })}
+  
+        {/* likesData 마커 */}
+        {likesFilterActive == true &&
+          likesData.map((item, index) => {
+            console.log(item);
+            console.log(item.latitude);
+            return (
+              <Marker
+                key={index}
+                coordinate={{
+                  latitude: item.latitude,
+                  longitude: item.longitude,
+                }}
+                onPress={() => {
+                  handlePlaceMarkerPress(item.placeId); // Place 객체 전달
+                }}
+              >
+                <View style={styles.markerContainer}>
+                  <Image
+                    source={require('../../assets/images/map/likes-marker.png')}
+                    style={styles.themeMarker}
+                  />
+                </View>
+                <Text style={styles.markerPlace}>{likesPlaceName[index]}</Text>
+              </Marker>
+            );
+          })}
+  
+        {/* baggageData 마커 */}
+        {baggageFilterActive == true &&
+          baggageData.map((item, index) => (
+            <Marker
+              key={index}
+              coordinate={{
+                latitude: item.latitude,
+                longitude: item.longitude,
+              }}
+              onPress={() => handleBaggageMarkerPress(item)}
+            >
+              <View style={styles.markerContainer}>
+                <Image
+                  source={require('../../assets/images/map/baggages-marker.png')}
+                  style={styles.themeMarker}
+                />
+              </View>
+              <Text style={styles.markerPlace}>{parentNames[index]}</Text>
+            </Marker>
+          ))}
+      </MapView>
+  
       {errorMessage && (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{errorMessage}</Text>
         </View>
       )}
-
+  
       <View style={styles.filterContainer}>
         <ScrollView
           horizontal
           contentContainerStyle={styles.filterScrollView}
-          showsHorizontalScrollIndicator={false}>
+          showsHorizontalScrollIndicator={false}
+        >
           {translatedFilters.map((filter, index) => (
             <TouchableOpacity
               key={filters[index]} // 원래 필터 단어로 key 설정
@@ -773,269 +907,393 @@ const handlePlaceMarkerPress = async (placeId: number) => {
                 style={[
                   styles.filterText,
                   activeFilter === filters[index] && styles.activeFilterText,
-                ]}>
+                ]}
+              >
                 {filter} {/* 번역된 필터 단어를 표시 */}
               </Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
       </View>
-
-      <View style={styles.buttonContainer}>
-      <TouchableOpacity
-  style={[
-    styles.buttonVisited,
-    visitedFilterActive && {backgroundColor: '#02BC7D'},
-  ]}
-  onPress={() => {
-    handleVisitedFilterPress(); // 방문 필터 함수 호출
-    setVisitedFilterActive(prevState => !prevState); // 상태 토글
-  }}
->
-  <Text
-    style={[
-      styles.buttonText,
-      visitedFilterActive && {color: '#FFFFFF'},
-    ]}
-  >
-    Visited
-  </Text>
   
-  <Image
-    source={
-      visitedFilterActive 
-        ? require('../../assets/images/map/visited-filter.png')
-        : require('../../assets/images/map/visited-active.png')
-       }
-         style={styles.buttonIcon}
-         />
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          style={[
+            styles.buttonVisited,
+            visitedFilterActive && { backgroundColor: '#02BC7D' },
+          ]}
+          onPress={() => {
+            handleVisitedFilterPress(); // 방문 필터 함수 호출
+            setVisitedFilterActive((prevState) => !prevState); // 상태 토글
+          }}
+        >
+          <Text
+            style={[
+              styles.buttonText,
+              visitedFilterActive && { color: '#FFFFFF' },
+            ]}
+          >
+            Visited
+          </Text>
+  
+          <Image
+            source={
+              visitedFilterActive
+                ? require('../../assets/images/map/visited-filter.png')
+                : require('../../assets/images/map/visited-active.png')
+            }
+            style={styles.buttonIcon}
+          />
         </TouchableOpacity>
-
-
+  
         <TouchableOpacity
           style={[
             styles.buttonLikes,
-            likesFilterActive && {backgroundColor: '#FF344C'},
+            likesFilterActive && { backgroundColor: '#FF344C' },
           ]}
           onPress={() => {
             handleLikesFilterPress(); // 방문 필터 함수 호출
-            setLikesFilterActive(prevState => !prevState); // 상태 토글
-          }}>
+            setLikesFilterActive((prevState) => !prevState); // 상태 토글
+          }}
+        >
           <Text
-            style={[
-              styles.buttonText,
-              likesFilterActive && {color: '#FFFFFF'},
-            ]}>
+            style={[styles.buttonText, likesFilterActive && { color: '#FFFFFF' }]}
+          >
             Likes
           </Text>
           <Image
-          source={
-          likesFilterActive
-            ? require('../../assets/images/map/likes-filter.png')
-            : require('../../assets/images/map/likes-active.png')        
-          }
-          style={styles.buttonIcon}
-        />                        
+            source={
+              likesFilterActive
+                ? require('../../assets/images/map/likes-filter.png')
+                : require('../../assets/images/map/likes-active.png')
+            }
+            style={styles.buttonIcon}
+          />
         </TouchableOpacity>
-
+  
         <TouchableOpacity
           style={[
             styles.buttonLikes,
-            baggageFilterActive && {backgroundColor: '#0047A0'},
+            baggageFilterActive && { backgroundColor: '#0047A0' },
           ]}
-          onPress={handleBaggageFilterPress}>
+          onPress={handleBaggageFilterPress}
+        >
           <Text
             style={[
               styles.buttonText,
-              baggageFilterActive && {color: '#FFFFFF'},
-            ]}>
+              baggageFilterActive && { color: '#FFFFFF' },
+            ]}
+          >
             Baggage
           </Text>
           <Image
-          source={
-            baggageFilterActive
-            ? require('../../assets/images/map/baggage-filter.png')
-            : require('../../assets/images/map/baggage-active.png')        
-          }
-          style={styles.buttonIcon}
-          />             
+            source={
+              baggageFilterActive
+                ? require('../../assets/images/map/baggage-filter.png')
+                : require('../../assets/images/map/baggage-active.png')
+            }
+            style={styles.buttonIcon}
+          />
         </TouchableOpacity>
       </View>
-
+  
       <BottomSheet
         ref={bottomSheetRef}
         index={-1}
         snapPoints={['30%', '80%']}
         enablePanDownToClose={true}
-        onChange={handleBottomSheetChange}>
+        onChange={handleBottomSheetChange}
+      >
         {/* selectedPlace 관련 렌더링 */}
-        { placeDetail && (
-  <View style={styles.bottomSheetContainer}>
-    {/* Collapsed 상태일 때 */}
-    {bottomSheetIndex === 0 && (
-      <>
-        <View style={styles.bottomSheetTitleContainerCollapsed}>
-          <Text style={styles.bottomSheetTitleCollapsed}>
-            {placeDetail.장소명}
-          </Text>
-          <View style={styles.bottomSheetButtonContainer}>
-            <TouchableOpacity
-              style={styles.bottomSheetButton}
-              onPress={async () => {
-                await handleVisitedPress(placeDetail); // 장소 정보를 서버에 저장
-                await handleVisitedFilterPress();
-                }}>
-              <Image
-                source={
-                  visitedData.some(item => item.placeId === placeDetail.placeId)
-                    ? require('../../assets/images/map/visited-active.png')
-                    : require('../../assets/images/map/visited-inactive.png')
-                }
-                style={styles.bottomSheetVisitedButton}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.bottomSheetButton}
-              onPress={async () => {
-                await handleLikesPress(placeDetail); // 장소 정보를 서버에 저장
-                await handleLikesFilterPress(); // 저장된 장소 목록 가져오기
-              }}>
-          <Image
-            source={
-            likesData.some(item => item.placeId === placeDetail.placeId) 
-            ? require('../../assets/images/map/likes-active.png')
-            : require('../../assets/images/map/likes-inactive.png')
-          }
-          style={styles.bottomSheetLikesButton}
-        />
-        </TouchableOpacity>
-
+        {placeDetail && (
+          <View style={styles.bottomSheetContainer}>
+            {/* Collapsed 상태일 때 */}
+            {bottomSheetIndex === 0 && (
+              <>
+                <View style={styles.bottomSheetTitleContainerCollapsed}>
+                  <Text style={styles.bottomSheetTitleCollapsed}>
+                    {placeDetail.장소명}
+                  </Text>
+                  <View style={styles.bottomSheetButtonContainer}>
+                    <TouchableOpacity
+                      style={styles.bottomSheetButton}
+                      onPress={async () => {
+                        await handleVisitedPress(placeDetail); // 장소 정보를 서버에 저장
+                        await handleVisitedFilterPress();
+                      }}
+                    >
+                      <Image
+                        source={
+                          visitedData.some(
+                            (item) => item.placeId === placeDetail.placeId
+                          )
+                            ? require('../../assets/images/map/visited-active.png')
+                            : require('../../assets/images/map/visited-inactive.png')
+                        }
+                        style={styles.bottomSheetVisitedButton}
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.bottomSheetButton}
+                      onPress={async () => {
+                        await handleLikesPress(placeDetail); // 장소 정보를 서버에 저장
+                        await handleLikesFilterPress(); // 저장된 장소 목록 가져오기
+                      }}
+                    >
+                      <Image
+                        source={
+                          likesData.some(
+                            (item) => item.placeId === placeDetail.placeId
+                          )
+                            ? require('../../assets/images/map/likes-active.png')
+                            : require('../../assets/images/map/likes-inactive.png')
+                        }
+                        style={styles.bottomSheetLikesButton}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                  <View style={styles.bottomSheetAddressContainerCollapsed}>
+                    <Text style={styles.bottomSheetAddress}>
+                      {placeDetail.주소명}
+                    </Text>
+                  </View>
+                </View>
+  
+                <View style={styles.bottomSheetDescriptionContainer}>
+                  {placeDetail.이미지 ? (
+                    <Image
+                      source={{ uri: placeDetail.이미지 }}
+                      style={styles.bottomSheetImageContainerCollapsed}
+                    />
+                  ) : (
+                    <Text>No images</Text>
+                  )}
+                </View>
+              </>
+            )}
+  
+            {/* Expanded 상태일 때 */}
+            {bottomSheetIndex === 1 && (
+              <ScrollView>
+                <View style={styles.bottomSheetTitleContainerExpand}>
+                  <Text style={styles.bottomSheetTitleExpand}>
+                    {placeDetail.장소명}
+                  </Text>
+                </View>
+  
+                <View style={styles.bottomSheetDescriptionContainer}>
+                  {placeDetail.이미지 ? (
+                    <Image
+                      source={{ uri: placeDetail.이미지 }}
+                      style={styles.bottomSheetImageContainerCollapsed}
+                    />
+                  ) : (
+                    <Text>No images</Text>
+                  )}
+                </View>
+  
+                {/* 주소, 영업시간 등 null 값을 체크하고 렌더링 */}
+                <View style={styles.bottomSheetListContainer}>
+                  {placeDetail.주소명 && (
+                    <>
+                      <Text style={styles.bottomSheetListAddressTitle}>
+                        {address}
+                      </Text>
+                      <Text style={styles.bottomSheetListContent}>
+                        {placeDetail.주소명}
+                      </Text>
+                    </>
+                  )}
+  
+                  {placeDetail['홈페이지 URL'] && (
+                    <>
+                      <Text style={styles.bottomSheetListHomepageTitle}>
+                        {homepage}
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() =>
+                          placeDetail['홈페이지 URL'] &&
+                          Linking.openURL(placeDetail['홈페이지 URL'])
+                        }
+                      >
+                        <Text
+                          style={[
+                            styles.bottomSheetListHomepage,
+                            {
+                              color: 'blue',
+                              textDecorationLine: 'underline',
+                            },
+                          ]}
+                        >
+                          {placeDetail['홈페이지 URL'] || '홈페이지 없음'}
+                        </Text>
+                      </TouchableOpacity>
+                    </>
+                  )}
+  
+                  {placeDetail.설명 && (
+                    <>
+                      <Text style={styles.bottomSheetListTitle}>{info}</Text>
+                      <Text style={styles.bottomSheetListContent}>
+                        {placeDetail.설명}
+                      </Text>
+                    </>
+                  )}
+  
+                  {placeDetail.영업시간 && (
+                    <>
+                      <Text style={styles.bottomSheetListTitle}>{time}</Text>
+                      <Text style={styles.bottomSheetListContent}>
+                        {placeDetail.영업시간}
+                      </Text>
+                    </>
+                  )}
+  
+                  {placeDetail['평점'] && (
+                    <>
+                      <Text style={styles.bottomSheetListTitle}>{rating}</Text>
+                      <Text style={styles.bottomSheetListContent}>
+                        {placeDetail['평점']}
+                      </Text>
+                    </>
+                  )}
+                </View>
+  
+                {/* [추가]리뷰 리스트 렌더링 */}
+                {reviews.length > 0 && (
+                  <View style={styles.reviewsContainer}>
+                    <Text style={styles.reviewsTitle}>리뷰</Text>
+                    {reviews.map((review) => (
+                      <View key={review.reviewId} style={styles.reviewItem}>
+                        <Text style={styles.reviewText}>{review.reviewDec}</Text>
+                        <Text style={styles.reviewRate}>
+                          평점: {review.rate}
+                        </Text>
+                        {review.reviewUrl1 && (
+                          <Image
+                            source={{ uri: review.reviewUrl1 }}
+                            style={styles.reviewImage}
+                          />
+                        )}
+                        {review.isMyReview && (
+                          <TouchableOpacity
+                            onPress={() => handleDeleteReview(review.reviewId)}
+                            style={styles.deleteReviewButton}
+                          >
+                            <Text style={styles.deleteReviewButtonText}>
+                              삭제
+                            </Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    ))}
+                  </View>
+                )}
+  
+                {/* 리뷰 작성 버튼 */}
+                {isVisited && (
+                  <TouchableOpacity
+                    style={styles.writeReviewButton}
+                    onPress={() => setIsReviewModalVisible(true)}
+                  >
+                    <Text style={styles.writeReviewButtonText}>리뷰 작성</Text>
+                  </TouchableOpacity>
+                )}
+              </ScrollView>
+            )}
           </View>
-          <View style={styles.bottomSheetAddressContainerCollapsed}>
-            <Text style={styles.bottomSheetAddress}>
-              {placeDetail.주소명}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.bottomSheetDescriptionContainer}>
-        {placeDetail.이미지 ? (
-  <Image
-    source={{ uri: placeDetail.이미지 }}
-    style={styles.bottomSheetImageContainerCollapsed}
-  />
-) : (
-  <Text>No images</Text>
-)}
-        </View>
-      </>
-    )}
-
-    {/* Expanded 상태일 때 */}
-    {bottomSheetIndex === 1 && (
-       <ScrollView>
-       <View style={styles.bottomSheetTitleContainerExpand}>
-         <Text style={styles.bottomSheetTitleExpand}>
-           {placeDetail.장소명}
-         </Text>
-       </View>
-
-       <View style={styles.bottomSheetDescriptionContainer}>
-        {placeDetail.이미지 ? (
-        <Image
-          source={{ uri: placeDetail.이미지 }}
-          style={styles.bottomSheetImageContainerCollapsed}
-        />
-    ) : (
-      <Text>No images</Text>
-    )}
-        </View>
-
-       {/* 주소, 영업시간 등 null 값을 체크하고 렌더링 */}
-       <View style={styles.bottomSheetListContainer}>
-         {placeDetail.주소명 && (
-           <>
-             <Text style={styles.bottomSheetListAddressTitle}>{address}</Text>
-             <Text style={styles.bottomSheetListContent}>
-               {placeDetail.주소명}
-             </Text>
-           </>
-         )}
-         
-         {placeDetail['홈페이지 URL'] && (
-  <>
-    <Text style={styles.bottomSheetListHomepageTitle}>{homepage}</Text>
-    <TouchableOpacity onPress={() => placeDetail['홈페이지 URL'] && Linking.openURL(placeDetail['홈페이지 URL'])}>
-  <Text style={[styles.bottomSheetListHomepage, { color: 'blue', textDecorationLine: 'underline' }]}>
-    {placeDetail['홈페이지 URL'] || '홈페이지 없음'}
-  </Text>
-</TouchableOpacity>
-
-  </>
-)}
-
-         {placeDetail.설명 && (
-           <>
-             <Text style={styles.bottomSheetListTitle}>{info}</Text>
-             <Text style={styles.bottomSheetListContent}>
-               {placeDetail.설명}
-             </Text>
-           </>
-         )}
-
-
-          {placeDetail.영업시간 && (
-           <>
-             <Text style={styles.bottomSheetListTitle}>{time}</Text>
-             <Text style={styles.bottomSheetListContent}>
-               {placeDetail.영업시간}
-             </Text>
-           </>
-         )}
-
-        {placeDetail['평점'] && (
-           <>
-             <Text style={styles.bottomSheetListTitle}>{rating}</Text>
-             <Text style={styles.bottomSheetListContent}>
-               {placeDetail['평점']}
-             </Text>
-           </>
-         )}
-
-       </View>
-     </ScrollView>
-   )}
- </View>
-)}
-
-
+        )}
+  
         {/* selectedBaggage 관련 렌더링 */}
         {selectedBaggage && (
           <View style={styles.bottomSheetContainer}>
             {(
               <>
                 <View>
-  {baggageDetail.length > 0 && baggageDetail.map((item, index) => (
-    <ScrollView>
-    <View key={index}>
-      <Text style={styles.baggagePlace}>{item.lockerName}</Text>
-      <Text style={styles.baggageDetail}>위치: {item.lockerDetail}</Text>
-      <Text style={styles.baggageDetail}>소형 칸 개수: {item.smallCount}</Text>
-      <Text style={styles.baggageDetail}>중형 칸 개수: {item.mediumCount}</Text>
-      <Text style={styles.baggageDetail}>대형 칸 개수: {item.largeCount}</Text>
-      <Text></Text>
-    </View>
-    </ScrollView>
-  ))}
-</View>
-
+                  {baggageDetail.length > 0 &&
+                    baggageDetail.map((item, index) => (
+                      <ScrollView>
+                        <View key={index}>
+                          <Text style={styles.baggagePlace}>
+                            {item.lockerName}
+                          </Text>
+                          <Text style={styles.baggageDetail}>
+                            위치: {item.lockerDetail}
+                          </Text>
+                          <Text style={styles.baggageDetail}>
+                            소형 칸 개수: {item.smallCount}
+                          </Text>
+                          <Text style={styles.baggageDetail}>
+                            중형 칸 개수: {item.mediumCount}
+                          </Text>
+                          <Text style={styles.baggageDetail}>
+                            대형 칸 개수: {item.largeCount}
+                          </Text>
+                          <Text></Text>
+                        </View>
+                      </ScrollView>
+                    ))}
+                </View>
               </>
             )}
           </View>
         )}
       </BottomSheet>
+  
+      {/* 리뷰 작성 모달 */}
+      {isReviewModalVisible && (
+        <View style={styles.reviewModal}>
+          <TextInput
+            style={styles.reviewInput}
+            placeholder="리뷰 내용을 입력하세요"
+            value={newReview}
+            onChangeText={setNewReview}
+          />
+          <View style={styles.reviewRatingContainer}>
+            <Text>평점:</Text>
+            <Picker
+              selectedValue={newRating}
+              onValueChange={(itemValue: number) => setNewRating(itemValue)}
+              >
+              <Picker.Item label="0" value={0} />
+              <Picker.Item label="1" value={1} />
+              <Picker.Item label="2" value={2} />
+              <Picker.Item label="3" value={3} />
+              <Picker.Item label="4" value={4} />
+              <Picker.Item label="5" value={5} />
+            </Picker>
+          </View>
+          <View style={styles.imagePickerContainer}>
+            <TouchableOpacity
+              onPress={() => {
+                /* 이미지 선택 기능 추가 */
+              }}
+              style={styles.imagePickerButton}
+            >
+              <Text>이미지 선택</Text>
+            </TouchableOpacity>
+            {reviewImages.length > 0 &&
+              reviewImages.map((image, index) => (
+                <Image
+                  key={index}
+                  source={{ uri: image.uri }}
+                  style={styles.selectedImage}
+                />
+              ))}
+          </View>
+          <TouchableOpacity onPress={handlePressCreateReview} style={styles.submitReviewButton}>
+            <Text style={styles.submitReviewButtonText}>리뷰 등록</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setIsReviewModalVisible(false)}
+            style={styles.cancelReviewButton}
+          >
+            <Text style={styles.cancelReviewButtonText}>취소</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </GestureHandlerRootView>
-  );
+  );  
 }
 
 const styles = StyleSheet.create({
@@ -1265,6 +1523,123 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: 'red',
   },
+  reviewsContainer: {
+    marginTop: 20,
+    padding: 10,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 10,
+  },
+  reviewsTitle: {
+    fontFamily: 'SBAggroM',
+    fontSize: 18,
+    marginBottom: 10,
+  },
+  reviewItem: {
+    marginBottom: 10,
+  },
+  reviewText: {
+    fontFamily: 'SBAggroL',
+    fontSize: 16,
+  },
+  reviewRate: {
+    fontFamily: 'SBAggroM',
+    fontSize: 14,
+  },
+  reviewImage: {
+    width: 100,
+    height: 100,
+    resizeMode: 'cover',
+    marginTop: 5,
+  },
+  deleteReviewButton: {
+    backgroundColor: '#FF344C',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+    marginTop: 5,
+  },
+  deleteReviewButtonText: {
+    color: '#fff',
+  },
+  writeReviewButton: {
+    backgroundColor: '#02BC7D',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+    alignSelf: 'center',
+  },
+  writeReviewButtonText: {
+    color: '#fff',
+    fontFamily: 'SBAggroM',
+    fontSize: 16,
+  },
+  reviewModal: {
+    position: 'absolute',
+    top: '20%',
+    left: '10%',
+    right: '10%',
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.8,
+    shadowRadius: 2,
+    elevation: 5,
+  },
+  reviewInput: {
+    borderColor: '#ccc',
+    borderWidth: 1,
+    padding: 10,
+    marginBottom: 15,
+    borderRadius: 5,
+  },
+  reviewRatingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  imagePickerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  imagePickerButton: {
+    backgroundColor: '#ddd',
+    padding: 10,
+    borderRadius: 5,
+  },
+  selectedImage: {
+    width: 50,
+    height: 50,
+    resizeMode: 'cover',
+    marginLeft: 10,
+  },
+  submitReviewButton: {
+    backgroundColor: '#02BC7D',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+    alignSelf: 'center',
+  },
+  submitReviewButtonText: {
+    color: '#fff',
+    fontFamily: 'SBAggroM',
+    fontSize: 16,
+  },
+  cancelReviewButton: {
+    backgroundColor: '#ccc',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 5,
+    alignSelf: 'center',
+    marginTop: 10,
+  },
+  cancelReviewButtonText: {
+    color: '#333',
+    fontFamily: 'SBAggroM',
+    fontSize: 16,
+  },  
 });
 
 export default ThemeScreen;
