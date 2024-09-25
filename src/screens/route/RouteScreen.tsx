@@ -15694,7 +15694,7 @@ const RouteScreen = () => {
                 route_response = response11;
             }
             break;
-            case '0-7-10': // selectedThemes가 [0, 7, 10]인 경우
+            case '0-6-9': // selectedThemes가 [0, 7, 10]인 경우
             switch (i) {
               case 0:
                 route_response = response21;
@@ -17310,9 +17310,9 @@ const RouteScreen = () => {
                               <Text style={styles.transportTimeText}>
                                 {`${translatedLabels.totalDuration} : ${(parseFloat(routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.totalTime) / 60).toFixed(0)} ${translatedLabels.minute} `}
                               </Text>
-                              <Text style={styles.transportTimeText}>
+                              {/* <Text style={styles.transportTimeText}>
                                 {`${translatedLabels.totalCost} : ₩${routeInfoByDay[`Day ${selectedDayIndex + 1}`]?.totalFare}`}
-                              </Text>
+                              </Text> */}
                             </View>
                           )}
                           </>
