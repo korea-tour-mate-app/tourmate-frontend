@@ -8,7 +8,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {request, PERMISSIONS, RESULTS} from 'react-native-permissions';
 import {useLanguage} from '../../components/LanguageProvider';
 import {translateText} from '../../utils/Translation';
-import { getProfileData } from 'react-native-calendars/src/Profiler';
 
 // 위치 및 장소 타입 정의
 interface LocationType {
@@ -101,6 +100,8 @@ interface BaggageDetail{
 function ThemeScreen() {
   const [location, setLocation] = useState<LocationType | undefined>();
   const [initialLocationSet, setInitialLocationSet] = useState(false);
+  const [initialLatitude, setInitialLatitude] = useState<number | undefined>(undefined);
+  const [initialLongitude, setInitialLogitude] = useState<number | undefined>(undefined);
   const [initialRegion, setInitialRegion] = useState<Region | undefined>(undefined); // 초기 위치를 undefined로 설정
   const [region, setRegion] = useState<Region | undefined>(undefined); // 지역 상태 추가 
 
@@ -206,7 +207,10 @@ function ThemeScreen() {
               latitudeDelta: 0.005,
               longitudeDelta: 0.005,
             };
+            
             setLocation(userLocation);
+            setInitialLatitude(userLocation.latitude);
+            setInitialLogitude(userLocation.longitude);
             setInitialRegion(userLocation); // 초기 위치 설정
             setInitialLocationSet(true);
           },
@@ -269,10 +273,17 @@ function ThemeScreen() {
     try {
       let url = 'http://13.125.53.226:8080/api/themes';
       if (filter !== '전체') {
-        url += `/${filter.toLowerCase()}/places`; // 필터 값에 따른 API 호출
+        // '온천/스파' 필터에 대한 처리
+        if (filter === '온천/스파') {
+          url += '/온천 스파/places'; // 필터 값이 '온천/스파'일 때
+        } else {
+          url += `/${filter.toLowerCase()}/places`; // 그 외의 필터
+        }
       } else {
         url += `/places`; // '전체' 선택 시 모든 장소 조회
       }
+
+      console.log(url)
   
       const response = await fetch(url, {
         method: 'GET',
@@ -414,10 +425,6 @@ const handleLikesFilterPress = async () => {
   
 const handleBaggageFilterPress = async () => {
   setBaggageFilterActive(prevState => !prevState);
-  
-  if (isBaggageDataFetched === true) {
-    return;
-  }
 
   try {
     const response = await fetch(
@@ -642,8 +649,8 @@ const handlePlaceMarkerPress = async (placeId: number) => {
         provider={PROVIDER_GOOGLE}
         style={styles.map}
         initialRegion={{
-          latitude: initialRegion?.latitude ?? 37.5492,
-          longitude: initialRegion?.longitude ?? 126.9654, 
+          latitude: initialLatitude ?? 37.5457,
+          longitude: initialLongitude ?? 126.9644,
           latitudeDelta: initialRegion?.latitudeDelta ?? 0.005,
           longitudeDelta: initialRegion?.longitudeDelta ?? 0.005,
           }}
@@ -932,6 +939,17 @@ const handlePlaceMarkerPress = async (placeId: number) => {
            {placeDetail.장소명}
          </Text>
        </View>
+
+       <View style={styles.bottomSheetDescriptionContainer}>
+        {placeDetail.이미지 ? (
+        <Image
+          source={{ uri: placeDetail.이미지 }}
+          style={styles.bottomSheetImageContainerCollapsed}
+        />
+    ) : (
+      <Text>No images</Text>
+    )}
+        </View>
 
        {/* 주소, 영업시간 등 null 값을 체크하고 렌더링 */}
        <View style={styles.bottomSheetListContainer}>

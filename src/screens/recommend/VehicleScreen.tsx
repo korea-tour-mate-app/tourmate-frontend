@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Image, Alert } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Image, Alert, FlatList } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { RootStackParamList } from '../navigation/navigationTypes';
@@ -24,11 +24,14 @@ const VehicleScreen: React.FC = () => {
   const [info, setInfo] = useState<string>(
     '여행 시 이용하실 이동수단을 선택해주세요.',
   );
-  const [valueOption1, setValueOption1] = useState<string>('대중교통');
-  const [valueOption2, setValueOption2] = useState<string>('자동차');
   const [next, setNext] = useState<string>('여행경로 추천받기');
 
-  const {language: globalLanguage} = useLanguage();
+  const { language: globalLanguage } = useLanguage();
+
+  const options = [
+    { id: '0', label: '대중교통', image: require('../../assets/images/themeIcon/bus.png') },
+    { id: '1', label: '자동차', image: require('../../assets/images/themeIcon/car.png') },
+  ];
 
   useEffect(() => {
     const translateTexts = async () => {
@@ -45,15 +48,6 @@ const VehicleScreen: React.FC = () => {
         );
         setInfo(translatedInfo);
 
-        const translatedOption1 = await translateText(
-          '대중교통',
-          globalLanguage,
-        );
-        setValueOption1(translatedOption1);
-
-        const translatedOption2 = await translateText('자동차', globalLanguage);
-        setValueOption2(translatedOption2);
-
         const translatedNext = await translateText(
           '여행경로 추천받기',
           globalLanguage,
@@ -69,29 +63,24 @@ const VehicleScreen: React.FC = () => {
 
   const handleSelect = async (index: number, option: string) => {
     setSelectedVehicle(index);
-  
     setSelectedOption(prevOption => (prevOption === option ? null : option));
-  
+
     if (selectedOption === option) {
       setSelectedOption(null);
       const translatedInfo = await translateText('여행 시 이용하실 이동수단을 선택해주세요.', globalLanguage);
       setInfo(translatedInfo);
     } else {
-      setSelectedOption(option);
-  
       let translatedInfo = '';
-      if (option === valueOption1) {
+      if (option === '대중교통') {
         translatedInfo = await translateText('버스나 지하철을 이용해요.', globalLanguage);
-      } else if (option === valueOption2) {
+      } else if (option === '자동차') {
         translatedInfo = await translateText('택시나 렌트카를 이용해요.', globalLanguage);
       }
       setInfo(translatedInfo);
     }
   };
-  
 
   const handleNext = () => {
-    console.log('selectedVehicle:', selectedVehicle);
     if (selectedOption) {
       navigation.navigate('RouteScreen');
     } else {
@@ -109,6 +98,7 @@ const VehicleScreen: React.FC = () => {
           style={styles.backButton}
         />
       </TouchableOpacity>
+
       <Text style={styles.question}>Q4.</Text>
       <Text style={styles.question}>{questionText}</Text>
 
@@ -118,35 +108,30 @@ const VehicleScreen: React.FC = () => {
         </View>
       </View>
 
-      <View style={styles.cardContainer}>
-        <TouchableOpacity
-          style={[
-            styles.card,
-            selectedOption === valueOption1 && styles.selectedCard,
-          ]}
-          onPress={() => handleSelect(0, valueOption1)}
-        >
-          <Image source={require('../../assets/images/themeIcon/bus.png')} style={[styles.icon, { width: 80, height: 80 }]} />
-          <Text style={[
-            styles.label,
-            selectedOption === valueOption1 && styles.selectedLabel,
-          ]}>{valueOption1}</Text>
-        </TouchableOpacity>
+      <FlatList
+  data={options}
+  numColumns={2}
+  keyExtractor={(item) => item.id}
+  renderItem={({ item, index }) => (
+    <TouchableOpacity
+      style={[
+        styles.card,
+        selectedOption === item.label && styles.selectedCard,
+      ]}
+      onPress={() => handleSelect(index, item.label)}
+    >
+      <Image source={item.image} style={[styles.icon, { width: 80, height: 80 }]} />
+      <Text style={[
+        styles.label,
+        selectedOption === item.label && styles.selectedLabel,
+      ]}>
+        {item.label}
+      </Text>
+    </TouchableOpacity>
+  )}
+  contentContainerStyle={styles.cardContainer}  
+/>
 
-        <TouchableOpacity
-          style={[
-            styles.card,
-            selectedOption === valueOption2 && styles.selectedCard,
-          ]}
-          onPress={() => handleSelect(1, valueOption2)}
-        >
-          <Image source={require('../../assets/images/themeIcon/car.png')} style={[styles.icon, { width: 80, height: 80 }]} />
-          <Text style={[
-            styles.label,
-            selectedOption === valueOption2 && styles.selectedLabel,
-          ]}>{valueOption2}</Text>
-        </TouchableOpacity>
-      </View>
 
       <Text style={styles.caption}>
         *사진출처 Microsoft Fluent Emoji – Color
@@ -155,11 +140,11 @@ const VehicleScreen: React.FC = () => {
       <TouchableOpacity
         style={[
           styles.nextButton,
-          {backgroundColor: selectedOption ? '#0047A0' : '#D3D3D3'},
+          { backgroundColor: selectedOption ? '#0047A0' : '#D3D3D3' },
         ]}
         onPress={handleNext}
         disabled={!selectedOption}>
-        <Text style={[styles.nextText, {color: 'white'}]}>{next}</Text>
+        <Text style={[styles.nextText, { color: 'white' }]}>{next}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -190,11 +175,10 @@ const styles = StyleSheet.create({
     color: '#000000',
   },
   cardContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
     marginTop: 20,
-  },
+  },  
   rectangleContainer: {
     alignItems: 'center',
     justifyContent: 'center',

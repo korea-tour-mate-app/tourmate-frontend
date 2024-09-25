@@ -57,7 +57,7 @@ function AppNavigator() {
         name="RouteScreen" 
         component={RouteScreen} 
         options={{ headerShown: false }} 
-      />     
+      />  
       <Stack.Screen 
         name="MyPageScreen" 
         component={MypageScreen} 
