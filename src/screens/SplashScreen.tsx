@@ -123,6 +123,7 @@ const SplashScreen: React.FC = () => {
         );
   
         const result = await response.json();
+
         if (response.ok) {
         await AsyncStorage.setItem('jwtToken', result.accessToken);
         setIsGoogleUser(false);
