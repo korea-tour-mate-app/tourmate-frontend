@@ -10,7 +10,8 @@
 		00E356F31AD99517003FC87E /* tourmate_frontendTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* tourmate_frontendTests.m */; };
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
-		30BBED832C8ED3FA0090EDC7 /* fonts in Resources */ = {isa = PBXBuildFile; fileRef = 30BBED822C8ED3FA0090EDC7 /* fonts */; };
+		309C70602CA4A16F004ACD74 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
+		30B492132CA5292D00DFA35B /* Fonts in Resources */ = {isa = PBXBuildFile; fileRef = 30BBED822C8ED3FA0090EDC7 /* Fonts */; };
 		30BF40902C8E26CB00621FBA /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 30BF408F2C8E26CB00621FBA /* GoogleService-Info.plist */; };
 		30BFDD122C8387AA006B0D29 /* AIRDummyView.m in Sources */ = {isa = PBXBuildFile; fileRef = 30BFDCDB2C8387AA006B0D29 /* AIRDummyView.m */; };
 		30BFDD132C8387AA006B0D29 /* AIRGMSMarker.m in Sources */ = {isa = PBXBuildFile; fileRef = 30BFDCDD2C8387AA006B0D29 /* AIRGMSMarker.m */; };
@@ -67,7 +68,7 @@
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = tourmate_frontend/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		169EBB85CC14EE966FE25C4B /* Pods_tourmate_frontend.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_tourmate_frontend.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A3A0DB210112332B246A015 /* Pods-tourmate_frontend.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-tourmate_frontend.release.xcconfig"; path = "Target Support Files/Pods-tourmate_frontend/Pods-tourmate_frontend.release.xcconfig"; sourceTree = "<group>"; };
-		30BBED822C8ED3FA0090EDC7 /* fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; name = fonts; path = ../src/assets/fonts; sourceTree = "<group>"; };
+		30BBED822C8ED3FA0090EDC7 /* Fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Fonts; path = ../src/assets/Fonts; sourceTree = "<group>"; };
 		30BF408F2C8E26CB00621FBA /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../Downloads/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		30BFDCD82C8387AA006B0D29 /* GoogleMapsPrivacy.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = GoogleMapsPrivacy.bundle; sourceTree = "<group>"; };
 		30BFDCDA2C8387AA006B0D29 /* AIRDummyView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AIRDummyView.h; sourceTree = "<group>"; };
@@ -279,7 +280,7 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
-				30BBED822C8ED3FA0090EDC7 /* fonts */,
+				30BBED822C8ED3FA0090EDC7 /* Fonts */,
 				30BFDD102C8387AA006B0D29 /* AirGoogleMaps */,
 				13B07FAE1A68108700A75B9A /* tourmate_frontend */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
@@ -417,9 +418,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				30BBED832C8ED3FA0090EDC7 /* fonts in Resources */,
+				309C70602CA4A16F004ACD74 /* Images.xcassets in Resources */,
 				A7C17122AAA9685CA6000EF1 /* PrivacyInfo.xcprivacy in Resources */,
 				30BF40902C8E26CB00621FBA /* GoogleService-Info.plist in Resources */,
+				30B492132CA5292D00DFA35B /* Fonts in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -667,6 +669,7 @@
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = B8PTPQQTP6;
@@ -756,6 +759,7 @@
 					"$(SRCROOT)/../node_modules/react-native-maps/lib/ios/AirMaps/**",
 				);
 				INFOPLIST_FILE = tourmate_frontend/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TOURMATE;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -781,6 +785,7 @@
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
 				CLANG_ENABLE_MODULES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = B8PTPQQTP6;
@@ -869,6 +874,7 @@
 					"$(SRCROOT)/../node_modules/react-native-maps/lib/ios/AirMaps/**",
 				);
 				INFOPLIST_FILE = tourmate_frontend/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TOURMATE;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

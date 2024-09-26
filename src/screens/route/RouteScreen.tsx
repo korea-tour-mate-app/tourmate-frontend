@@ -17611,7 +17611,7 @@ const styles = StyleSheet.create({
   verticalLine: {
     position: 'absolute',
     top: '20%',  // 부모 요소의 상단부터 시작
-    left: 24,    // X축에서 마커와 일치하는 위치 (필요에 따라 조정)
+    left: 33,    // X축에서 마커와 일치하는 위치 (필요에 따라 조정)
     width: 4,
     height: 200,  
     backgroundColor: '#B5B5B5',
@@ -17683,19 +17683,19 @@ const styles = StyleSheet.create({
     height: '100%', // 부모 컨테이너에 맞춤
   },
   capsuleText: {
-    fontSize: 14,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#E5EAF0',  // 기본 텍스트 색상은 흰색
   },
   walkTimeText: {
-    fontSize: 14,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#000',  // WALK는 검정색 텍스트
   },
   capsuleLabel: {
     marginTop: 14,
     textAlign: 'center',
-    fontSize: 12,
+    fontSize: 16,
     color: '#000',
     fontFamily: 'SBAggroM'
   },
@@ -17720,7 +17720,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#B5B5B5', // 동그라미 색상
   },
   stopText: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#000',
     fontFamily: 'SBAggroL', 
     maxWidth: 300
@@ -17745,7 +17745,7 @@ const styles = StyleSheet.create({
   expandedVerticalLine: {
     position: 'absolute',
     top: '10%',  // 부모 요소의 상단부터 시작
-    left: 24,    // X축에서 마커와 일치하는 위치 (필요에 따라 조정)
+    left: 33,    // X축에서 마커와 일치하는 위치 (필요에 따라 조정)
     width: 4,
     height: '100%',  // 부모 컨테이너에 맞춰 높이를 동적으로 설정
     backgroundColor: '#B5B5B5',

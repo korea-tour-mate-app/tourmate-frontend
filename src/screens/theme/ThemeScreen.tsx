@@ -542,6 +542,7 @@ const handlePlaceMarkerPress = async (placeId: number) => {
   const jwtToken = await AsyncStorage.getItem('jwtToken'); // JWT 토큰 가져오기
   console.log("token", jwtToken);
   console.log(placeId);
+  const jwtToken = await AsyncStorage.getItem('jwtToken'); // JWT 토큰 가져오기
   try {
     const response = await fetch(
       `http://13.125.53.226:8080/api/themes/place/${placeId}`,
@@ -1326,6 +1327,7 @@ const handlePlaceMarkerPress = async (placeId: number) => {
           </View>
         )}
   
+
         {/* selectedBaggage 관련 렌더링 */}
         {selectedBaggage && (
           <View style={styles.bottomSheetContainer}>
@@ -1591,6 +1593,9 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
     marginRight: 40,
   },
+  bottomSheetInfoCollapsed:{
+    width: 170,
+  },
   bottomSheetImageContainerExpand: {
     width: '100%',
     height: 150,
@@ -1635,6 +1640,7 @@ const styles = StyleSheet.create({
     fontFamily: 'SBAggroL',
     fontSize: 18,
     marginTop: 10,
+    flexWrap: 'wrap',
   },
   baggagePlace:{
     fontSize: 20,

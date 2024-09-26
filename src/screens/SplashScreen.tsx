@@ -122,7 +122,8 @@ const SplashScreen: React.FC = () => {
           }
         );
   
-        const result = await response.json();8
+        const result = await response.json();
+
         if (response.ok) {
         await AsyncStorage.setItem('jwtToken', result.accessToken);
         setIsGoogleUser(false);
@@ -138,7 +139,6 @@ const SplashScreen: React.FC = () => {
     } else {
       Alert.alert('입력 오류', '이메일과 비밀번호를 입력해 주세요.');
     }
-    // navigation.navigate('Tabs'); // 로그인 성공 시 Tabs 화면으로 이동
   };
 
   const handleGoogleLogin = async () => {
@@ -165,9 +165,7 @@ const SplashScreen: React.FC = () => {
         const data = await response.json();
         await AsyncStorage.setItem('jwtToken', data.accessToken);
   
-        setIsGoogleUser(true);
-        navigation.navigate('Tabs'); // 로그인 성공 시 Tabs 화면으로 이동
-      }
+        setIsGoogleUser(true);      }
     } catch (error) {
       console.error('Error during Google login:', error);
     }
