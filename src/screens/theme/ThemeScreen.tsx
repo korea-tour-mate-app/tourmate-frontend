@@ -9,7 +9,9 @@ import {request, PERMISSIONS, RESULTS} from 'react-native-permissions';
 import {useLanguage} from '../../components/LanguageProvider';
 import {translateText} from '../../utils/Translation';
 import { TextInput } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import ImagePicker from 'react-native-image-picker';
+import { launchImageLibrary, ImagePickerResponse, Asset } from 'react-native-image-picker';
+
 
 // 위치 및 장소 타입 정의
 interface LocationType {
@@ -63,6 +65,8 @@ interface PlaceDetail{
   가격대: string | null; 
   '관련 링크': string | null;
   '총 별점': number | null; 
+  'visited': boolean | null, // 방문 여부 추가,
+  'likes': boolean | null,
 }
 
 interface Visited{
@@ -182,9 +186,41 @@ function ThemeScreen() {
   const [isReviewModalVisible, setIsReviewModalVisible] = useState(false); // 리뷰 작성 모달 상태
   const [newReview, setNewReview] = useState(''); // 새 리뷰 내용
   const [newRating, setNewRating] = useState<number>(0); // 새 리뷰 평점
-  const [reviewImages, setReviewImages] = useState<string[]>([]); // 리뷰 이미지들
+  const [reviewImages, setReviewImages] = useState<{ uri: string }[]>([]);
   const [isMyReview, setIsMyReview] = useState(false); // 내 리뷰 여부
   const [isVisited, setIsVisited] = useState(false); // 방문 여부
+
+  // 번역된 텍스트를 저장할 상태
+  const [translatedLabels, setTranslatedLabels] = useState({
+    writeReview: '리뷰 작성',
+    submitReview: '리뷰 등록',
+    cancelReview: '취소',
+    rating: '별점',
+    selectImage: '이미지 선택',
+    reviewPlaceholder: '리뷰 내용을 입력하세요',
+
+  });
+  useEffect(() => {
+    const translateLabels = async () => {
+      const translatedWriteReview = await translateText('리뷰 작성', globalLanguage);
+      const translatedSubmitReview = await translateText('리뷰 등록', globalLanguage);
+      const translatedCancelReview = await translateText('취소', globalLanguage);
+      const translatedRating = await translateText('별점', globalLanguage);
+      const translatedSelectImage = await translateText('이미지 선택', globalLanguage);
+      const translatedReviewPlaceholder = await translateText('리뷰 내용을 입력하세요', globalLanguage);
+
+      setTranslatedLabels({
+        writeReview: translatedWriteReview,
+        submitReview: translatedSubmitReview,
+        cancelReview: translatedCancelReview,
+        rating: translatedRating,
+        selectImage: translatedSelectImage,
+        reviewPlaceholder: translatedReviewPlaceholder,
+      });
+    };
+
+    translateLabels();
+  }, [globalLanguage]);
 
   // 필터 단어 목록
   const filters = [
@@ -503,6 +539,8 @@ useEffect(() => {
 
 
 const handlePlaceMarkerPress = async (placeId: number) => {
+  const jwtToken = await AsyncStorage.getItem('jwtToken'); // JWT 토큰 가져오기
+  console.log("token", jwtToken);
   console.log(placeId);
   try {
     const response = await fetch(
@@ -510,6 +548,7 @@ const handlePlaceMarkerPress = async (placeId: number) => {
       {
         method: 'GET',
         headers: {
+           Authorization: `Bearer ${jwtToken}`,
           'Content-Type': 'application/json',
         },
       }
@@ -558,8 +597,14 @@ const handlePlaceMarkerPress = async (placeId: number) => {
         가격대: result['가격대'] || null,
         '관련 링크': result['관련 링크'] || null,
         '총 별점': result['총 별점'] || null, 
+        'visited': result.visited || false, // 방문 여부 추가,
+        'likes': result.likes || false // 좋아요 여부 추가,
       });
       console.log("place: ", translatedPlaceName);
+
+      // 리뷰를 가져오는 함수 호출
+      await getReviewsByPlaceId(placeId); // 추가: 리뷰 호출
+
     } else {
       console.error('응답 오류:', result);
     }
@@ -667,6 +712,7 @@ const handlePlaceMarkerPress = async (placeId: number) => {
 
   // 리뷰 리스트 가져오기(내 방문 여부, 내 리뷰인지)
   const getReviewsByPlaceId = async (placeId: number) => {
+    console.log(placeId);
     try {
       const jwtToken = await AsyncStorage.getItem('jwtToken'); // JWT 토큰 가져오기
       const response = await fetch(
@@ -681,8 +727,17 @@ const handlePlaceMarkerPress = async (placeId: number) => {
       );
   
       const result = await response.json();
+      console.log(result);
       if (response.ok) {
-        setReviews(result.reviews); // 리뷰 리스트 상태 업데이트
+        // 리뷰 데이터를 번역한 후 상태에 저장
+        const translatedReviews = await Promise.all(
+          result.reviews.map(async (review: ReviewResponseDto) => {
+            const translatedReviewDec = await translateText(review.reviewDec, globalLanguage);
+            return { ...review, reviewDec: translatedReviewDec };
+          })
+        );
+
+        setReviews(translatedReviews); // 번역된 리뷰 리스트 상태 업데이트
         setIsVisited(result.visited); // 방문 여부 업데이트
         setIsMyReview(result.reviews.some((review: ReviewResponseDto) => review.isMyReview)); // 내 리뷰 여부 확인
       } else {
@@ -693,17 +748,50 @@ const handlePlaceMarkerPress = async (placeId: number) => {
     }
   };
 
+  const selectImages = () => {
+    launchImageLibrary(
+      {
+        mediaType: 'photo',
+        selectionLimit: 0, // 0을 설정하면 여러 이미지를 선택할 수 있음
+        includeBase64: false, // base64 데이터를 포함하지 않도록 설정
+      },
+      (response: ImagePickerResponse) => {
+        if (response.didCancel) {
+          console.log('User cancelled image picker');
+        } else if (response.errorCode) {
+          console.log('ImagePicker Error: ', response.errorMessage);
+        } else if (response.assets) {
+          // 여러 이미지가 있을 경우 모든 이미지를 reviewImages에 추가
+          const selectedImages = response.assets
+            .map((asset: Asset) => {
+              // uri가 존재하는 이미지 객체만 생성
+              return asset.uri ? { uri: asset.uri } : null;
+            })
+            .filter((image): image is { uri: string } => image !== null); // null이 아닌 이미지 객체 필터링
+  
+          // 선택한 이미지를 기존 이미지 배열에 추가
+          setReviewImages(prevImages => [...prevImages, ...selectedImages]);
+        }
+      }
+    );
+  };
+  
   // 리뷰 생성
   const handleCreateReview = async (placeId: number) => {
     try {
       const jwtToken = await AsyncStorage.getItem('jwtToken');
-      const reviewRequestDto = JSON.stringify({
+      if (!jwtToken) {
+        console.error('JWT 토큰이 없습니다.');
+        return;
+      }
+      const reviewRequestDto = {
         reviewDec: newReview,
         rate: newRating,
-      });
-  
+      };
       const formData = new FormData();
-      formData.append('reviewRequestDto', JSON.stringify(reviewRequestDto));
+      formData.append('reviewRequestDto', JSON.stringify(reviewRequestDto)); // JSON 문자열 추가
+  
+      // 선택된 이미지들을 FormData에 추가
       reviewImages.forEach((image, index) => {
         formData.append('reviewImages', {
           uri: image.uri,
@@ -711,19 +799,19 @@ const handlePlaceMarkerPress = async (placeId: number) => {
           type: 'image/jpeg',
         });
       });
-  
+
       const response = await fetch(
         `http://13.125.53.226:8080/api/${placeId}/review`,
         {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${jwtToken}`,
-            'Content-Type': 'multipart/form-data',
+            'Content-Type': 'multipart/form-data', // 'multipart/form-data' 헤더는 자동 설정되므로 생략 가능
           },
           body: formData,
         }
       );
-  
+
       if (response.ok) {
         setNewReview('');
         setNewRating(0);
@@ -733,6 +821,7 @@ const handlePlaceMarkerPress = async (placeId: number) => {
           await getReviewsByPlaceId(placeDetail.placeId); // 리뷰 리스트 갱신
         }
       } else {
+        const errorData = await response.json(); // 에러 응답을 파싱
         console.error('리뷰 등록 실패:', response);
       }
     } catch (error) {
@@ -779,8 +868,10 @@ const handlePlaceMarkerPress = async (placeId: number) => {
         provider={PROVIDER_GOOGLE}
         style={styles.map}
         initialRegion={{
-          latitude: initialLatitude ?? 37.5457,
-          longitude: initialLongitude ?? 126.9644,
+          // latitude: initialLatitude ?? 37.5457,
+          // longitude: initialLongitude ?? 126.9644,
+          latitude: 37.5659,
+          longitude: 126.9753,
           latitudeDelta: initialRegion?.latitudeDelta ?? 0.005,
           longitudeDelta: initialRegion?.longitudeDelta ?? 0.005,
         }}
@@ -1019,14 +1110,12 @@ const handlePlaceMarkerPress = async (placeId: number) => {
                       style={styles.bottomSheetButton}
                       onPress={async () => {
                         await handleVisitedPress(placeDetail); // 장소 정보를 서버에 저장
-                        await handleVisitedFilterPress();
+                        await handleVisitedFilterPress(); // 저장된 장소 목록 가져오기
                       }}
                     >
                       <Image
                         source={
-                          visitedData.some(
-                            (item) => item.placeId === placeDetail.placeId
-                          )
+                          placeDetail?.visited // placeDetail의 visited 상태를 사용하여 이미지 변경
                             ? require('../../assets/images/map/visited-active.png')
                             : require('../../assets/images/map/visited-inactive.png')
                         }
@@ -1042,9 +1131,7 @@ const handlePlaceMarkerPress = async (placeId: number) => {
                     >
                       <Image
                         source={
-                          likesData.some(
-                            (item) => item.placeId === placeDetail.placeId
-                          )
+                          placeDetail?.likes // placeDetail의 likes 상태를 사용하여 이미지 변경
                             ? require('../../assets/images/map/likes-active.png')
                             : require('../../assets/images/map/likes-inactive.png')
                         }
@@ -1079,6 +1166,40 @@ const handlePlaceMarkerPress = async (placeId: number) => {
                   <Text style={styles.bottomSheetTitleExpand}>
                     {placeDetail.장소명}
                   </Text>
+                  <View style={styles.bottomSheetButtonContainer}>
+                    <TouchableOpacity
+                      style={styles.bottomSheetButton}
+                      onPress={async () => {
+                        await handleVisitedPress(placeDetail);
+                        await handleVisitedFilterPress();
+                      }}
+                    >
+                      <Image
+                        source={
+                          placeDetail?.visited 
+                            ? require('../../assets/images/map/visited-active.png')
+                            : require('../../assets/images/map/visited-inactive.png')
+                        }
+                        style={styles.bottomSheetVisitedButton}
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.bottomSheetButton}
+                      onPress={async () => {
+                        await handleLikesPress(placeDetail);
+                        await handleLikesFilterPress();
+                      }}
+                    >
+                      <Image
+                        source={
+                          placeDetail?.likes 
+                            ? require('../../assets/images/map/likes-active.png')
+                            : require('../../assets/images/map/likes-inactive.png')
+                        }
+                        style={styles.bottomSheetLikesButton}
+                      />
+                    </TouchableOpacity>
+                  </View>
                 </View>
   
                 <View style={styles.bottomSheetDescriptionContainer}>
@@ -1173,6 +1294,7 @@ const handlePlaceMarkerPress = async (placeId: number) => {
                           <Image
                             source={{ uri: review.reviewUrl1 }}
                             style={styles.reviewImage}
+                            resizeMode="cover" // 이미지가 잘 맞도록 수정
                           />
                         )}
                         {review.isMyReview && (
@@ -1191,12 +1313,12 @@ const handlePlaceMarkerPress = async (placeId: number) => {
                 )}
   
                 {/* 리뷰 작성 버튼 */}
-                {isVisited && (
+                {placeDetail?.visited && (
                   <TouchableOpacity
                     style={styles.writeReviewButton}
                     onPress={() => setIsReviewModalVisible(true)}
                   >
-                    <Text style={styles.writeReviewButtonText}>리뷰 작성</Text>
+                    <Text style={styles.writeReviewButtonText}>{translatedLabels.writeReview}</Text>
                   </TouchableOpacity>
                 )}
               </ScrollView>
@@ -1240,58 +1362,69 @@ const handlePlaceMarkerPress = async (placeId: number) => {
         )}
       </BottomSheet>
   
-      {/* 리뷰 작성 모달 */}
       {isReviewModalVisible && (
         <View style={styles.reviewModal}>
+          <Text style={styles.modalTitle}>{translatedLabels.writeReview}</Text>
+          
+          {/* 리뷰 입력 필드 */}
           <TextInput
             style={styles.reviewInput}
-            placeholder="리뷰 내용을 입력하세요"
+            placeholder={translatedLabels.reviewPlaceholder}
             value={newReview}
             onChangeText={setNewReview}
+            multiline
           />
-          <View style={styles.reviewRatingContainer}>
-            <Text>평점:</Text>
-            <Picker
-              selectedValue={newRating}
-              onValueChange={(itemValue: number) => setNewRating(itemValue)}
-              >
-              <Picker.Item label="0" value={0} />
-              <Picker.Item label="1" value={1} />
-              <Picker.Item label="2" value={2} />
-              <Picker.Item label="3" value={3} />
-              <Picker.Item label="4" value={4} />
-              <Picker.Item label="5" value={5} />
-            </Picker>
-          </View>
-          <View style={styles.imagePickerContainer}>
-            <TouchableOpacity
-              onPress={() => {
-                /* 이미지 선택 기능 추가 */
-              }}
-              style={styles.imagePickerButton}
-            >
-              <Text>이미지 선택</Text>
-            </TouchableOpacity>
-            {reviewImages.length > 0 &&
-              reviewImages.map((image, index) => (
-                <Image
-                  key={index}
-                  source={{ uri: image.uri }}
-                  style={styles.selectedImage}
-                />
+
+          {/* 별점 선택 */}
+          <View style={styles.ratingContainer}>
+            <Text style={styles.modalSubTitle}>{translatedLabels.rating}</Text>
+            <View style={styles.ratingStars}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <TouchableOpacity key={star} onPress={() => setNewRating(star)}>
+                  <Image
+                    source={
+                      star <= newRating
+                        ? require('../../assets/images/star-filled.png') // 채워진 별 이미지
+                        : require('../../assets/images/star-outline.png') // 비어있는 별 이미지
+                    }
+                    style={styles.starIcon}
+                  />
+                </TouchableOpacity>
               ))}
+            </View>
           </View>
-          <TouchableOpacity onPress={handlePressCreateReview} style={styles.submitReviewButton}>
-            <Text style={styles.submitReviewButtonText}>리뷰 등록</Text>
+
+          {/* 이미지 선택 버튼 */}
+          <TouchableOpacity
+            onPress={selectImages} // 이미지 선택 함수 호출
+            style={styles.imagePickerButton}
+          >
+            <Text style={styles.imagePickerButtonText}>{translatedLabels.selectImage}</Text>
           </TouchableOpacity>
+          
+          {/* 선택된 이미지 미리보기 */}
+          <View style={styles.imagePreviewContainer}>
+            {reviewImages.map((image, index) => (
+              <Image key={index} source={{ uri: image.uri }} style={styles.selectedImage} />
+            ))}
+          </View>
+
+          {/* 리뷰 등록 버튼 */}
+          <TouchableOpacity onPress={handlePressCreateReview} style={styles.submitReviewButton}>
+            <Text style={styles.submitReviewButtonText}>{translatedLabels.submitReview}</Text>
+          </TouchableOpacity>
+
+          {/* 취소 버튼 */}
           <TouchableOpacity
             onPress={() => setIsReviewModalVisible(false)}
             style={styles.cancelReviewButton}
           >
-            <Text style={styles.cancelReviewButtonText}>취소</Text>
+            <Text style={styles.cancelReviewButtonText}>{translatedLabels.cancelReview}</Text>
           </TouchableOpacity>
+
         </View>
-      )}
+)}
+
     </GestureHandlerRootView>
   );  
 }
@@ -1567,6 +1700,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderRadius: 5,
     alignSelf: 'center',
+    marginBottom: 20,
   },
   writeReviewButtonText: {
     color: '#fff',
@@ -1587,27 +1721,58 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 5,
   },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  modalSubTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
   reviewInput: {
     borderColor: '#ccc',
     borderWidth: 1,
     padding: 10,
+    width: '100%',
     marginBottom: 15,
     borderRadius: 5,
+    height: 100,
+    textAlignVertical: 'top', // 텍스트 입력 시 위쪽부터 시작하도록 설정
   },
-  reviewRatingContainer: {
+  ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 15,
+  },
+  ratingStars: {
+    flexDirection: 'row',
+  },
+  starIcon: {
+    width: 30,
+    height: 30,
+    marginHorizontal: 5,
+  },
+  imagePickerButton: {
+    backgroundColor: '#ddd',
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 15,
+    alignSelf: 'center',
+  },
+  imagePickerButtonText: {
+    fontSize: 16,
+    color: '#333',
   },
   imagePickerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 15,
   },
-  imagePickerButton: {
-    backgroundColor: '#ddd',
-    padding: 10,
-    borderRadius: 5,
+  imagePreviewContainer: {
+    flexDirection: 'row',
+    marginBottom: 15,
   },
   selectedImage: {
     width: 50,
@@ -1621,10 +1786,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderRadius: 5,
     alignSelf: 'center',
+    marginBottom: 10,
   },
   submitReviewButtonText: {
     color: '#fff',
-    fontFamily: 'SBAggroM',
     fontSize: 16,
   },
   cancelReviewButton: {
@@ -1633,13 +1798,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     borderRadius: 5,
     alignSelf: 'center',
-    marginTop: 10,
   },
   cancelReviewButtonText: {
     color: '#333',
-    fontFamily: 'SBAggroM',
     fontSize: 16,
-  },  
+  },
 });
 
 export default ThemeScreen;
