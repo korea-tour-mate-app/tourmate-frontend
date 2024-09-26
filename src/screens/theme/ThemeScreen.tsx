@@ -482,12 +482,14 @@ useEffect(() => {
 
 const handlePlaceMarkerPress = async (placeId: number) => {
   console.log(placeId);
+  const jwtToken = await AsyncStorage.getItem('jwtToken'); // JWT 토큰 가져오기
   try {
     const response = await fetch(
       `http://13.125.53.226:8080/api/themes/place/${placeId}`,
       {
         method: 'GET',
         headers: {
+          Authorization: `Bearer ${jwtToken}`,
           'Content-Type': 'application/json',
         },
       }
@@ -927,6 +929,14 @@ const handlePlaceMarkerPress = async (placeId: number) => {
 ) : (
   <Text>No images</Text>
 )}
+       {placeDetail.설명 && (
+        <View style={styles.bottomSheetInfoCollapsed}>
+             <Text style={styles.bottomSheetListContent}>
+               {placeDetail.설명}
+             </Text>
+        </View>
+         )}
+
         </View>
       </>
     )}
@@ -944,7 +954,7 @@ const handlePlaceMarkerPress = async (placeId: number) => {
         {placeDetail.이미지 ? (
         <Image
           source={{ uri: placeDetail.이미지 }}
-          style={styles.bottomSheetImageContainerCollapsed}
+          style={styles.bottomSheetImageContainerExpand}
         />
     ) : (
       <Text>No images</Text>
@@ -1200,6 +1210,9 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
     marginRight: 40,
   },
+  bottomSheetInfoCollapsed:{
+    width: 170,
+  },
   bottomSheetImageContainerExpand: {
     width: '100%',
     height: 150,
@@ -1244,6 +1257,7 @@ const styles = StyleSheet.create({
     fontFamily: 'SBAggroL',
     fontSize: 18,
     marginTop: 10,
+    flexWrap: 'wrap',
   },
   baggagePlace:{
     fontSize: 20,
