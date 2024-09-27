@@ -165,7 +165,9 @@ const SplashScreen: React.FC = () => {
         const data = await response.json();
         await AsyncStorage.setItem('jwtToken', data.accessToken);
   
-        setIsGoogleUser(true);      }
+        setIsGoogleUser(true);   
+        navigation.navigate('Tabs'); // 로그인 성공 시 Tabs 화면으로 이동   
+      }
     } catch (error) {
       console.error('Error during Google login:', error);
     }
@@ -292,13 +294,13 @@ const SplashScreen: React.FC = () => {
   const platformLoginBoxSize = () => {
     return Platform.OS === 'android'
       ? {width: windowWidth * 0.8, height: windowHeight * 0.7}
-      : {width: windowWidth * 0.8, height: windowHeight * 0.6};
+      : {width: windowWidth * 0.8, height: windowHeight * 0.65};
   };
 
   const platformSignUpBoxSize = () => {
     return Platform.OS === 'android'
       ? {width: windowWidth * 0.8, height: windowHeight * 0.75}
-      : {width: windowWidth * 0.8, height: windowHeight * 0.7};
+      : {width: windowWidth * 0.8, height: windowHeight * 0.8};
   };
 
   return (
@@ -321,7 +323,10 @@ const SplashScreen: React.FC = () => {
             TOURMATE.
           </Text>
           <Text style={[styles.content, {fontSize: platformFontSize(16)}]}>
-            Please log in to use our member services.
+            Please log in to use
+          </Text>
+          <Text style={{fontSize: platformFontSize(16)}}>
+            our member services.
           </Text>
 
           <TextInput

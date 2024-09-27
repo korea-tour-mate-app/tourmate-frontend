@@ -15694,7 +15694,7 @@ const RouteScreen = () => {
                 route_response = response11;
             }
             break;
-            case '0-7-10': // selectedThemes가 [0, 7, 10]인 경우
+            case '0-6-9': // selectedThemes가 [0, 7, 10]인 경우
             switch (i) {
               case 0:
                 route_response = response21;
@@ -16930,8 +16930,9 @@ const RouteScreen = () => {
               <Callout tooltip={true} style={styles.callout}>
                 <View style={styles.customCallout}>
                   <Text
-                    style={[styles.calloutText, { flexWrap: 'wrap', width: 'auto', maxWidth: 400 }]}
-                    adjustsFontSizeToFit={false}
+                    style={[styles.calloutText, { width: '100%' }]} // 최대 너비를 400으로 설정
+                    numberOfLines={0} // 줄 수 제한을 없애고 자동 줄바꿈 허용
+                    adjustsFontSizeToFit={false} // 폰트 크기 자동 조정 방지
                   >
                     {place.name || "Unnamed Place"}
                   </Text>
@@ -17902,18 +17903,20 @@ const styles = StyleSheet.create({
     padding: 0,
   },
   customCallout: {
-    backgroundColor: '#fff', // 배경색
-    borderRadius: 10,        // 모서리 둥글게
-    padding: 10,             // 패딩
-    maxWidth: 500,           // 최대 너비 설정
-    borderColor: '#ccc',     // 테두리 색상
-    borderWidth: 1,          // 테두리 두께
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 10,
+    maxWidth: 500, // 적절한 최대 너비 설정 (필요에 따라 조정 가능)
+    minWidth: 100, // 최소 너비 설정
+    borderColor: '#ccc',
+    borderWidth: 1,
   },
   calloutText: {
     fontSize: 17,
     color: '#000000',
     textAlign: 'center',
-    fontFamily: 'SBAggroL'
+    fontFamily: 'SBAggroL',
+    flexWrap: 'wrap', // 자동 줄바꿈을 위해 flexWrap 사용
   },
   arrow: {
     width: 0,

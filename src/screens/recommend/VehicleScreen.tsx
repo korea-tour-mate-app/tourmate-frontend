@@ -24,13 +24,15 @@ const VehicleScreen: React.FC = () => {
   const [info, setInfo] = useState<string>(
     '여행 시 이용하실 이동수단을 선택해주세요.',
   );
+  const [bus, setBus] = useState<string>('대중교통');
+  const [car, setCar] = useState<string>('자동차');
   const [next, setNext] = useState<string>('여행경로 추천받기');
 
   const { language: globalLanguage } = useLanguage();
 
   const options = [
-    { id: '0', label: '대중교통', image: require('../../assets/images/themeIcon/bus.png') },
-    { id: '1', label: '자동차', image: require('../../assets/images/themeIcon/car.png') },
+    { id: '0', label: bus, image: require('../../assets/images/themeIcon/bus.png') },
+    { id: '1', label: car, image: require('../../assets/images/themeIcon/car.png') },
   ];
 
   useEffect(() => {
@@ -47,6 +49,12 @@ const VehicleScreen: React.FC = () => {
           globalLanguage,
         );
         setInfo(translatedInfo);
+
+        const translatedBus = await translateText('대중교통', globalLanguage);
+        setBus(translatedBus);
+
+        const translatedCar = await translateText('자동차', globalLanguage);
+        setCar(translatedCar);
 
         const translatedNext = await translateText(
           '여행경로 추천받기',
