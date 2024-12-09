@@ -1,79 +1,44 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+> [프로젝트 설명 바로 가기](https://github.com/korea-tour-mate-app)
 
-# Getting Started
-
->**Note**: Make sure you have completed the [React Native - Environment Setup](https://reactnative.dev/docs/environment-setup) instructions till "Creating a new application" step, before proceeding.
-
-## Step 1: Start the Metro Server
-
-First, you will need to start **Metro**, the JavaScript _bundler_ that ships _with_ React Native.
-
-To start Metro, run the following command from the _root_ of your React Native project:
-
-```bash
-# using npm
-npm start
-
-# OR using Yarn
-yarn start
+## 📂 𝗣𝗿𝗼𝗷𝗲𝗰𝘁 𝗙𝗼𝗹𝗱𝗲𝗿 𝗦𝘁𝗿𝘂𝗰𝘁𝘂𝗿𝗲
+```plaintext
+TOURMATE-FRONTEND
+├── android / ios                 # 네이티브 코드 (React Native CLI 사용)
+├── src                           
+│   ├── assets                    # 정적 리소스 
+│   │   ├── Fonts                 # 커스텀 폰트
+│   │   ├── images                # 이미지 리소스
+│   ├── components                # 재사용 가능한 컴포넌트
+│   ├── screens                   # 앱 화면 구성
+│   │   ├── mypage                # 마이페이지 관련 화면
+│   │   ├── navigation            # 네비게이션 설정
+│   │   ├── recommend             # 여행자 성향 질문 받는 화면
+│   │   ├── route                 # 여행 장소 및 경로 추천
+│   │   ├── theme                 # 테마별 여행 장소 추천
+│   │   ├── HomeScreen.tsx        # 홈 화면
+│   │   ├── SplashScreen.tsx      # 스플래시 화면
+│   ├── utils                     # 번역 관련 유틸리티 함수 및 헬퍼
+├── App.tsx                       # 메인 앱 파일 (앱 진입점)
+├── package.json                  # 의존성 관리 및 스크립트 정의
 ```
 
-## Step 2: Start your Application
+</br>
 
-Let Metro Bundler run in its _own_ terminal. Open a _new_ terminal from the _root_ of your React Native project. Run the following command to start your _Android_ or _iOS_ app:
+## 🔧 𝗧𝗲𝗰𝗵 𝗦𝘁𝗮𝗰𝗸
+- React Native CLI
+- TypeScript
+- React Navigation
+- Axios
+- ESLint & Prettier 
 
-### For Android
+</br>
 
-```bash
-# using npm
-npm run android
+## ✨ 𝗕𝗿𝗮𝗻𝗰𝗵 𝗖𝗼𝗻𝘃𝗲𝗻𝘁𝗶𝗼𝗻𝘀
 
-# OR using Yarn
-yarn android
-```
+| **브랜치 유형**                 | **설명**                                      |
+|-------------------------------|----------------------------------------------|
+| `develop2`                   | React Native CLI 기반 최종 개발 코드          |
+| `feature/#<이슈번호>-<기능명>` | 새로운 기능 개발 브랜치                      |
+| `develop`                    | Expo 기반 초기 개발 코드                      |
 
-### For iOS
-
-```bash
-# using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
-```
-
-If everything is set up _correctly_, you should see your new app running in your _Android Emulator_ or _iOS Simulator_ shortly provided you have set up your emulator/simulator correctly.
-
-This is one way to run your app — you can also run it directly from within Android Studio and Xcode respectively.
-
-## Step 3: Modifying your App
-
-Now that you have successfully run the app, let's modify it.
-
-1. Open `App.tsx` in your text editor of choice and edit some lines.
-2. For **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Developer Menu** (<kbd>Ctrl</kbd> + <kbd>M</kbd> (on Window and Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (on macOS)) to see your changes!
-
-   For **iOS**: Hit <kbd>Cmd ⌘</kbd> + <kbd>R</kbd> in your iOS Simulator to reload the app and see your changes!
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [Introduction to React Native](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you can't get this to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+</br>
