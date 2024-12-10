@@ -2,6 +2,8 @@
 
 > [TourMate 프로젝트 설명 바로 가기](https://github.com/korea-tour-mate-app)
 
+</br>
+
 ## 📂 𝗣𝗿𝗼𝗷𝗲𝗰𝘁 𝗙𝗼𝗹𝗱𝗲𝗿 𝗦𝘁𝗿𝘂𝗰𝘁𝘂𝗿𝗲
 ```plaintext
 TOURMATE-FRONTEND
